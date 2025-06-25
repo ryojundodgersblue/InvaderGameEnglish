@@ -1,0 +1,9 @@
+.textbox {
+  width: 200px;
+  padding: 8px 12px;
+  font-size: 16px;
+  border: none;
+  border-radius: 4px;
+  background: #fff;
+  font-family: inherit;
+}

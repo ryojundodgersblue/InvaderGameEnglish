@@ -1,0 +1,16 @@
+.btn {
+  margin-top: 16px;
+  padding: 10px 0;
+  width: 100%;
+  font-size: 18px;
+  color: #333;
+  background: #fff;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-family: inherit;
+}
+
+.btn:hover {
+  background: #f0f0f0;
+}
