@@ -68,12 +68,12 @@ app.post('/auth/login', async (req, res) => {
     }
 
     // 1行目をヘッダーとみなす
-    const header      = rows[0];     // ['user_id','name','password_hash','is_admin','created_at']
+    const header      = rows[0];     // ['user_id','name','password','is_admin','created_at']
     const dataRows    = rows.slice(1);
 
     const idxUserId   = header.indexOf('user_id');
     const idxName     = header.indexOf('name');
-    const idxPassHash = header.indexOf('password_hash');
+    const idxPassHash = header.indexOf('password');
 
     // user_id が一致するユーザーを検索
     const matched = dataRows.find(r => r[idxUserId] === userId);
@@ -83,7 +83,7 @@ app.post('/auth/login', async (req, res) => {
         .json({ ok: false, message: '認証に失敗しました' });
     }
 
-    // password_hash とプレーンテキスト比較
+    // password とプレーンテキスト比較
     const storedHash = matched[idxPassHash] || '';
     if (storedHash !== password) {
       return res
