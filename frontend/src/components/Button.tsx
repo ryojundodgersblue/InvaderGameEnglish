@@ -1,5 +1,5 @@
 import React from 'react';
-import './Button.css'; // 必要なら専用CSS
+import './Button.css'; // 専用CSS
 
 type Props = {
   onClick: () => void;

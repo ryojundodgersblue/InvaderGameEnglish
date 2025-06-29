@@ -1,5 +1,5 @@
 import React from 'react';
-import './TextBox.css'; // 必要なら専用CSS
+import './TextBox.css'; // 専用CSS
 
 type Props = {
   value: string;
