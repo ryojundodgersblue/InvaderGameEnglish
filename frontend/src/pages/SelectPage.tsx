@@ -18,7 +18,7 @@ const SelectPage: React.FC = () => {
         </Button>
       </div>
 
-      <h1 className="title">Choose question</h1>
+      <h1 className="title">Select a Stage</h1>
 
       <div className="login-box" style={{ maxWidth: 400 }}>
         <div className="field">

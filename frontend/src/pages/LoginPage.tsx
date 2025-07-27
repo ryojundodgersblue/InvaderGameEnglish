@@ -42,7 +42,7 @@ const LoginPage: React.FC = () => {
           <label>Password</label>
           <TextBox type="password" value={password} onChange={setPass} placeholder="••••••••" />
         </div>
-        <Button onClick={onLogin}>log in</Button>
+        <Button onClick={onLogin}>LOGIN</Button>
       </div>
     </div>
   );

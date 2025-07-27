@@ -1,14 +1,22 @@
-/* Google Font + 全体背景・フォント */
+/* Google Fonts から Orbitron を読み込む */
 @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;700&display=swap');
+/* Google Fonts から Playpen Sans を読み込む */
+@import url('https://fonts.googleapis.com/css2?family=Playpen+Sans:wght@400;700&display=swap');
+
 
 html, body, #root {
   margin: 0;
   padding: 0;
   height: 100%;
-  font-family: 'Orbitron', sans-serif;
+  font-family: 'Playpen Sans', sans-serif;
 }
 
 body {
   background: url('/bg.png') no-repeat center center;
   background-size: cover;
+}
+
+.login-page,
+.login-page * {
+  font-family: 'Orbitron', sans-serif; 
 }
