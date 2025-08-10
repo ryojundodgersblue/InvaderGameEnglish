@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import TextBox from '../components/TextBox'
 import Button from '../components/Button'
 import '../App.css'
+import './LoginPage.css';
 
 const LoginPage: React.FC = () => {
   const [userId, setUserId] = useState('')

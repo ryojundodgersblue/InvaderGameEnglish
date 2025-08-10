@@ -10,10 +10,10 @@ const SelectPage: React.FC = () => {
   const navigate = useNavigate()
 
   return (
-    <div className="login-page"> {/* 背景・センタリングは共通スタイルを流用 */}
+    <div className="page select-page"> {/* 背景・センタリングは共通スタイルを流用 */}
       {/* 右上の Ranking ボタン */}
-      <div style={{ position: 'absolute', top: 16, right: 16 }}>
-        <Button onClick={() => navigate('/ranking')} size="small">
+      <div style={{ position: 'absolute', top: 5, right: 16, padding: 10 }}>
+        <Button onClick={() => navigate('/ranking')} >
           Ranking 🏆
         </Button>
       </div>

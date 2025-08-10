@@ -1,22 +1,44 @@
-/* Google Fonts から Orbitron を読み込む */
-@import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;700&display=swap');
 /* Google Fonts から Playpen Sans を読み込む */
 @import url('https://fonts.googleapis.com/css2?family=Playpen+Sans:wght@400;700&display=swap');
 
-
 html, body, #root {
-  margin: 0;
-  padding: 0;
-  height: 100%;
+  margin: 0; padding: 0; height: 100%;
   font-family: 'Playpen Sans', sans-serif;
 }
 
+/* 背景 */
 body {
-  background: url('/bg.png') no-repeat center center;
-  background-size: cover;
+  background: url('/bg.png') no-repeat center center / cover;
 }
 
-.login-page,
-.login-page * {
-  font-family: 'Orbitron', sans-serif; 
+/* どのページでも使える中央寄せレイアウト */
+.page {
+  min-height: 100dvh;           /* 100vh よりモバイルに強い */
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+}
+
+/* 見出しのデフォルト余白で左に寄って見えるので整える */
+.page h1 {
+  margin: 0 0 24px;
+  text-align: center;
+}
+
+/* 黒透過のパネル（フォーム入れる箱） */
+.panel {
+  width: 360px;                 /* 必要なら調整 */
+  max-width: 90vw;
+  padding: 24px;
+  background: rgba(0,0,0,.6);
+  border-radius: 12px;
+}
+
+/* 右上のランキングボタン固定 */
+.ranking-btn {
+  position: fixed;
+  top: 16px;
+  right: 16px;
 }
