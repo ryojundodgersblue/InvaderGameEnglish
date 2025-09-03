@@ -66,7 +66,7 @@ const Ranking: React.FC = () => {
 
       <div className="rank-grid">
         <section className="panel">
-          <h2 className="rank-heading">Fastest Players</h2>
+          <h2 className="rank-heading">Number of try</h2>
           <ol className="rank-list">
             {(challenge ?? []).slice(0, 3).map((it, i) => (
               <li key={it.userId} className="rank-row">

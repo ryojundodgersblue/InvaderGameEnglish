@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import TextBox from '../components/TextBox'
 import Button from '../components/Button'
 import '../App.css'
-import './LoginPage.css';
+import './LoginPage.css'
 
 const LoginPage: React.FC = () => {
   const [userId, setUserId] = useState('')
@@ -19,11 +19,23 @@ const LoginPage: React.FC = () => {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ userId, password }),
       })
-      if (!res.ok) {
-        const body = await res.json()
-        throw new Error(body.message || 'Login failed')
+
+      // ★ まず JSON を一度だけパース
+      const data = await res.json().catch(() => ({} as any))
+
+      // ★ ステータス or API の ok を確認
+      if (!res.ok || !data?.ok) {
+        throw new Error(data?.message || `Login failed (${res.status})`)
       }
-      // ログイン成功したら選択画面へ
+
+      // ★ ユーザー情報を保存
+      const user = data.user || {}
+      localStorage.setItem('userId', user.userId ?? '')
+      localStorage.setItem('userName', user.name ?? '')
+      localStorage.setItem('current_grade', String(user.current_grade ?? ''))
+      localStorage.setItem('current_part',  String(user.current_part  ?? ''))
+
+      // 成功したら遷移
       navigate('/select')
     } catch (err) {
       setError(err instanceof Error ? err.message : String(err))
@@ -46,7 +58,7 @@ const LoginPage: React.FC = () => {
         <Button onClick={onLogin}>LOGIN</Button>
       </div>
     </div>
-  );
-};
+  )
+}
 
-export default LoginPage;
+export default LoginPage
