@@ -69,7 +69,7 @@ const Ranking: React.FC = () => {
           <h2 className="rank-heading">Number of try</h2>
           <ol className="rank-list">
             {(challenge ?? []).slice(0, 3).map((it, i) => (
-              <li key={it.userId} className="rank-row">
+              <li key={`${it.userId || 'u'}-${i}`} className="rank-row">
                 <span className="rank-no">No.{i + 1}</span>
                 <span className="rank-name">{it.name}</span>
               </li>
@@ -81,7 +81,7 @@ const Ranking: React.FC = () => {
           <h2 className="rank-heading">Best Scores</h2>
           <ol className="rank-list">
             {(accuracy ?? []).slice(0, 3).map((it, i) => (
-              <li key={it.userId} className="rank-row">
+              <li key={`${it.userId || 'u'}-${i}`} className="rank-row">
                 <span className="rank-no">No.{i + 1}</span>
                 <span className="rank-name">{it.name}</span>
               </li>

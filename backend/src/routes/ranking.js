@@ -1,29 +1,25 @@
 // backend/src/routes/ranking.js
 const express = require('express');
 const router = express.Router();
-const { getSheets } = require('../lib/sheets');
+const { getSheetsClient, SPREADSHEET_ID } = require('../services/sheets');
 
-const SHEET_ID = process.env.SHEET_ID;
-const USERS_SHEET = 'users';
+const USERS_SHEET  = 'users';
 const SCORES_SHEET = 'scores';
 
 // ---- 超シンプルキャッシュ ----
-let usersCache = { data: null, fetchedAt: 0 };          // 10分TTL
-let rankingCache = { monthKey: '', data: null, at: 0 }; // 60秒TTL
+let usersCache   = { data: null, fetchedAt: 0 };         // 10分
+let rankingCache = { monthKey: '', data: null, at: 0 };  // 60秒
 
-function monthKeyOf(date) {
-  const y = date.getFullYear();
-  const m = String(date.getMonth() + 1).padStart(2, '0');
-  return `${y}/${m}`; // 例: "2025/08"
-}
-function isUsersCacheFresh() {
-  return Date.now() - usersCache.fetchedAt < 10 * 60 * 1000;
-}
-function isRankingCacheFresh(mk) {
-  return rankingCache.monthKey === mk && (Date.now() - rankingCache.at < 60 * 1000);
-}
+const nowMonthKey = () => {
+  const d = new Date();
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, '0');
+  return `${y}/${m}`; // 例 "2025/08"
+};
+
 const toMonthKey = (v) => {
-  const s = String(v || '').trim();
+  const s = String(v ?? '').trim();
+  if (!s) return '';
   const parts = s.split(/[\/\-\.]/);
   if (parts.length >= 2) {
     const y = parts[0];
@@ -33,108 +29,135 @@ const toMonthKey = (v) => {
   return '';
 };
 
-router.get('/', async (req, res) => {
+const isUsersCacheFresh   = () => Date.now() - usersCache.fetchedAt < 10 * 60 * 1000;
+const isRankingCacheFresh = (mk) => rankingCache.monthKey === mk && (Date.now() - rankingCache.at < 60 * 1000);
+
+// ヘッダ配列から大小無視・前後空白無視で列位置を取る
+function idxOf(header, name) {
+  const target = String(name).trim().toLowerCase();
+  return header.findIndex(h => String(h ?? '').trim().toLowerCase() === target);
+}
+
+router.get('/', async (_req, res) => {
   try {
-    if (!SHEET_ID) return res.status(500).json({ ok: false, message: 'SHEET_ID が未設定です' });
+    if (!SPREADSHEET_ID) {
+      return res.status(500).json({ ok: false, message: 'SHEET_ID が未設定です' });
+    }
 
-    const now = new Date();
-    const mk  = monthKeyOf(now);
+    const mk = nowMonthKey();
 
-    // キャッシュがあれば即返す
+    // 直近60秒はキャッシュ
     if (isRankingCacheFresh(mk) && rankingCache.data) {
       return res.json(rankingCache.data);
     }
 
-    const sheets = await getSheets();
+    const sheets = await getSheetsClient(true);
 
-    // ----- users（10分キャッシュ）-----
-    let users = usersCache.data;
-    if (!isUsersCacheFresh() || !users) {
+    // ===== users 読み込み（user_id と nickname だけ使う）=====
+    let usersMap = usersCache.data; // user_id -> nickname
+    if (!isUsersCacheFresh() || !usersMap) {
       const uResp = await sheets.spreadsheets.values.get({
-        spreadsheetId: SHEET_ID,
-        range: `${USERS_SHEET}!A:E`,
+        spreadsheetId: SPREADSHEET_ID,
+        range: `${USERS_SHEET}!A1:K`, // 幅広く取得（id〜updated_at まで想定）
         valueRenderOption: 'FORMATTED_VALUE',
         dateTimeRenderOption: 'FORMATTED_STRING',
       });
-      const uRows   = uResp.data.values || [];
-      const uHeader = (uRows[0] || []).map(h => String(h).trim().toLowerCase());
-      const uData   = uRows.slice(1);
-
-      const idxUid  = uHeader.indexOf('user_id');
-      const idxName = uHeader.indexOf('name');
-      if (idxUid < 0 || idxName < 0) {
-        return res.status(500).json({ ok: false, message: 'users シートのヘッダが想定と異なります' });
+      const uRows = uResp.data.values || [];
+      if (uRows.length < 2) {
+        console.error('[ranking] users: rows < 2');
+        return res.json({ month: mk, items: { challenge: [], accuracy: [] } });
       }
 
-      const map = new Map();
-      for (const r of uData) {
-        const uid = r[idxUid];
-        const nm  = r[idxName];
-        if (uid) map.set(String(uid), String(nm || ''));
+      const uHeader = uRows[0].map(v => String(v ?? ''));
+      const idxUid  = idxOf(uHeader, 'user_id');
+      const idxNick = idxOf(uHeader, 'nickname');
+
+      if (idxUid < 0 || idxNick < 0) {
+        console.error('[ranking] users header not found', { uHeader });
+        return res.json({ month: mk, items: { challenge: [], accuracy: [] } });
       }
-      users = map;
-      usersCache = { data: users, fetchedAt: Date.now() };
+
+      usersMap = new Map();
+      for (const r of uRows.slice(1)) {
+        const uid  = String(r[idxUid] ?? '').trim();
+        const nick = String(r[idxNick] ?? '').trim();
+        if (uid) usersMap.set(uid, nick);
+      }
+      usersCache = { data: usersMap, fetchedAt: Date.now() };
     }
 
-    // ----- scores（今月抽出）-----
+    // ===== scores 読み込み（当月抽出）=====
     const sResp = await sheets.spreadsheets.values.get({
-      spreadsheetId: SHEET_ID,
-      range: `${SCORES_SHEET}!A:E`,
+      spreadsheetId: SPREADSHEET_ID,
+      range: `${SCORES_SHEET}!A1:Z`, // 念のため広めに取得
       valueRenderOption: 'FORMATTED_VALUE',
       dateTimeRenderOption: 'FORMATTED_STRING',
     });
-
-    const sRows   = sResp.data.values || [];
-    const sHeader = (sRows[0] || []).map(h => String(h).trim().toLowerCase());
-    const sData   = sRows.slice(1);
-
-    const idxUserId = sHeader.indexOf('user_id');
-    const idxScore  = sHeader.indexOf('score');
-    let idxDate     = sHeader.indexOf('play_date');
-    if (idxDate < 0) idxDate = sHeader.indexOf('play date');
-
-    if (idxUserId < 0 || idxScore < 0 || idxDate < 0) {
-      return res.status(500).json({ ok: false, message: 'scores シートのヘッダが想定と異なります' });
+    const sRows = sResp.data.values || [];
+    if (sRows.length < 2) {
+      return res.json({ month: mk, items: { challenge: [], accuracy: [] } });
     }
 
-    const monthRows = sData.filter(r => toMonthKey(r[idxDate]) === mk);
+    const sHeader = sRows[0].map(v => String(v ?? ''));
+    const idxUser = idxOf(sHeader, 'user_id');
+    const idxScore = idxOf(sHeader, 'scores');
+    let idxDate = idxOf(sHeader, 'play_date');
+    if (idxDate < 0) idxDate = idxOf(sHeader, 'play date'); // 表記ゆれ吸収
 
-    // ① Fastest Players（挑戦数：件数多い順）
+    if (idxUser < 0 || idxScore < 0 || idxDate < 0) {
+      console.error('[ranking] scores header not found', { sHeader });
+      return res.json({ month: mk, items: { challenge: [], accuracy: [] } });
+    }
+
+    const monthRows = sRows.slice(1).filter(r => toMonthKey(r[idxDate]) === mk);
+
+    // ① 挑戦回数（多い順）
     const countByUser = new Map();
     for (const r of monthRows) {
-      const uid = String(r[idxUserId] || '');
+      const uid = String(r[idxUser] ?? '').trim();
       if (!uid) continue;
       countByUser.set(uid, (countByUser.get(uid) || 0) + 1);
     }
     const challenge = [...countByUser.entries()]
-      .map(([uid, attempts]) => ({ userId: uid, name: users.get(uid) || uid, attempts }))
-      .sort((a, b) => b.attempts - a.attempts)
-      .slice(0, 3);
+      .map(([uid, cnt]) => ({ userId: uid, name: usersMap.get(uid) || uid, _cnt: cnt }))
+      .sort((a, b) =>
+        b._cnt - a._cnt ||
+        (a.name || '').localeCompare(b.name || '') ||
+        a.userId.localeCompare(b.userId)
+      )
+      .slice(0, 3)
+      .map(({ userId, name }) => ({ userId, name }));
 
-    // ② Best Scores（平均スコア：合計/件数 の大きい順）
+    // ② 正答率（平均 scores の高い順）
     const sum = new Map();
     const cnt = new Map();
     for (const r of monthRows) {
-      const uid = String(r[idxUserId] || '');
-      const sc  = Number(r[idxScore] || 0);
+      const uid = String(r[idxUser] ?? '').trim();
       if (!uid) continue;
-      sum.set(uid, (sum.get(uid) || 0) + sc);
+      const val = Number(r[idxScore] ?? 0);
+      sum.set(uid, (sum.get(uid) || 0) + (Number.isFinite(val) ? val : 0));
       cnt.set(uid, (cnt.get(uid) || 0) + 1);
     }
     const accuracy = [...sum.entries()]
-      .map(([uid, totalScore]) => {
-        const plays    = cnt.get(uid) || 1;
-        const avgScore = totalScore / plays;
-        return { userId: uid, name: users.get(uid) || uid, avgScore, plays, totalScore };
+      .map(([uid, total]) => {
+        const plays = cnt.get(uid) || 1;
+        const avg   = total / plays;
+        return { userId: uid, name: usersMap.get(uid) || uid, _avg: avg, _plays: plays };
       })
-      .sort((a, b) => b.avgScore - a.avgScore)
-      .slice(0, 3);
+      .sort((a, b) =>
+        b._avg - a._avg ||
+        b._plays - a._plays ||
+        (a.name || '').localeCompare(b.name || '') ||
+        a.userId.localeCompare(b.userId)
+      )
+      .slice(0, 3)
+      .map(({ userId, name }) => ({ userId, name }));
 
-    const payload = { ok: true, month: mk, items: { challenge, accuracy } };
-    rankingCache = { monthKey: mk, data: payload, at: Date.now() }; // 60秒キャッシュ
+    const payload = { month: mk, items: { challenge, accuracy } };
+    rankingCache = { monthKey: mk, data: payload, at: Date.now() };
     res.json(payload);
   } catch (e) {
-    console.error(e);
+    console.error('[ranking] error:', e);
     res.status(500).json({ ok: false, message: 'ランキング取得でエラーが発生しました' });
   }
 });
