@@ -1,8 +1,10 @@
-import { Routes, Route } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+
 import LoginPage from './pages/LoginPage';
 import SelectPage from './pages/SelectPage';
 import Ranking from './pages/Ranking';
 import PlayPage from './pages/PlayPage'; 
+import ResultPage from './pages/ResultPage';
 
 function App() {
   return (
@@ -11,6 +13,8 @@ function App() {
       <Route path="/select" element={<SelectPage />} />
       <Route path="/ranking" element={<Ranking />} />
       <Route path="/play" element={<PlayPage />} />
+      <Route path="/result"   element={<ResultPage />} />
+      <Route path="*"         element={<Navigate to="/" replace />} />
     </Routes>
   )
 }
