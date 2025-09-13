@@ -9,7 +9,7 @@ import ResultPage from './pages/ResultPage';
 function App() {
   return (
     <Routes>
-      <Route path="/" element={<LoginPage />} />
+      <Route path="/logIn" element={<LoginPage />} />
       <Route path="/select" element={<SelectPage />} />
       <Route path="/ranking" element={<Ranking />} />
       <Route path="/play" element={<PlayPage />} />
