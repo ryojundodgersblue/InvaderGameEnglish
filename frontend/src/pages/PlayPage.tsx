@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useRef, useState, useCallback } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import Button from '../components/Button';
 import '../App.css';
@@ -39,7 +39,6 @@ const normalize = (s:string)=> s.toLowerCase().replace(/[^a-z0-9\s]/g,'').replac
 
 function speakAwait(text: string): Promise<void> {
   return new Promise((resolve) => {
-    // 音声合成をキャンセル（前の音声が残らないように）
     const synth = (window as any).speechSynthesis;
     if (!synth) return resolve();
     
@@ -65,6 +64,17 @@ function speakBubuu() {
   synth.speak(u);
 }
 
+function playAngerSound() {
+  const synth = (window as any).speechSynthesis;
+  if (!synth) return;
+  synth.cancel();
+  const u = new SpeechSynthesisUtterance('グォォォ！');
+  u.lang = 'ja-JP';
+  u.rate = 0.8;
+  u.pitch = 0.5;
+  synth.speak(u);
+}
+
 // ------------------------ Component --------------------------
 const PlayPage: React.FC = () => {
   const nav = useNavigate();
@@ -84,55 +94,79 @@ const PlayPage: React.FC = () => {
   const [realCorrect, setRealCorrect] = useState(0);
   const [error, setError] = useState<string | null>(null);
 
+  // マイク関連の状態
+  const [micActive, setMicActive] = useState(false);
+  const [capturedTexts, setCapturedTexts] = useState<string[]>([]);
+  const [lastRecognized, setLastRecognized] = useState<string>('');
+
+  // Ref を使って最新の値を参照
   const timerRef = useRef<number | null>(null);
   const deadlineRef = useRef<number | null>(null);
-  const isProcessingAnswerRef = useRef(false);
-  const currentQuestionRef = useRef<Q | null>(null);
+  const isProcessingRef = useRef(false);
+  const questionsRef = useRef<Q[]>([]);
+  const idxRef = useRef(0);
+  const statusRef = useRef<Status>('idle');
+  const recognitionRef = useRef<any>(null);
+  const capturedRef = useRef<string[]>([]);
+  
+  // Refと状態を同期
+  useEffect(() => { questionsRef.current = questions; }, [questions]);
+  useEffect(() => { idxRef.current = idx; }, [idx]);
+  useEffect(() => { statusRef.current = status; }, [status]);
 
   const current = questions[idx];
   const questionNo = idx + 1;
-
-  // デモは1問目のis_demo=trueのみ
   const isDemo = idx === 0 && current?.is_demo === true;
 
   // ---------------------- Timer control ----------------------
-  const clearTimer = useCallback(() => { 
+  const clearTimer = () => { 
     if (timerRef.current) { 
       window.clearInterval(timerRef.current); 
       timerRef.current = null; 
     } 
     deadlineRef.current = null;
-  }, []);
+  };
   
-  const startRoundTimer = useCallback(() => {
+  const startRoundTimer = () => {
     clearTimer();
     deadlineRef.current = Date.now() + ROUND_TIME_SEC * 1000;
     setTimeLeft(ROUND_TIME_SEC);
     
     timerRef.current = window.setInterval(() => {
-      if (!deadlineRef.current) {
+      if (!deadlineRef.current || isProcessingRef.current) {
         clearTimer();
         return;
       }
+      
       const now = Date.now();
       const remainMs = Math.max(0, deadlineRef.current - now);
       const remainSec = Math.ceil(remainMs / 1000);
       setTimeLeft(remainSec);
       
-      if (remainMs <= 0) {
+      if (remainMs <= 0 && statusRef.current === 'listening') {
         clearTimer();
-        if (!isProcessingAnswerRef.current) {
-          handleTimeout();
-        }
+        handleTimeout();
       }
     }, 100) as any;
-  }, [clearTimer]);
+  };
 
-  const handleTimeout = useCallback(async () => {
-    if (isProcessingAnswerRef.current || status === 'finished') return;
-    isProcessingAnswerRef.current = true;
+  const handleTimeout = async () => {
+    if (isProcessingRef.current || statusRef.current !== 'listening') return;
+    isProcessingRef.current = true;
     
-    console.log('Timeout occurred for question:', idx + 1);
+    // マイクがオンの場合はオフにする
+    if (micActive && recognitionRef.current) {
+      try {
+        recognitionRef.current.stop();
+      } catch {}
+      setMicActive(false);
+    }
+    
+    const currentIdx = idxRef.current;
+    console.log('Timeout occurred for question:', currentIdx + 1);
+    
+    // タイムアウト時に敵の攻撃音を再生
+    playAngerSound();
     
     setStatus('timeout');
     await new Promise(r => setTimeout(r, DLY.afterTimeoutBeforeReveal));
@@ -140,7 +174,7 @@ const PlayPage: React.FC = () => {
     await new Promise(r => setTimeout(r, DLY.afterReveal));
     
     moveToNextQuestion();
-  }, [idx, status]);
+  };
 
   // ---------------------- Initial load -----------------------
   useEffect(() => {
@@ -161,7 +195,11 @@ const PlayPage: React.FC = () => {
         if (!r2.ok) throw new Error('questions 取得失敗');
         const j2 = await r2.json();
         const qs: Q[] = (j2.questions || []).slice(0, MAX_QUESTIONS);
+        
+        console.log('Loaded questions:', qs.length, 'Demo count:', qs.filter(q => q.is_demo).length);
+        
         setQuestions(qs);
+        questionsRef.current = qs;
         setIdx(0);
         setShowRequirement(true);
       } catch (e:any) {
@@ -171,29 +209,34 @@ const PlayPage: React.FC = () => {
       }
     })();
     
-    // クリーンアップ
     return () => {
       clearTimer();
       (window as any).speechSynthesis?.cancel();
+      if (recognitionRef.current) {
+        try {
+          recognitionRef.current.stop();
+        } catch {}
+      }
     };
-  }, [clearTimer]);
+  }, []);
 
   // ---------------------- Question Start ----------------------
-  const startQuestionForIndex = useCallback(async (questionIndex: number) => {
-    const targetQuestion = questions[questionIndex];
-    if (!targetQuestion || status === 'finished') return;
+  const startQuestionForIndex = async (questionIndex: number) => {
+    const targetQuestion = questionsRef.current[questionIndex];
+    if (!targetQuestion || statusRef.current === 'finished') return;
     
     console.log(`Starting question ${questionIndex + 1}:`, targetQuestion.question_text);
+    console.log('Total questions available:', questionsRef.current.length);
     
-    // 状態をリセット
-    isProcessingAnswerRef.current = false;
-    currentQuestionRef.current = targetQuestion;
+    isProcessingRef.current = false;
     setShowText(false);
     setStatus('speaking');
     clearTimer();
     setTimeLeft(ROUND_TIME_SEC);
+    setCapturedTexts([]);
+    setLastRecognized('');
+    capturedRef.current = [];
     
-    // 音声合成をクリア
     (window as any).speechSynthesis?.cancel();
     
     const text = targetQuestion.question_text;
@@ -219,20 +262,17 @@ const PlayPage: React.FC = () => {
         // デモの自動処理
         await new Promise(r => setTimeout(r, DLY.afterThirdSpeakBeforeDemoAns));
         
-        if (isProcessingAnswerRef.current) return;
-        isProcessingAnswerRef.current = true;
+        if (isProcessingRef.current) return;
+        isProcessingRef.current = true;
         clearTimer();
 
-        // ビーム演出
         setStatus('beam');
         setCorrectCount(c => c + 1);
         await new Promise(r => setTimeout(r, DLY.beam));
 
-        // 爆発演出
         setStatus('explosion');
         await new Promise(r => setTimeout(r, DLY.explosion));
 
-        // 解答表示
         setStatus('reveal');
         await new Promise(r => setTimeout(r, DLY.afterReveal));
         
@@ -240,107 +280,196 @@ const PlayPage: React.FC = () => {
       } else {
         // 通常問題：回答受付開始
         await new Promise(r => setTimeout(r, DLY.afterThirdSpeakBeforeListen));
-        if (!isProcessingAnswerRef.current) {
+        if (!isProcessingRef.current) {
           setStatus('listening');
         }
       }
     } catch (e) {
       console.error('Error in startQuestionForIndex:', e);
     }
-  }, [questions, status, clearTimer, startRoundTimer]);
+  };
 
   // ---------------------- Move to Next Question ----------------------
-  const moveToNextQuestion = useCallback(() => {
+  const moveToNextQuestion = () => {
     clearTimer();
-    isProcessingAnswerRef.current = false;
+    isProcessingRef.current = false;
+    setMicActive(false);
     
-    const nextIdx = idx + 1;
-    console.log(`Moving from question ${idx + 1} to ${nextIdx + 1}`);
+    // 音声認識を停止
+    if (recognitionRef.current) {
+      try {
+        recognitionRef.current.stop();
+      } catch {}
+    }
     
-    if (nextIdx >= questions.length) {
+    const currentIdx = idxRef.current;
+    const nextIdx = currentIdx + 1;
+    console.log(`Moving from question ${currentIdx + 1} to ${nextIdx + 1} (Total: ${questionsRef.current.length})`);
+    
+    if (nextIdx >= questionsRef.current.length) {
+      console.log('All questions completed. Moving to result screen.');
       setStatus('finished');
       finishGame();
       return;
     }
     
     setIdx(nextIdx);
+    idxRef.current = nextIdx;
     setShowText(false);
     setStatus('idle');
+    setCapturedTexts([]);
+    setLastRecognized('');
     
-    // 少し待ってから次の問題を開始
     setTimeout(() => {
       startQuestionForIndex(nextIdx);
     }, DLY.beforeNextQuestion);
-  }, [idx, questions.length, clearTimer]);
+  };
 
-  // ---------------------- Mic / Answer -----------------------
-  const onMic = useCallback(async () => {
-    const currentQ = currentQuestionRef.current;
-    if (!currentQ || status !== 'listening' || isProcessingAnswerRef.current) return;
+  // ---------------------- Mic Toggle -----------------------
+  const toggleMic = () => {
+    const currentQ = questionsRef.current[idxRef.current];
+    if (!currentQ || statusRef.current !== 'listening' || isProcessingRef.current) return;
     
     const deadline = deadlineRef.current;
     if (!deadline || Date.now() >= deadline) return;
 
+    if (!micActive) {
+      // マイクをオンにする
+      startRecognition();
+    } else {
+      // マイクをオフにして評価
+      stopRecognitionAndEvaluate();
+    }
+  };
+
+  const startRecognition = () => {
     const SR: any = (window as any).webkitSpeechRecognition || (window as any).SpeechRecognition;
-    if (!SR) return alert('このブラウザは音声認識に未対応です（Chrome 推奨）');
+    if (!SR) {
+      alert('このブラウザは音声認識に未対応です（Chrome 推奨）');
+      return;
+    }
     
     const rec = new SR();
+    recognitionRef.current = rec;
+    capturedRef.current = [];
+    
     rec.lang = 'en-US';
-    rec.interimResults = false;
-    rec.maxAlternatives = 1;
+    rec.continuous = true; // 継続的に音声を取得
+    rec.interimResults = true; // 中間結果も取得
+    rec.maxAlternatives = 3; // 複数の候補を取得
 
-    rec.onresult = async (e:any) => {
-      if (isProcessingAnswerRef.current || !deadlineRef.current || Date.now() >= deadlineRef.current) {
-        return;
-      }
-
-      const transcript = e.results?.[0]?.[0]?.transcript ?? '';
-      console.log('Recognized:', transcript, 'Expected:', currentQ.answers);
-      
-      const ok = (currentQ.answers || []).some(a => normalize(a) === normalize(transcript));
-      
-      if (ok) {
-        // 正解処理
-        isProcessingAnswerRef.current = true;
-        clearTimer();
-        
-        setStatus('beam');
-        setCorrectCount(c => c + 1);
-        setRealCorrect(c => c + 1);
-        await new Promise(r => setTimeout(r, DLY.beam));
-        
-        setStatus('explosion');
-        await new Promise(r => setTimeout(r, DLY.explosion));
-        
-        setStatus('reveal');
-        await new Promise(r => setTimeout(r, DLY.afterReveal));
-        
-        moveToNextQuestion();
-      } else {
-        // 不正解
-        setStatus('wrong');
-        speakBubuu();
-        setTimeout(() => {
-          if (!isProcessingAnswerRef.current && deadlineRef.current && Date.now() < deadlineRef.current) {
-            setStatus('listening');
+    rec.onresult = (e:any) => {
+      for (let i = e.resultIndex; i < e.results.length; i++) {
+        const result = e.results[i];
+        for (let j = 0; j < result.length; j++) {
+          const alt = result[j];
+          const text = alt?.transcript ?? '';
+          if (text && text.trim()) {
+            const normalized = text.trim();
+            // 重複を避けて追加
+            if (!capturedRef.current.includes(normalized)) {
+              capturedRef.current.push(normalized);
+              setCapturedTexts([...capturedRef.current]);
+              setLastRecognized(normalized);
+              console.log('Captured:', normalized);
+            }
           }
-        }, 600);
+        }
       }
     };
     
     rec.onerror = (e:any) => {
-      console.error('Speech recognition error:', e);
-      if (!isProcessingAnswerRef.current && deadlineRef.current && Date.now() < deadlineRef.current) {
-        setStatus('listening');
+      console.log('Speech recognition error:', e.error);
+      // no-speechエラーは無視（ユーザーが話していないだけ）
+      if (e.error === 'no-speech') {
+        return;
       }
+      // その他のエラーの場合は停止
+      setMicActive(false);
     };
     
-    rec.start();
-  }, [status, clearTimer, moveToNextQuestion]);
+    rec.onend = () => {
+      console.log('Recognition ended');
+      setMicActive(false);
+    };
+
+    try {
+      rec.start();
+      setMicActive(true);
+      console.log('Mic ON - Started listening');
+    } catch (e) {
+      console.error('Failed to start recognition:', e);
+      setMicActive(false);
+    }
+  };
+
+  const stopRecognitionAndEvaluate = async () => {
+    if (recognitionRef.current) {
+      try {
+        recognitionRef.current.stop();
+      } catch {}
+    }
+    setMicActive(false);
+    console.log('Mic OFF - Evaluating captured texts:', capturedRef.current);
+    
+    // 評価処理
+    const currentQ = questionsRef.current[idxRef.current];
+    if (!currentQ || isProcessingRef.current) return;
+    
+    const captured = capturedRef.current.map(normalize);
+    const answers = (currentQ.answers || []).map(normalize);
+    
+    console.log('Normalized captured:', captured);
+    console.log('Expected answers:', answers);
+    
+    // いずれかの発話が答えと一致するかチェック
+    let isCorrect = false;
+    for (const capturedText of captured) {
+      if (answers.some(ans => capturedText.includes(ans) || ans.includes(capturedText))) {
+        isCorrect = true;
+        break;
+      }
+    }
+    
+    if (isCorrect) {
+      // 正解処理
+      isProcessingRef.current = true;
+      clearTimer();
+      
+      setStatus('beam');
+      setCorrectCount(c => c + 1);
+      setRealCorrect(c => c + 1);
+      await new Promise(r => setTimeout(r, DLY.beam));
+      
+      setStatus('explosion');
+      await new Promise(r => setTimeout(r, DLY.explosion));
+      
+      setStatus('reveal');
+      await new Promise(r => setTimeout(r, DLY.afterReveal));
+      
+      moveToNextQuestion();
+    } else {
+      // 不正解
+      setStatus('wrong');
+      speakBubuu();
+      setTimeout(() => {
+        if (!isProcessingRef.current && deadlineRef.current && Date.now() < deadlineRef.current) {
+          setStatus('listening');
+          // 発話をリセット
+          capturedRef.current = [];
+          setCapturedTexts([]);
+        }
+      }, 600);
+    }
+  };
 
   // ---------------------- Finish Game ----------------------
   const finishGame = async () => {
-    console.log(`Game finished. Total correct: ${realCorrect}/${questions.filter(q => !q.is_demo).length}`);
+    const allQuestions = questionsRef.current;
+    const nonDemoQuestions = allQuestions.filter(q => !q.is_demo);
+    console.log(`Game finished. Total correct: ${realCorrect}/${nonDemoQuestions.length}`);
+    console.log('All questions:', allQuestions.length, 'Non-demo:', nonDemoQuestions.length);
+    
     const clear = realCorrect >= CORRECT_TO_CLEAR;
     
     try {
@@ -371,9 +500,7 @@ const PlayPage: React.FC = () => {
       console.warn('score/advance failed', e);
     }
     
-    // デモを除いた問題数を渡す
-    const totalNonDemoQuestions = questions.filter(q => !q.is_demo).length;
-    nav('/result', { state: { clear, correct: realCorrect, total: totalNonDemoQuestions } });
+    nav('/result', { state: { clear, correct: realCorrect, total: nonDemoQuestions.length } });
   };
 
   // ---------------------- Start Button Handler ----------------------
@@ -401,6 +528,46 @@ const PlayPage: React.FC = () => {
         }}>{timeLeft}</div>
       </div>
 
+      {/* 右上：マイク状態表示 */}
+      {status === 'listening' && (
+        <div style={{ position:'absolute', top:14, right:16 }}>
+          <div style={{
+            padding: '8px 16px',
+            borderRadius: 20,
+            background: micActive ? '#10b981' : '#6b7280',
+            color: '#fff',
+            fontWeight: 'bold',
+            fontSize: 14,
+            display: 'flex',
+            alignItems: 'center',
+            gap: 8,
+            boxShadow: micActive ? '0 0 20px rgba(16,185,129,0.5)' : 'none',
+            animation: micActive ? 'pulse 1.5s infinite' : 'none'
+          }}>
+            <div style={{
+              width: 8,
+              height: 8,
+              borderRadius: '50%',
+              background: micActive ? '#fff' : '#374151',
+              animation: micActive ? 'blink 1s infinite' : 'none'
+            }}/>
+            MIC: {micActive ? 'ON' : 'OFF'}
+          </div>
+          {lastRecognized && (
+            <div style={{
+              marginTop: 8,
+              padding: '4px 8px',
+              background: 'rgba(0,0,0,0.5)',
+              borderRadius: 4,
+              fontSize: 12,
+              color: '#e5e7eb'
+            }}>
+              Heard: "{lastRecognized}"
+            </div>
+          )}
+        </div>
+      )}
+
       {/* 左：何問目 */}
       <div style={{ position:'absolute', top:260, left:'15vw', color:'#fff' }}>
         <div style={{ 
@@ -415,10 +582,13 @@ const PlayPage: React.FC = () => {
         display:'flex', justifyContent:'center', marginTop:20, 
         position:'absolute', top:0, left:'50%', transform:'translateX(-50%)' 
       }}>
-        {status === 'explosion'
-          ? <img src="/explosion.gif" alt="boom" style={{ height:64 }} />
-          : <img src="/enemy.png" alt="enemy" style={{ height:64 }} />
-        }
+        {status === 'explosion' || status === 'beam' ? (
+          <img src="/enemy_ko.png" alt="enemy ko" style={{ height:64 }} />
+        ) : status === 'timeout' ? (
+          <img src="/enemy_attack.png" alt="enemy attack" style={{ height:64 }} />
+        ) : (
+          <img src="/enemy.png" alt="enemy" style={{ height:64 }} />
+        )}
       </div>
 
       {/* 中央：要件 or 問題文 */}
@@ -456,25 +626,41 @@ const PlayPage: React.FC = () => {
             }} />
           )}
 
-          {/* マイク */}
+          {/* 銃ボタン（マイクトグル） */}
           <div style={{ 
             position:'absolute', display:'flex', justifyContent:'center', 
             marginTop:20, bottom:150, left:0, right:0 
           }}>
             <button
-              onClick={onMic}
+              onClick={toggleMic}
               disabled={status !== 'listening'}
               style={{ 
-                border:'none', background:'transparent', 
-                cursor:(status === 'listening' ? 'pointer' : 'default') 
+                border:'none', 
+                background:'transparent', 
+                cursor: status === 'listening' ? 'pointer' : 'default',
+                opacity: status === 'listening' ? 1 : 0.5,
+                transition: 'all 0.3s',
+                transform: micActive ? 'scale(1.1)' : 'scale(1)',
+                filter: micActive ? 'drop-shadow(0 0 20px rgba(16,185,129,0.8))' : 'none'
               }}
             >
-              {status === 'timeout'
-                ? <img src="/mic_explosion.gif" alt="mic exploded" height={60} />
-                : <img src="/mic.png" alt="mic" height={60} />
-              }
+              <img src="/gun.png" alt="gun" style={{ height: 80 }} />
             </button>
           </div>
+
+          {/* マイク操作ヒント */}
+          {status === 'listening' && (
+            <div style={{
+              position:'absolute',
+              bottom: 100,
+              left: '50%',
+              transform: 'translateX(-50%)',
+              color: '#94a3b8',
+              fontSize: 14
+            }}>
+              {micActive ? 'Click gun to stop & submit' : 'Click gun to start recording'}
+            </div>
+          )}
 
           {/* 解答表示 */}
           {(status === 'reveal' || status === 'timeout') && current && (
@@ -488,6 +674,19 @@ const PlayPage: React.FC = () => {
           )}
         </>
       )}
+
+      {/* アニメーション用のスタイル */}
+      <style>{`
+        @keyframes pulse {
+          0% { transform: scale(1); }
+          50% { transform: scale(1.05); }
+          100% { transform: scale(1); }
+        }
+        @keyframes blink {
+          0%, 100% { opacity: 1; }
+          50% { opacity: 0.3; }
+        }
+      `}</style>
     </div>
   );
 };

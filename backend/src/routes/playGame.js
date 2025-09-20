@@ -1,20 +1,23 @@
-// backend/src/routes/game.js
+// backend/src/routes/playGame.js
 const express = require('express');
 const router = express.Router();
 const { getSheetsClient, SPREADSHEET_ID } = require('../services/sheets');
 
-const PARTS_SHEET     = 'parts';        // part_id | grade_id | part_no | subpart_no | requirement
-const QUESTIONS_SHEET = 'questions';    // question_id | part_id | display_order | is_demo | question_text | image_url
+const PARTS_SHEET     = 'parts';           // part_id | grade_id | part_no | subpart_no | requirement
+const QUESTIONS_SHEET = 'questions';       // question_id | part_id | display_order | is_demo | question_text | image_url
 const ANSWERS_SHEET   = 'answer_patterns'; // id | question_id | expected_text
-const SCORES_SHEET    = 'scores';       // score_id | user_id | part_id | scores | clear | play_date
-const USERS_SHEET     = 'users';        // id | user_id | password | nickname | real_name | current_grade | current_part | current_subpart | is_admin | created_at | updated_at
+const SCORES_SHEET    = 'scores';          // score_id | user_id | part_id | scores | clear | play_date
+const USERS_SHEET     = 'users';           // id | user_id | password | nickname | real_name | current_grade | current_part | current_subpart | is_admin | created_at | updated_at
 
 const PARTS_HEADER     = ['part_id','grade_id','part_no','subpart_no','requirement'];
 const QUESTIONS_HEADER = ['question_id','part_id','display_order','is_demo','question_text','image_url'];
 const ANSWERS_HEADER   = ['id','question_id','expected_text'];
 const USERS_HEADER     = ['id','user_id','password','nickname','real_name','current_grade','current_part','current_subpart','is_admin','created_at','updated_at'];
 
-// デバッグ用のログヘルパー
+// ★ 10回挑戦で解放
+const REQUIRED_ATTEMPTS = 10;
+
+// ログヘルパー
 const log = {
   info: (route, message, data = {}) => {
     console.log(`[${new Date().toISOString()}] [INFO] [${route}] ${message}`, data);
@@ -33,13 +36,15 @@ function nowTS() {
   return `${d.getFullYear()}/${z(d.getMonth()+1)}/${z(d.getDate())} ${z(d.getHours())}:${z(d.getMinutes())}:${z(d.getSeconds())}`;
 }
 
-// GET /game/part?grade=1&part=2&subpart=1
+/* =========================
+   GET /game/part?grade=&part=&subpart=
+   ========================= */
 router.get('/part', async (req, res) => {
   const routeName = 'GET /game/part';
   try {
     const { grade, part, subpart } = req.query;
     log.info(routeName, 'Request received', { grade, part, subpart });
-    
+
     if (!SPREADSHEET_ID) {
       log.error(routeName, 'SHEET_ID not configured');
       return res.status(500).json({ ok:false, message:'SHEET_ID 未設定' });
@@ -57,7 +62,7 @@ router.get('/part', async (req, res) => {
     });
     const rows = resp.data.values || [];
     log.info(routeName, 'Parts data fetched', { totalRows: rows.length });
-    
+
     const header = (rows[0]||[]).map(v=>String(v??'').trim());
     const ok = header.length===PARTS_HEADER.length && PARTS_HEADER.every((h,i)=>h===header[i]);
     if (!ok) {
@@ -77,7 +82,7 @@ router.get('/part', async (req, res) => {
 
     const part_id = String(hit[0]);
     const requirement = String(hit[4] ?? '');
-    
+
     log.info(routeName, 'Part found successfully', { part_id, requirement });
     res.json({ ok:true, part:{ part_id, requirement } });
   } catch (e) {
@@ -86,13 +91,15 @@ router.get('/part', async (req, res) => {
   }
 });
 
-// GET /game/questions?part_id=xxx
+/* =========================
+   GET /game/questions?part_id=
+   ========================= */
 router.get('/questions', async (req, res) => {
   const routeName = 'GET /game/questions';
   try {
     const { part_id } = req.query;
     log.info(routeName, 'Request received', { part_id });
-    
+
     if (!SPREADSHEET_ID) {
       log.error(routeName, 'SHEET_ID not configured');
       return res.status(500).json({ ok:false, message:'SHEET_ID 未設定' });
@@ -104,7 +111,7 @@ router.get('/questions', async (req, res) => {
 
     const sheets = await getSheetsClient(true);
 
-    // 問題を取得
+    // 問題
     const q = await sheets.spreadsheets.values.get({
       spreadsheetId: SPREADSHEET_ID,
       range: `${QUESTIONS_SHEET}!A1:F`,
@@ -112,7 +119,7 @@ router.get('/questions', async (req, res) => {
     });
     const qRows = q.data.values || [];
     log.info(routeName, 'Questions data fetched', { totalRows: qRows.length });
-    
+
     const qHeader = (qRows[0]||[]).map(v=>String(v??'').trim());
     const qOk = qHeader.length===QUESTIONS_HEADER.length && QUESTIONS_HEADER.every((h,i)=>h===qHeader[i]);
     if (!qOk) {
@@ -132,13 +139,7 @@ router.get('/questions', async (req, res) => {
       }))
       .sort((a,b)=>a.display_order-b.display_order);
 
-    log.info(routeName, 'Questions filtered and sorted', { 
-      part_id, 
-      foundQuestions: questions.length,
-      demoQuestions: questions.filter(q => q.is_demo).length 
-    });
-
-    // 16問を超える場合は切り詰め、足りない場合は警告
+    // 16問に調整
     if (questions.length > 16) {
       log.warn(routeName, 'Too many questions, trimming to 16', { original: questions.length });
       questions = questions.slice(0, 16);
@@ -146,15 +147,13 @@ router.get('/questions', async (req, res) => {
       log.warn(routeName, 'Less than 16 questions found', { actual: questions.length });
     }
 
-    // 答えを取得
+    // 解答
     const a = await sheets.spreadsheets.values.get({
       spreadsheetId: SPREADSHEET_ID,
       range: `${ANSWERS_SHEET}!A1:C`,
       valueRenderOption: 'UNFORMATTED_VALUE',
     });
     const aRows = a.data.values || [];
-    log.info(routeName, 'Answers data fetched', { totalRows: aRows.length });
-    
     const aHeader = (aRows[0]||[]).map(v=>String(v??'').trim());
     const aOk = aHeader.length===ANSWERS_HEADER.length && ANSWERS_HEADER.every((h,i)=>h===aHeader[i]);
     if (!aOk) {
@@ -162,7 +161,6 @@ router.get('/questions', async (req, res) => {
       return res.status(500).json({ ok:false, message:'answer_patterns ヘッダ不一致' });
     }
 
-    // 答えを問題IDごとにグループ化
     const answersByQ = new Map();
     for (const r of aRows.slice(1)) {
       const qid = String(r[1] ?? '');
@@ -171,22 +169,14 @@ router.get('/questions', async (req, res) => {
       (answersByQ.get(qid) ?? answersByQ.set(qid, []).get(qid)).push(txt);
     }
 
-    // 問題に答えを紐付け
-    const withAns = questions.map(q => ({ 
-      ...q, 
-      answers: answersByQ.get(q.question_id) || [] 
+    const withAns = questions.map(q => ({
+      ...q,
+      answers: answersByQ.get(q.question_id) || []
     }));
 
-    // デバッグ情報を詳細に出力
     log.info(routeName, 'Questions prepared successfully', {
       totalQuestions: withAns.length,
-      demoQuestions: withAns.filter(q => q.is_demo).map(q => ({
-        id: q.question_id,
-        order: q.display_order,
-        text: q.question_text.substring(0, 30) + '...'
-      })),
-      regularQuestions: withAns.filter(q => !q.is_demo).length,
-      questionsWithoutAnswers: withAns.filter(q => q.answers.length === 0).map(q => q.question_id)
+      demoQuestions: withAns.filter(q => q.is_demo).length,
     });
 
     res.json({ ok:true, questions: withAns });
@@ -196,13 +186,15 @@ router.get('/questions', async (req, res) => {
   }
 });
 
-// POST /game/score { userId, part_id, scores, clear }
+/* =========================
+   POST /game/score  { userId, part_id, scores, clear }
+   ========================= */
 router.post('/score', async (req, res) => {
   const routeName = 'POST /game/score';
   try {
     const { userId, part_id, scores, clear } = req.body || {};
     log.info(routeName, 'Request received', { userId, part_id, scores, clear });
-    
+
     if (!SPREADSHEET_ID) {
       log.error(routeName, 'SHEET_ID not configured');
       return res.status(500).json({ ok:false, message:'SHEET_ID 未設定' });
@@ -213,8 +205,8 @@ router.post('/score', async (req, res) => {
     }
 
     const sheets = await getSheetsClient(false);
-    
-    // 既存のスコアを読み込んで次のIDを決定
+
+    // 次の score_id
     const s = await sheets.spreadsheets.values.get({
       spreadsheetId: SPREADSHEET_ID,
       range: `${SCORES_SHEET}!A1:F`,
@@ -226,10 +218,7 @@ router.post('/score', async (req, res) => {
       const ids = sRows.slice(1).map(r => Number(r[0]||0)).filter(n=>Number.isFinite(n));
       if (ids.length) nextId = Math.max(...ids)+1;
     }
-    
-    log.info(routeName, 'Next score ID determined', { nextId });
-    
-    // 新しいスコアを追加
+
     const row = [ String(nextId), String(userId), String(part_id), Number(scores||0), String(!!clear), nowTS() ];
     await sheets.spreadsheets.values.append({
       spreadsheetId: SPREADSHEET_ID,
@@ -237,15 +226,8 @@ router.post('/score', async (req, res) => {
       valueInputOption: 'RAW',
       requestBody: { values: [row] },
     });
-    
-    log.info(routeName, 'Score saved successfully', { 
-      score_id: nextId, 
-      userId, 
-      part_id, 
-      scores, 
-      clear: !!clear 
-    });
-    
+
+    log.info(routeName, 'Score saved successfully', { score_id: nextId, userId, part_id, scores, clear: !!clear });
     res.json({ ok:true, score_id: nextId });
   } catch (e) {
     log.error(routeName, 'Unexpected error', e);
@@ -253,17 +235,17 @@ router.post('/score', async (req, res) => {
   }
 });
 
-// POST /game/advance { userId, current:{grade,part,subpart}, part_id, clear }
+/* =========================
+   POST /game/advance
+   body: { userId, current:{grade,part,subpart}, part_id, clear }
+   クリア済み or 同partの attempts>=10 で進捗更新
+   ========================= */
 router.post('/advance', async (req, res) => {
   const routeName = 'POST /game/advance';
   try {
     const { userId, current, part_id, clear } = req.body || {};
     log.info(routeName, 'Request received', { userId, current, part_id, clear });
-    
-    if (!clear) {
-      log.info(routeName, 'Not cleared, skipping advance');
-      return res.json({ ok:true, skipped:true });
-    }
+
     if (!SPREADSHEET_ID) {
       log.error(routeName, 'SHEET_ID not configured');
       return res.status(500).json({ ok:false, message:'SHEET_ID 未設定' });
@@ -273,9 +255,44 @@ router.post('/advance', async (req, res) => {
       return res.status(400).json({ ok:false, message:'必要情報不足' });
     }
 
-    const sheets = await getSheetsClient(false);
+    const sheets = await getSheetsClient(true);
 
-    // users 読み込み
+    // 1) attempts をカウント
+    const sResp = await sheets.spreadsheets.values.get({
+      spreadsheetId: SPREADSHEET_ID,
+      range: `${SCORES_SHEET}!A1:F`,
+      valueRenderOption: 'UNFORMATTED_VALUE',
+    });
+    const sRows = sResp.data.values || [];
+    const sHeader = (sRows[0]||[]).map(v=>String(v??'').trim().toLowerCase());
+    const idxUser = sHeader.indexOf('user_id');
+    const idxPart = sHeader.indexOf('part_id');
+    if (idxUser < 0 || idxPart < 0) {
+      log.error(routeName, 'scores header mismatch', { header: sHeader });
+      return res.status(500).json({ ok:false, message:'scores ヘッダ不一致' });
+    }
+    const attempts = sRows.slice(1).filter(r =>
+      String(r[idxUser]||'') === String(userId) &&
+      String(r[idxPart]||'') === String(part_id)
+    ).length;
+
+    const canAdvanceByAttempts = attempts >= REQUIRED_ATTEMPTS;
+    const canAdvance = !!clear || canAdvanceByAttempts;
+
+    log.info(routeName, 'Advance decision', { clear, attempts, canAdvanceByAttempts, canAdvance });
+
+    if (!canAdvance) {
+      return res.json({
+        ok:true,
+        advanced:false,
+        reason:'not enough attempts',
+        attempts,
+        required: REQUIRED_ATTEMPTS,
+        remaining: Math.max(0, REQUIRED_ATTEMPTS - attempts),
+      });
+    }
+
+    // 2) users 読み込み
     const u = await sheets.spreadsheets.values.get({
       spreadsheetId: SPREADSHEET_ID,
       range: `${USERS_SHEET}!A1:K`,
@@ -300,23 +317,22 @@ router.post('/advance', async (req, res) => {
     const cg = String(row[5] ?? '');
     const cp = String(row[6] ?? '');
     const cs = String(row[7] ?? '');
-    
-    log.info(routeName, 'Current user progress', { 
-      userId,
-      currentInDB: { grade: cg, part: cp, subpart: cs },
-      requestedCurrent: current 
-    });
-    
-    // 現在の進捗が一致しているか確認
-    if (!(cg===String(current.grade) && cp===String(current.part) && cs===String(current.subpart))) {
+
+    // 現在位置一致確認（ズレている場合は更新しない）
+    const isSameProgress =
+      cg===String(current.grade) && cp===String(current.part) && cs===String(current.subpart);
+    if (!isSameProgress) {
       log.warn(routeName, 'Progress mismatch', {
-        expected: current,
-        actual: { grade: cg, part: cp, subpart: cs }
+        expected: current, actual: { grade: cg, part: cp, subpart: cs }
       });
-      return res.json({ ok:true, advanced:false, reason:'progress mismatch' });
+      return res.json({
+        ok:true, advanced:false, reason:'progress mismatch',
+        attempts, required: REQUIRED_ATTEMPTS,
+        remaining: Math.max(0, REQUIRED_ATTEMPTS - attempts),
+      });
     }
 
-    // parts 全件を取得して次のパートを見つける
+    // 3) parts から次を決定
     const p = await sheets.spreadsheets.values.get({
       spreadsheetId: SPREADSHEET_ID,
       range: `${PARTS_SHEET}!A1:E`,
@@ -335,41 +351,49 @@ router.post('/advance', async (req, res) => {
       grade_id: Number(r[1]||0),
       part_no: Number(r[2]||0),
       subpart_no: Number(r[3]||0),
-    }))
-    .sort((a,b)=> (a.grade_id-b.grade_id) || (a.part_no-b.part_no) || (a.subpart_no-b.subpart_no));
+    })).sort((a,b)=>
+      (a.grade_id-b.grade_id) || (a.part_no-b.part_no) || (a.subpart_no-b.subpart_no)
+    );
 
-    const idx = parts.findIndex(p => p.part_id === String(part_id));
-    if (idx < 0 || idx === parts.length-1) {
-      log.warn(routeName, 'No next part available', { part_id, currentIndex: idx, totalParts: parts.length });
-      return res.json({ ok:true, advanced:false, reason:'no next part' });
+    const curIdx = parts.findIndex(p => p.part_id === String(part_id));
+    if (curIdx < 0 || curIdx === parts.length-1) {
+      log.warn(routeName, 'No next part available', { part_id, currentIndex: curIdx, totalParts: parts.length });
+      return res.json({
+        ok:true, advanced:false, reason:'no next part',
+        attempts, required: REQUIRED_ATTEMPTS, remaining: 0
+      });
     }
-    
-    const next = parts[idx+1];
-    log.info(routeName, 'Next part determined', { currentPart: parts[idx], nextPart: next });
 
-    // ユーザーの進捗を更新
-    await sheets.spreadsheets.values.update({
+    const next = parts[curIdx+1];
+
+    // 4) users を更新
+    const sheetsWrite = await getSheetsClient(false);
+    await sheetsWrite.spreadsheets.values.update({
       spreadsheetId: SPREADSHEET_ID,
       range: `${USERS_SHEET}!F${absRow}:H${absRow}`,
       valueInputOption: 'RAW',
       requestBody: { values: [[ String(next.grade_id), String(next.part_no), String(next.subpart_no) ]] },
     });
-    
-    // 更新日時を記録
-    await sheets.spreadsheets.values.update({
+    await sheetsWrite.spreadsheets.values.update({
       spreadsheetId: SPREADSHEET_ID,
       range: `${USERS_SHEET}!K${absRow}:K${absRow}`,
       valueInputOption: 'RAW',
       requestBody: { values: [[ nowTS() ]] },
     });
 
-    log.info(routeName, 'User progress updated successfully', { 
-      userId, 
-      previousPart: { grade: cg, part: cp, subpart: cs },
-      newPart: next 
+    log.info(routeName, 'User progress updated', {
+      userId, previous: { grade: cg, part: cp, subpart: cs }, next, reason: clear ? 'cleared' : 'attempts'
     });
-    
-    res.json({ ok:true, advanced:true, next });
+
+    res.json({
+      ok:true,
+      advanced:true,
+      reason: clear ? 'cleared' : 'attempts',
+      attempts,
+      required: REQUIRED_ATTEMPTS,
+      remaining: Math.max(0, REQUIRED_ATTEMPTS - attempts),
+      next
+    });
   } catch (e) {
     log.error(routeName, 'Unexpected error', e);
     res.status(500).json({ ok:false, message:'進捗更新に失敗' });
