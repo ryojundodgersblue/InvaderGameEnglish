@@ -4,6 +4,7 @@ const router = express.Router();
 const { getSheetsClient, SPREADSHEET_ID } = require('../services/google');
 const { authenticateToken } = require('../middleware/auth');
 const { validateQuery, validateBody } = require('../middleware/validation');
+const { getCache, setCache, getSheetsKey, DEFAULT_TTL } = require('../services/redis');
 
 const PARTS_SHEET     = 'parts';           // part_id | grade_id | part_no | subpart_no | requirement
 const QUESTIONS_SHEET = 'questions';       // question_id | part_id | display_order | is_demo | question_text | image_url
@@ -64,6 +65,15 @@ router.get('/part',
       return res.status(400).json({ ok:false, message:'grade/part/subpart は必須' });
     }
 
+    // Redisキャッシュをチェック
+    const cacheKey = getSheetsKey(PARTS_SHEET, `${grade}-${part}-${subpart}`);
+    const cachedData = await getCache(cacheKey);
+
+    if (cachedData) {
+      log.info(routeName, 'Returning cached data', { grade, part, subpart });
+      return res.json(cachedData);
+    }
+
     const sheets = await getSheetsClient(true);
     const resp = await sheets.spreadsheets.values.get({
       spreadsheetId: SPREADSHEET_ID,
@@ -94,7 +104,12 @@ router.get('/part',
     const requirement = String(hit[4] ?? '');
 
     log.info(routeName, 'Part found successfully', { part_id, requirement });
-    res.json({ ok:true, part:{ part_id, requirement } });
+
+    // Redisキャッシュに保存
+    const result = { ok:true, part:{ part_id, requirement } };
+    await setCache(cacheKey, result, DEFAULT_TTL.SHEETS_DATA);
+
+    res.json(result);
   } catch (e) {
     log.error(routeName, 'Unexpected error', e);
     const message = process.env.NODE_ENV === 'production'
@@ -125,6 +140,15 @@ router.get('/questions',
     if (!part_id) {
       log.warn(routeName, 'Missing part_id');
       return res.status(400).json({ ok:false, message:'part_id は必須' });
+    }
+
+    // Redisキャッシュをチェック
+    const cacheKey = getSheetsKey(QUESTIONS_SHEET, part_id);
+    const cachedData = await getCache(cacheKey);
+
+    if (cachedData) {
+      log.info(routeName, 'Returning cached questions', { part_id });
+      return res.json(cachedData);
     }
 
     const sheets = await getSheetsClient(true);
@@ -197,7 +221,11 @@ router.get('/questions',
       demoQuestions: withAns.filter(q => q.is_demo).length,
     });
 
-    res.json({ ok:true, questions: withAns });
+    // Redisキャッシュに保存
+    const result = { ok:true, questions: withAns };
+    await setCache(cacheKey, result, DEFAULT_TTL.SHEETS_DATA);
+
+    res.json(result);
   } catch (e) {
     log.error(routeName, 'Unexpected error', e);
     const message = process.env.NODE_ENV === 'production'

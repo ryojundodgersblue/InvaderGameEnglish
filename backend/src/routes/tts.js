@@ -1,15 +1,16 @@
 // backend/src/routes/tts.js
 const express = require('express');
 const { getTTSClient } = require('../services/google');
+const { getCache, setCache, getTTSKey, DEFAULT_TTL } = require('../services/redis');
 
 const router = express.Router();
 
 // Google TTS エンドポイント
 router.post('/synthesize', async (req, res) => {
   try {
-    const { 
-      text, 
-      languageCode = 'en-US', 
+    const {
+      text,
+      languageCode = 'en-US',
       voiceName = 'en-US-Neural2-D',
       speakingRate = 0.95,
       pitch = 0
@@ -17,6 +18,19 @@ router.post('/synthesize', async (req, res) => {
 
     if (!text) {
       return res.status(400).json({ error: 'Text is required' });
+    }
+
+    // Redisキャッシュをチェック
+    const cacheKey = getTTSKey(text, languageCode, voiceName);
+    const cachedAudio = await getCache(cacheKey);
+
+    if (cachedAudio) {
+      console.log('[TTS] Cache hit for:', text.substring(0, 50));
+      return res.json({
+        audioContent: cachedAudio.audioContent,
+        contentType: 'audio/mp3',
+        cached: true
+      });
     }
 
     const tts = await getTTSClient();
@@ -35,10 +49,18 @@ router.post('/synthesize', async (req, res) => {
       },
     });
 
+    // Redisキャッシュに保存（24時間）
+    const audioData = {
+      audioContent: response.audioContent
+    };
+    await setCache(cacheKey, audioData, DEFAULT_TTL.TTS_AUDIO);
+    console.log('[TTS] Cache miss - fetched and cached:', text.substring(0, 50));
+
     // Base64エンコードされた音声データを返す
-    res.json({ 
+    res.json({
       audioContent: response.audioContent,
-      contentType: 'audio/mp3'
+      contentType: 'audio/mp3',
+      cached: false
     });
 
   } catch (error) {
