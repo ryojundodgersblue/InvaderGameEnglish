@@ -45,6 +45,15 @@ app.use('/game',    playGameRouter);
 app.use('/select',  selectRouter);
 app.use('/api/tts', ttsRouter);
 
+// 404ハンドラー - 定義されていないルートへのアクセス
+app.use((req, res, next) => {
+  console.log(`[404] ${req.method} ${req.path} - Route not found`);
+  res.status(404).json({
+    ok: false,
+    message: `Cannot ${req.method} ${req.path}`
+  });
+});
+
 // エラーハンドリングミドルウェア（最後に配置）
 app.use(sanitizeError);
 

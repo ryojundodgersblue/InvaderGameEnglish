@@ -170,7 +170,7 @@ router.post('/login',
     res.cookie('authToken', token, {
       httpOnly: true, // JavaScriptからアクセス不可（XSS対策）
       secure: process.env.NODE_ENV === 'production', // 本番環境ではHTTPSのみ
-      sameSite: 'strict', // CSRF対策
+      sameSite: 'lax', // CSRF対策（開発環境で異なるポート間の通信を許可）
       maxAge: 24 * 60 * 60 * 1000, // 24時間
     });
 
