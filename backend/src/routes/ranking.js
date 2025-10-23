@@ -3,13 +3,10 @@ const express = require('express');
 const router = express.Router();
 const { getSheetsClient, SPREADSHEET_ID } = require('../services/google');
 const { optionalAuth } = require('../middleware/auth');
+const { getCache, setCache, getRankingKey, getSheetsKey, DEFAULT_TTL } = require('../services/redis');
 
 const USERS_SHEET  = 'users';
 const SCORES_SHEET = 'scores';
-
-// ---- 超シンプルキャッシュ ----
-let usersCache   = { data: null, fetchedAt: 0 };         // 10分
-let rankingCache = { monthKey: '', data: null, at: 0 };  // 60秒
 
 const nowMonthKey = () => {
   const d = new Date();
@@ -30,9 +27,6 @@ const toMonthKey = (v) => {
   return '';
 };
 
-const isUsersCacheFresh   = () => Date.now() - usersCache.fetchedAt < 10 * 60 * 1000;
-const isRankingCacheFresh = (mk) => rankingCache.monthKey === mk && (Date.now() - rankingCache.at < 60 * 1000);
-
 // ヘッダ配列から大小無視・前後空白無視で列位置を取る
 function idxOf(header, name) {
   const target = String(name).trim().toLowerCase();
@@ -47,16 +41,22 @@ router.get('/', optionalAuth, async (_req, res) => {
 
     const mk = nowMonthKey();
 
-    // 直近60秒はキャッシュ
-    if (isRankingCacheFresh(mk) && rankingCache.data) {
-      return res.json(rankingCache.data);
+    // Redisキャッシュをチェック（60秒）
+    const rankingCacheKey = getRankingKey(mk);
+    const cachedRanking = await getCache(rankingCacheKey);
+
+    if (cachedRanking) {
+      console.log('[ranking] Cache hit for month:', mk);
+      return res.json(cachedRanking);
     }
 
     const sheets = await getSheetsClient(true);
 
     // ===== users 読み込み（user_id と nickname だけ使う）=====
-    let usersMap = usersCache.data; // user_id -> nickname
-    if (!isUsersCacheFresh() || !usersMap) {
+    const usersCacheKey = getSheetsKey(USERS_SHEET, 'all');
+    let usersMap = await getCache(usersCacheKey); // user_id -> nickname
+
+    if (!usersMap) {
       const uResp = await sheets.spreadsheets.values.get({
         spreadsheetId: SPREADSHEET_ID,
         range: `${USERS_SHEET}!A1:K`, // 幅広く取得（id〜updated_at まで想定）
@@ -84,7 +84,15 @@ router.get('/', optionalAuth, async (_req, res) => {
         const nick = String(r[idxNick] ?? '').trim();
         if (uid) usersMap.set(uid, nick);
       }
-      usersCache = { data: usersMap, fetchedAt: Date.now() };
+
+      // MapをRedisに保存するために、オブジェクトに変換
+      const usersMapObject = Object.fromEntries(usersMap);
+      await setCache(usersCacheKey, usersMapObject, DEFAULT_TTL.SHEETS_DATA);
+      console.log('[ranking] Users data cached');
+    } else {
+      // キャッシュから取得した場合、Mapに変換
+      usersMap = new Map(Object.entries(usersMap));
+      console.log('[ranking] Users data from cache');
     }
 
     // ===== scores 読み込み（当月抽出）=====
@@ -155,7 +163,11 @@ router.get('/', optionalAuth, async (_req, res) => {
       .map(({ userId, name }) => ({ userId, name }));
 
     const payload = { month: mk, items: { challenge, accuracy } };
-    rankingCache = { monthKey: mk, data: payload, at: Date.now() };
+
+    // Redisキャッシュに保存（60秒）
+    await setCache(rankingCacheKey, payload, DEFAULT_TTL.RANKING_DATA);
+    console.log('[ranking] Ranking data cached for month:', mk);
+
     res.json(payload);
   } catch (e) {
     console.error('[ranking] error:', e);

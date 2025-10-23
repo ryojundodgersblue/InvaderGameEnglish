@@ -19,17 +19,33 @@ async function getAuthClient(scopes) {
   return await auth.getClient();
 }
 
-// Sheets API クライアント
-let sheetsClient = null;
+// Sheets API クライアント（読み取り/書き込みで別々にキャッシュ）
+let sheetsClientReadOnly = null;
+let sheetsClientReadWrite = null;
+
 async function getSheetsClient(readonly = true) {
-  if (sheetsClient) return sheetsClient;
-  
+  // 既にキャッシュされたクライアントがあればそれを返す
+  if (readonly && sheetsClientReadOnly) {
+    return sheetsClientReadOnly;
+  }
+  if (!readonly && sheetsClientReadWrite) {
+    return sheetsClientReadWrite;
+  }
+
   const scopes = readonly
     ? ['https://www.googleapis.com/auth/spreadsheets.readonly']
     : ['https://www.googleapis.com/auth/spreadsheets'];
 
   const client = await getAuthClient(scopes);
-  sheetsClient = google.sheets({ version: 'v4', auth: client });
+  const sheetsClient = google.sheets({ version: 'v4', auth: client });
+
+  // 適切なキャッシュに保存
+  if (readonly) {
+    sheetsClientReadOnly = sheetsClient;
+  } else {
+    sheetsClientReadWrite = sheetsClient;
+  }
+
   return sheetsClient;
 }
 
