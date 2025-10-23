@@ -167,12 +167,21 @@ router.post('/login',
     });
 
     // HttpOnlyクッキーにトークンを設定
-    res.cookie('authToken', token, {
+    const cookieOptions = {
       httpOnly: true, // JavaScriptからアクセス不可（XSS対策）
       secure: process.env.NODE_ENV === 'production', // 本番環境ではHTTPSのみ
       sameSite: 'lax', // CSRF対策（開発環境で異なるポート間の通信を許可）
       maxAge: 24 * 60 * 60 * 1000, // 24時間
+    };
+
+    logInfo(reqId, 'Setting authToken cookie', {
+      httpOnly: cookieOptions.httpOnly,
+      secure: cookieOptions.secure,
+      sameSite: cookieOptions.sameSite,
+      maxAge: cookieOptions.maxAge
     });
+
+    res.cookie('authToken', token, cookieOptions);
 
     return res.json({
       ok: true,

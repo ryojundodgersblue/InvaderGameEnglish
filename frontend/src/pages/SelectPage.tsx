@@ -43,12 +43,22 @@ const SelectPage: React.FC = () => {
         }
         
         console.log('Fetching options from /select/options...')
+        console.log('Request details:', {
+          url: `http://localhost:4000/select/options?user_id=${userId}`,
+          credentials: 'include',
+          userId: userId
+        })
+
         const res = await fetch(`http://localhost:4000/select/options?user_id=${userId}`, {
           credentials: 'include' // クッキーを送信
         })
-        
+
+        console.log('Response status:', res.status, res.statusText)
+
         if (!res.ok) {
-          throw new Error(`Failed to fetch options: ${res.status}`)
+          const errorData = await res.json().catch(() => ({}))
+          console.error('Error response:', errorData)
+          throw new Error(`Failed to fetch options: ${res.status} - ${errorData.message || res.statusText}`)
         }
         
         const data = await res.json()
