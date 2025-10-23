@@ -2,6 +2,8 @@
 const express = require('express');
 const router = express.Router();
 const { getSheetsClient, SPREADSHEET_ID } = require('../services/google');
+const { authenticateToken } = require('../middleware/auth');
+const { validateQuery, validateBody } = require('../middleware/validation');
 
 const PARTS_SHEET     = 'parts';           // part_id | grade_id | part_no | subpart_no | requirement
 const QUESTIONS_SHEET = 'questions';       // question_id | part_id | display_order | is_demo | question_text | image_url
@@ -40,7 +42,14 @@ function nowTS() {
 /* =========================
    GET /game/part?grade=&part=&subpart=
    ========================= */
-router.get('/part', async (req, res) => {
+router.get('/part',
+  authenticateToken,
+  validateQuery({
+    grade: { type: 'number', required: true, min: 1, max: 100 },
+    part: { type: 'number', required: true, min: 1, max: 100 },
+    subpart: { type: 'number', required: true, min: 1, max: 100 }
+  }),
+  async (req, res) => {
   const routeName = 'GET /game/part';
   try {
     const { grade, part, subpart } = req.query;
@@ -88,14 +97,22 @@ router.get('/part', async (req, res) => {
     res.json({ ok:true, part:{ part_id, requirement } });
   } catch (e) {
     log.error(routeName, 'Unexpected error', e);
-    res.status(500).json({ ok:false, message:'part 取得に失敗' });
+    const message = process.env.NODE_ENV === 'production'
+      ? 'part 取得に失敗'
+      : 'part 取得に失敗';
+    res.status(500).json({ ok:false, message });
   }
 });
 
 /* =========================
    GET /game/questions?part_id=
    ========================= */
-router.get('/questions', async (req, res) => {
+router.get('/questions',
+  authenticateToken,
+  validateQuery({
+    part_id: { type: 'string', required: true, minLength: 1, maxLength: 100 }
+  }),
+  async (req, res) => {
   const routeName = 'GET /game/questions';
   try {
     const { part_id } = req.query;
@@ -183,34 +200,46 @@ router.get('/questions', async (req, res) => {
     res.json({ ok:true, questions: withAns });
   } catch (e) {
     log.error(routeName, 'Unexpected error', e);
-    res.status(500).json({ ok:false, message:'questions 取得に失敗' });
+    const message = process.env.NODE_ENV === 'production'
+      ? 'questions 取得に失敗'
+      : 'questions 取得に失敗';
+    res.status(500).json({ ok:false, message });
   }
 });
 
 /* =========================
    POST /game/score  { userId, part_id, scores, clear }
    ========================= */
-router.post('/score', async (req, res) => {
+router.post('/score',
+  authenticateToken,
+  validateBody({
+    userId: { type: 'string', required: true, minLength: 1, maxLength: 100 },
+    part_id: { type: 'string', required: true, minLength: 1, maxLength: 100 },
+    scores: { type: 'number', required: true, min: 0, max: 1000 },
+    clear: { type: 'boolean', required: false }
+  }),
+  async (req, res) => {
   const routeName = 'POST /game/score';
   try {
     const { userId, part_id, scores, clear } = req.body || {};
+
+    // 認証されたユーザーと送信されたuserIdが一致するか確認
+    if (req.user.userId !== userId) {
+      log.warn(routeName, 'User ID mismatch', {
+        authenticated: req.user.userId,
+        requested: userId
+      });
+      return res.status(403).json({ ok:false, message:'権限がありません' });
+    }
+
     log.info(routeName, 'Request received', { userId, part_id, scores, clear });
 
     if (!SPREADSHEET_ID) {
       log.error(routeName, 'SHEET_ID not configured');
       return res.status(500).json({ ok:false, message:'SHEET_ID 未設定' });
     }
-    if (!userId || !part_id) {
-      log.warn(routeName, 'Missing required parameters', { userId, part_id });
-      return res.status(400).json({ ok:false, message:'userId/part_id は必須' });
-    }
-    
-    // ★ scores の検証を追加
+
     const scoreValue = Number(scores);
-    if (!Number.isFinite(scoreValue) || scoreValue < 0) {
-      log.warn(routeName, 'Invalid scores value', { scores, scoreValue });
-      return res.status(400).json({ ok:false, message:'scores は0以上の数値である必要があります' });
-    }
 
     const sheets = await getSheetsClient(false);
 
@@ -279,7 +308,10 @@ router.post('/score', async (req, res) => {
     });
   } catch (e) {
     log.error(routeName, 'Unexpected error', e);
-    res.status(500).json({ ok:false, message:'score 追加に失敗', error: e.message });
+    const message = process.env.NODE_ENV === 'production'
+      ? 'score 追加に失敗'
+      : 'score 追加に失敗';
+    res.status(500).json({ ok:false, message });
   }
 });
 
@@ -288,22 +320,36 @@ router.post('/score', async (req, res) => {
    body: { userId, current:{grade,part,subpart}, part_id, clear }
    クリア済み or 同partの attempts>=10 で進捗更新
    ========================= */
-router.post('/advance', async (req, res) => {
+router.post('/advance',
+  authenticateToken,
+  validateBody({
+    userId: { type: 'string', required: true, minLength: 1, maxLength: 100 },
+    current: { type: 'object', required: true },
+    part_id: { type: 'string', required: true, minLength: 1, maxLength: 100 },
+    clear: { type: 'boolean', required: false }
+  }),
+  async (req, res) => {
   const routeName = 'POST /game/advance';
   try {
     const { userId, current, part_id, clear } = req.body || {};
+
+    // 認証されたユーザーと送信されたuserIdが一致するか確認
+    if (req.user.userId !== userId) {
+      log.warn(routeName, 'User ID mismatch', {
+        authenticated: req.user.userId,
+        requested: userId
+      });
+      return res.status(403).json({ ok:false, message:'権限がありません' });
+    }
+
     log.info(routeName, 'Request received', { userId, current, part_id, clear });
 
     if (!SPREADSHEET_ID) {
       log.error(routeName, 'SHEET_ID not configured');
       return res.status(500).json({ ok:false, message:'SHEET_ID 未設定' });
     }
-    if (!userId || !current || !part_id) {
-      log.warn(routeName, 'Missing required parameters', { userId, current, part_id });
-      return res.status(400).json({ ok:false, message:'必要情報不足' });
-    }
-    
-    // ★ current オブジェクトの検証を追加
+
+    // current オブジェクトの検証
     if (!current.grade || !current.part || current.subpart === undefined) {
       log.warn(routeName, 'Invalid current object', { current });
       return res.status(400).json({ ok:false, message:'current に grade/part/subpart が必要です' });
@@ -480,7 +526,10 @@ router.post('/advance', async (req, res) => {
     });
   } catch (e) {
     log.error(routeName, 'Unexpected error', e);
-    res.status(500).json({ ok:false, message:'進捗更新に失敗', error: e.message });
+    const message = process.env.NODE_ENV === 'production'
+      ? '進捗更新に失敗'
+      : '進捗更新に失敗';
+    res.status(500).json({ ok:false, message });
   }
 });
 

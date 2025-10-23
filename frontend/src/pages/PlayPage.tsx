@@ -288,7 +288,9 @@ const PlayPage: React.FC = () => {
 
         console.log('[Load] Fetching data for:', { grade: g, part: p, subpart: s });
 
-        const r1 = await fetch(`http://localhost:4000/game/part?grade=${g}&part=${p}&subpart=${s}`);
+        const r1 = await fetch(`http://localhost:4000/game/part?grade=${g}&part=${p}&subpart=${s}`, {
+          credentials: 'include'
+        });
         if (!r1.ok) {
           const errorData = await r1.json().catch(() => ({ message: 'part 取得失敗' }));
           throw new Error(errorData.message || 'part 取得失敗');
@@ -297,7 +299,9 @@ const PlayPage: React.FC = () => {
         setPartInfo(j1.part);
         console.log('[Load] Part info loaded:', j1.part);
 
-        const r2 = await fetch(`http://localhost:4000/game/questions?part_id=${encodeURIComponent(j1.part.part_id)}`);
+        const r2 = await fetch(`http://localhost:4000/game/questions?part_id=${encodeURIComponent(j1.part.part_id)}`, {
+          credentials: 'include'
+        });
         if (!r2.ok) {
           const errorData = await r2.json().catch(() => ({ message: 'questions 取得失敗' }));
           throw new Error(errorData.message || 'questions 取得失敗');
@@ -951,11 +955,12 @@ const PlayPage: React.FC = () => {
       const scoreResponse = await fetch('http://localhost:4000/game/score', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ 
-          userId, 
-          part_id, 
-          scores: finalCorrect, 
-          clear 
+        credentials: 'include',
+        body: JSON.stringify({
+          userId,
+          part_id,
+          scores: finalCorrect,
+          clear
         }),
       });
 
@@ -996,6 +1001,7 @@ const PlayPage: React.FC = () => {
         const advanceResponse = await fetch('http://localhost:4000/game/advance', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
+          credentials: 'include',
           body: JSON.stringify(advancePayload),
         });
 

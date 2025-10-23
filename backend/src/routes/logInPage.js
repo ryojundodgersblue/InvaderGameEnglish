@@ -3,6 +3,8 @@ const express = require('express');
 const router = express.Router();
 const { getSheetsClient, SPREADSHEET_ID } = require('../services/google');
 const { verifyPassword, isPasswordHashed } = require('../utils/password');
+const { generateToken } = require('../middleware/auth');
+const { validateBody } = require('../middleware/validation');
 
 const USER_SHEET_NAME = 'users';
 
@@ -50,7 +52,12 @@ const logWarn  = (id, msg, extra) => console.warn(`[${now()}] [${NS}] [${id}] WA
 const logError = (id, msg, extra) => console.error(`[${now()}] [${NS}] [${id}] ERROR ${msg}${extra ? ' ' + JSON.stringify(extra) : ''}`);
 
 /* ---------- ルート ---------- */
-router.post('/login', async (req, res) => {
+router.post('/login',
+  validateBody({
+    userId: { type: 'string', required: true, minLength: 1, maxLength: 100 },
+    password: { type: 'string', required: true, minLength: 1, maxLength: 200 }
+  }),
+  async (req, res) => {
   const reqId = rid();
   const t0 = Date.now();
 
@@ -148,6 +155,23 @@ router.post('/login', async (req, res) => {
       current_part,
       current_subpart,
       durationMs: ms,
+    });
+
+    // JWTトークンを生成
+    const token = generateToken({
+      userId: String(userId),
+      name,
+      current_grade,
+      current_part,
+      current_subpart,
+    });
+
+    // HttpOnlyクッキーにトークンを設定
+    res.cookie('authToken', token, {
+      httpOnly: true, // JavaScriptからアクセス不可（XSS対策）
+      secure: process.env.NODE_ENV === 'production', // 本番環境ではHTTPSのみ
+      sameSite: 'strict', // CSRF対策
+      maxAge: 24 * 60 * 60 * 1000, // 24時間
     });
 
     return res.json({

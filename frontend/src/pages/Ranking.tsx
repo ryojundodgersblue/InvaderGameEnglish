@@ -20,7 +20,9 @@ const Ranking: React.FC = () => {
       try {
         setLoading(true)
         setError(null)
-        const res = await fetch('http://localhost:4000/ranking')
+        const res = await fetch('http://localhost:4000/ranking', {
+          credentials: 'include'
+        })
         if (!res.ok) throw new Error('failed to fetch')
         const json = await res.json()
 
