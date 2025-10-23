@@ -1,7 +1,9 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef, useState, useCallback } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
+import axios from 'axios';
 import Button from '../components/Button';
 import '../App.css';
+import './PlayPage.css';
 
 // --------------------------- Types ---------------------------
 type Q = {
@@ -13,73 +15,118 @@ type Q = {
   image_url: string;
   answers: string[];
 };
-
 type PartInfo = { part_id: string; requirement: string };
+type EnemyVariant = 'normal' | 'ko' | 'attack';
+type Status =
+  | 'idle' | 'speaking' | 'listening'
+  | 'beam' | 'explosion' | 'reveal'
+  | 'timeout' | 'wrong'
+  | 'intermission' | 'finished';
+
+interface SpeechRecognitionEvent extends Event {
+  resultIndex: number;
+  results: SpeechRecognitionResultList;
+}
+
+interface SpeechRecognitionErrorEvent extends Event {
+  error: string;
+}
+
+interface SpeechRecognition extends EventTarget {
+  lang: string;
+  continuous: boolean;
+  interimResults: boolean;
+  maxAlternatives: number;
+  start(): void;
+  stop(): void;
+  onresult: ((event: SpeechRecognitionEvent) => void) | null;
+  onerror: ((event: SpeechRecognitionErrorEvent) => void) | null;
+  onend: (() => void) | null;
+}
+
+interface SpeechRecognitionConstructor {
+  new(): SpeechRecognition;
+}
+
+declare global {
+  interface Window {
+    webkitSpeechRecognition?: SpeechRecognitionConstructor;
+    SpeechRecognition?: SpeechRecognitionConstructor;
+  }
+}
 
 // --------------------------- Consts ---------------------------
-const USE_LOCAL_TTS = true;
 const ROUND_TIME_SEC = 30;
 const CORRECT_TO_CLEAR = 10;
 const MAX_QUESTIONS = 16;
 
-// 演出のディレイ（ms）
 const DLY = {
-  betweenSpeaks: 500,                 // 読み上げ間の待ち時間
-  afterThirdSpeakBeforeDemoAns: 2000, // デモ：3回目読み上げ→自動解答まで
-  afterThirdSpeakBeforeListen: 800,   // 非デモ：3回目読み上げ→回答受付まで
-  beam: 800,                          // ビーム演出時間
-  explosion: 1000,                    // 爆発演出時間
-  afterReveal: 1500,                  // 解答表示後→次問へ
-  afterTimeoutBeforeReveal: 500,     // タイムアウト→解答表示まで
-  beforeNextQuestion: 300,            // 次の問題開始前の待機
+  betweenSpeaks: 1200,
+  afterThirdSpeakBeforeDemoAns: 2000,
+  afterThirdSpeakBeforeListen: 800,
+  beam: 800,
+  explosion: 1000,
+  afterReveal: 1500,
+  afterTimeoutBeforeReveal: 500,
+  beforeNextQuestion: 300,
+  intermission: 3000,
 };
 
+// 音量設定
+const SOUND_EFFECT_VOLUME = 0.2;
+const TTS_VOLUME = 1.0;
+
 // ------------------------ Utilities --------------------------
-const normalize = (s:string)=> s.toLowerCase().replace(/[^a-z0-9\s]/g,'').replace(/\s+/g,' ').trim();
+const normalize = (s: string) =>
+  s.toLowerCase().replace(/[^a-z0-9\s]/g, '').replace(/\s+/g, ' ').trim();
 
-function speakAwait(text: string): Promise<void> {
-  return new Promise((resolve) => {
-    const synth = (window as any).speechSynthesis;
-    if (!synth) return resolve();
-    
-    // 既存の音声をキャンセル
-    synth.cancel();
-    
-    const u = new SpeechSynthesisUtterance(text);
-    u.lang = 'en-US';
-    u.rate = 0.95;
-    u.onend = () => resolve();
-    u.onerror = () => resolve();
-    synth.speak(u);
-  });
+function lev(a: string, b: string) {
+  const m = a.length, n = b.length;
+  const dp = Array.from({ length: m + 1 }, () => new Array(n + 1).fill(0));
+  for (let i = 0; i <= m; i++) dp[i][0] = i;
+  for (let j = 0; j <= n; j++) dp[0][j] = j;
+  for (let i = 1; i <= m; i++) {
+    for (let j = 1; j <= n; j++) {
+      const cost = a[i - 1] === b[j - 1] ? 0 : 1;
+      dp[i][j] = Math.min(
+        dp[i - 1][j] + 1,
+        dp[i][j - 1] + 1,
+        dp[i - 1][j - 1] + cost
+      );
+    }
+  }
+  return dp[m][n];
 }
 
-function speakBubuu() {
-  const synth = (window as any).speechSynthesis;
-  if (!synth) return;
-  synth.cancel();
-  const u = new SpeechSynthesisUtterance('ぶぶー');
-  u.lang = 'ja-JP';
-  u.rate = 1.0;
-  synth.speak(u);
-}
+const simLevenshtein = (a: string, b: string) => {
+  if (!a.length && !b.length) return 1;
+  const d = lev(a, b);
+  return 1 - d / Math.max(a.length, b.length);
+};
 
-function playAngerSound() {
-  const synth = (window as any).speechSynthesis;
-  if (!synth) return;
-  synth.cancel();
-  const u = new SpeechSynthesisUtterance('グォォォ！');
-  u.lang = 'ja-JP';
-  u.rate = 0.8;
-  u.pitch = 0.5;
-  synth.speak(u);
+const jaccard = (a: string, b: string) => {
+  const A = new Set(a.split(' ').filter(Boolean));
+  const B = new Set(b.split(' ').filter(Boolean));
+  if (A.size === 0 && B.size === 0) return 1;
+  let inter = 0;
+  A.forEach(w => { if (B.has(w)) inter++; });
+  const uni = A.size + B.size - inter;
+  return inter / uni;
+};
+
+function playSound(filename: string) {
+  const audio = new Audio(`/${filename}`);
+  audio.volume = SOUND_EFFECT_VOLUME;
+  audio.play().catch(() => { /* ignore */ });
 }
 
 // ------------------------ Component --------------------------
 const PlayPage: React.FC = () => {
   const nav = useNavigate();
   const loc = useLocation();
-  const { grade, part, subpart } = (loc.state || {}) as { grade?: string; part?: string; subpart?: string };
+  const { grade, part, subpart } =
+    (loc.state as { grade?: string; part?: string; subpart?: string } | null) || 
+    { grade: undefined, part: undefined, subpart: undefined };
 
   const [loading, setLoading] = useState(true);
   const [partInfo, setPartInfo] = useState<PartInfo | null>(null);
@@ -88,95 +135,148 @@ const PlayPage: React.FC = () => {
   const [timeLeft, setTimeLeft] = useState(ROUND_TIME_SEC);
   const [showRequirement, setShowRequirement] = useState(true);
   const [showText, setShowText] = useState(false);
-  type Status = 'idle'|'speaking'|'listening'|'beam'|'explosion'|'reveal'|'timeout'|'wrong'|'finished';
   const [status, setStatus] = useState<Status>('idle');
-  const [correctCount, setCorrectCount] = useState(0);
   const [realCorrect, setRealCorrect] = useState(0);
   const [error, setError] = useState<string | null>(null);
 
-  // マイク関連の状態
+  const [enemyVariant, setEnemyVariant] = useState<EnemyVariant>('normal');
   const [micActive, setMicActive] = useState(false);
-  const [capturedTexts, setCapturedTexts] = useState<string[]>([]);
   const [lastRecognized, setLastRecognized] = useState<string>('');
+  
+  const recognitionRef = useRef<SpeechRecognition | null>(null);
+  const capturedRef = useRef<string[]>([]);
+  const stoppingRef = useRef(false);
+  const micActiveRef = useRef(false);
+  useEffect(() => { micActiveRef.current = micActive; }, [micActive]);
 
-  // Ref を使って最新の値を参照
+  const [intermissionSnap, setIntermissionSnap] = useState<{
+    text: string;
+    answer: string;
+    enemy: EnemyVariant;
+  } | null>(null);
+
+  const [bannerText, setBannerText] = useState<string | null>(null);
+
+  const currentAudioRef = useRef<HTMLAudioElement | null>(null);
+  const isSpeakingRef = useRef(false);
+  const originalVolumeRef = useRef<number>(TTS_VOLUME);
+
   const timerRef = useRef<number | null>(null);
   const deadlineRef = useRef<number | null>(null);
+  const timeLeftRef = useRef<number>(ROUND_TIME_SEC);
+  useEffect(() => { timeLeftRef.current = timeLeft; }, [timeLeft]);
+
   const isProcessingRef = useRef(false);
   const questionsRef = useRef<Q[]>([]);
   const idxRef = useRef(0);
   const statusRef = useRef<Status>('idle');
-  const recognitionRef = useRef<any>(null);
-  const capturedRef = useRef<string[]>([]);
+  const realCorrectRef = useRef(0);
   
-  // Refと状態を同期
   useEffect(() => { questionsRef.current = questions; }, [questions]);
   useEffect(() => { idxRef.current = idx; }, [idx]);
   useEffect(() => { statusRef.current = status; }, [status]);
+  useEffect(() => { realCorrectRef.current = realCorrect; }, [realCorrect]);
 
   const current = questions[idx];
   const questionNo = idx + 1;
-  const isDemo = idx === 0 && current?.is_demo === true;
 
-  // ---------------------- Timer control ----------------------
-  const clearTimer = () => { 
+  // ---------------------- Stop Recognition (完全停止) ----------------------
+  const forceStopRecognition = useCallback(() => {
+    console.log('[ASR] Force stopping recognition');
+    stoppingRef.current = true;
+    try {
+      if (recognitionRef.current) {
+        recognitionRef.current.onend = null;
+        recognitionRef.current.onerror = null;
+        recognitionRef.current.onresult = null;
+        recognitionRef.current.stop();
+        recognitionRef.current = null;
+      }
+    } catch (e) {
+      console.warn('[ASR] Error during force stop:', e);
+    }
+    setMicActive(false);
+    micActiveRef.current = false;
+  }, []);
+
+  // ---------------------- Timer ----------------------
+  const clearTimer = useCallback(() => {
     if (timerRef.current) { 
       window.clearInterval(timerRef.current); 
       timerRef.current = null; 
-    } 
+    }
     deadlineRef.current = null;
-  };
-  
-  const startRoundTimer = () => {
+    console.log('[Timer] Cleared');
+  }, []);
+
+  const handleTimeout = useCallback(async () => {
+    if (isProcessingRef.current || statusRef.current !== 'listening') {
+      console.log('[Timeout] Ignored - already processing or not listening');
+      return;
+    }
+    
+    isProcessingRef.current = true;
+    console.log(`[Timeout] Question ${idxRef.current + 1} timed out`);
+
+    // ★ 音声認識を完全停止
+    forceStopRecognition();
+
+    // ★ 音声を即座に停止
+    stopCurrentAudio();
+
+    setEnemyVariant('attack');
+    setStatus('timeout');
+
+    await new Promise(r => setTimeout(r, DLY.afterTimeoutBeforeReveal));
+    
+    // ★ タイムアウト後もまだ処理中かチェック
+    if (!isProcessingRef.current) {
+      console.log('[Timeout] Processing was cancelled');
+      return;
+    }
+    
+    setStatus('reveal');
+    
+    const q = questionsRef.current[idxRef.current];
+    if (q?.answers?.[0]) {
+      await speakAwaitTTS(q.answers[0]);
+    }
+    
+    // ★ 音声再生後もまだ処理中かチェック
+    if (!isProcessingRef.current) {
+      console.log('[Timeout] Processing was cancelled after TTS');
+      return;
+    }
+    
+    await new Promise(r => setTimeout(r, DLY.afterReveal));
+
+    startIntermissionThenNext();
+  }, [forceStopRecognition]);
+
+  const startTimer = useCallback(() => {
     clearTimer();
     deadlineRef.current = Date.now() + ROUND_TIME_SEC * 1000;
     setTimeLeft(ROUND_TIME_SEC);
+    console.log('[Timer] Started');
     
     timerRef.current = window.setInterval(() => {
-      if (!deadlineRef.current || isProcessingRef.current) {
-        clearTimer();
-        return;
+      const dl = deadlineRef.current;
+      if (!dl) { 
+        clearTimer(); 
+        return; 
       }
+      const remainMs = Math.max(0, dl - Date.now());
+      const newTimeLeft = Math.ceil(remainMs / 1000);
+      setTimeLeft(newTimeLeft);
       
-      const now = Date.now();
-      const remainMs = Math.max(0, deadlineRef.current - now);
-      const remainSec = Math.ceil(remainMs / 1000);
-      setTimeLeft(remainSec);
-      
-      if (remainMs <= 0 && statusRef.current === 'listening') {
+      if (remainMs <= 0) {
         clearTimer();
         handleTimeout();
       }
-    }, 100) as any;
-  };
+    }, 120);
+  }, [clearTimer, handleTimeout]);
 
-  const handleTimeout = async () => {
-    if (isProcessingRef.current || statusRef.current !== 'listening') return;
-    isProcessingRef.current = true;
-    
-    // マイクがオンの場合はオフにする
-    if (micActive && recognitionRef.current) {
-      try {
-        recognitionRef.current.stop();
-      } catch {}
-      setMicActive(false);
-    }
-    
-    const currentIdx = idxRef.current;
-    console.log('Timeout occurred for question:', currentIdx + 1);
-    
-    // タイムアウト時に敵の攻撃音を再生
-    playAngerSound();
-    
-    setStatus('timeout');
-    await new Promise(r => setTimeout(r, DLY.afterTimeoutBeforeReveal));
-    setStatus('reveal');
-    await new Promise(r => setTimeout(r, DLY.afterReveal));
-    
-    moveToNextQuestion();
-  };
-
-  // ---------------------- Initial load -----------------------
+  // ---------------------- Load ----------------------
   useEffect(() => {
     (async () => {
       try {
@@ -186,507 +286,960 @@ const PlayPage: React.FC = () => {
         const p = part ?? localStorage.getItem('current_part') ?? '1';
         const s = subpart ?? localStorage.getItem('current_subpart') ?? '1';
 
+        console.log('[Load] Fetching data for:', { grade: g, part: p, subpart: s });
+
         const r1 = await fetch(`http://localhost:4000/game/part?grade=${g}&part=${p}&subpart=${s}`);
-        if (!r1.ok) throw new Error('part 取得失敗');
+        if (!r1.ok) {
+          const errorData = await r1.json().catch(() => ({ message: 'part 取得失敗' }));
+          throw new Error(errorData.message || 'part 取得失敗');
+        }
         const j1 = await r1.json();
         setPartInfo(j1.part);
+        console.log('[Load] Part info loaded:', j1.part);
 
         const r2 = await fetch(`http://localhost:4000/game/questions?part_id=${encodeURIComponent(j1.part.part_id)}`);
-        if (!r2.ok) throw new Error('questions 取得失敗');
+        if (!r2.ok) {
+          const errorData = await r2.json().catch(() => ({ message: 'questions 取得失敗' }));
+          throw new Error(errorData.message || 'questions 取得失敗');
+        }
         const j2 = await r2.json();
         const qs: Q[] = (j2.questions || []).slice(0, MAX_QUESTIONS);
-        
-        console.log('Loaded questions:', qs.length, 'Demo count:', qs.filter(q => q.is_demo).length);
-        
+
+        console.log('[Load] Questions loaded:', {
+          total: qs.length,
+          demo: qs.filter(q => q.is_demo).length,
+          nonDemo: qs.filter(q => !q.is_demo).length
+        });
+
         setQuestions(qs);
         questionsRef.current = qs;
         setIdx(0);
+        idxRef.current = 0;
+        setRealCorrect(0);
+        realCorrectRef.current = 0;
         setShowRequirement(true);
-      } catch (e:any) {
-        setError(e.message || String(e));
+      } catch (e) {
+        const err = e as Error;
+        console.error('[Load] Error:', err);
+        setError(err.message || String(e));
       } finally {
         setLoading(false);
       }
     })();
-    
+
     return () => {
+      console.log('[Cleanup] Component unmounting');
       clearTimer();
-      (window as any).speechSynthesis?.cancel();
-      if (recognitionRef.current) {
-        try {
-          recognitionRef.current.stop();
-        } catch {}
-      }
+      stopCurrentAudio();
+      forceStopRecognition();
     };
+  }, [grade, part, subpart, clearTimer, forceStopRecognition]);
+
+  // ---------------------- Audio Control ----------------------
+  const muteCurrentAudio = useCallback(() => {
+    if (currentAudioRef.current) {
+      originalVolumeRef.current = currentAudioRef.current.volume;
+      currentAudioRef.current.volume = 0;
+      console.log('[TTS] Muted current audio');
+    }
   }, []);
 
-  // ---------------------- Question Start ----------------------
-  const startQuestionForIndex = async (questionIndex: number) => {
-    const targetQuestion = questionsRef.current[questionIndex];
-    if (!targetQuestion || statusRef.current === 'finished') return;
-    
-    console.log(`Starting question ${questionIndex + 1}:`, targetQuestion.question_text);
-    console.log('Total questions available:', questionsRef.current.length);
-    
-    isProcessingRef.current = false;
-    setShowText(false);
-    setStatus('speaking');
-    clearTimer();
-    setTimeLeft(ROUND_TIME_SEC);
-    setCapturedTexts([]);
-    setLastRecognized('');
-    capturedRef.current = [];
-    
-    (window as any).speechSynthesis?.cancel();
-    
-    const text = targetQuestion.question_text;
-    const isCurrentDemo = questionIndex === 0 && targetQuestion.is_demo === true;
+  const unmuteCurrentAudio = useCallback(() => {
+    if (currentAudioRef.current) {
+      currentAudioRef.current.volume = originalVolumeRef.current;
+      console.log('[TTS] Unmuted current audio');
+    }
+  }, []);
+
+  const stopCurrentAudio = useCallback(() => {
+    if (currentAudioRef.current) {
+      currentAudioRef.current.pause();
+      currentAudioRef.current.currentTime = 0;
+      currentAudioRef.current = null;
+    }
+    isSpeakingRef.current = false;
+    console.log('[TTS] Audio stopped');
+  }, []);
+
+  useEffect(() => {
+    if (micActive) {
+      muteCurrentAudio();
+    } else {
+      unmuteCurrentAudio();
+    }
+  }, [micActive, muteCurrentAudio, unmuteCurrentAudio]);
+
+  // ---------------------- Google TTS Speech ----------------------
+  const speakAwaitTTS = useCallback(async (text: string): Promise<void> => {
+    // ★ 処理が中断されている場合は音声再生をスキップ
+    if (isProcessingRef.current && statusRef.current !== 'reveal' && statusRef.current !== 'beam' && statusRef.current !== 'explosion') {
+      console.log('[TTS] Skipping speech - processing interrupted');
+      return;
+    }
 
     try {
-      // 1回目読み上げ
-      await speakAwait(text);
-      await new Promise(r => setTimeout(r, DLY.betweenSpeaks));
+      isSpeakingRef.current = true;
+      console.log('[TTS] Speaking:', text);
+      
+      const response = await axios.post(
+        'http://localhost:4000/api/tts/synthesize', 
+        { 
+          text,
+          languageCode: 'en-US',
+          voiceName: 'en-US-Neural2-D',
+          speakingRate: 0.95,
+          pitch: 0
+        },
+        { timeout: 10000 }
+      );
 
-      // 2回目読み上げ
-      await speakAwait(text);
-      await new Promise(r => setTimeout(r, DLY.betweenSpeaks));
+      // ★ リクエスト後も処理が中断されていないかチェック
+      if (isProcessingRef.current && statusRef.current !== 'reveal' && statusRef.current !== 'beam' && statusRef.current !== 'explosion') {
+        console.log('[TTS] Skipping playback - processing interrupted after request');
+        isSpeakingRef.current = false;
+        return;
+      }
 
-      // 3回目の読み上げと同時に問題文を表示
-      setShowText(true);
-      await speakAwait(text);
+      if (response.data.error) {
+        console.error('[TTS] API Error:', response.data.error);
+        isSpeakingRef.current = false;
+        return;
+      }
 
-      // タイマー開始
-      startRoundTimer();
-
-      if (isCurrentDemo) {
-        // デモの自動処理
-        await new Promise(r => setTimeout(r, DLY.afterThirdSpeakBeforeDemoAns));
+      let audioContent: string | null = null;
+      
+      if (typeof response.data === 'string') {
+        audioContent = response.data;
+      } else if (typeof response.data.audioContent === 'string') {
+        audioContent = response.data.audioContent;
+      } else if (response.data.audioContent && typeof response.data.audioContent === 'object') {
+        const contentObj = response.data.audioContent as Record<string, unknown>;
         
-        if (isProcessingRef.current) return;
-        isProcessingRef.current = true;
-        clearTimer();
+        if (contentObj.type === 'Buffer' && Array.isArray(contentObj.data)) {
+          const uint8Array = new Uint8Array(contentObj.data);
+          const blob = new Blob([uint8Array], { type: 'audio/mpeg' });
+          const audioUrl = URL.createObjectURL(blob);
+          const audio = new Audio(audioUrl);
+          audio.volume = micActiveRef.current ? 0 : TTS_VOLUME;
+          currentAudioRef.current = audio;
 
-        setStatus('beam');
-        setCorrectCount(c => c + 1);
-        await new Promise(r => setTimeout(r, DLY.beam));
-
-        setStatus('explosion');
-        await new Promise(r => setTimeout(r, DLY.explosion));
-
-        setStatus('reveal');
-        await new Promise(r => setTimeout(r, DLY.afterReveal));
+          await new Promise<void>((resolve) => {
+            audio.onended = () => {
+              URL.revokeObjectURL(audioUrl);
+              currentAudioRef.current = null;
+              isSpeakingRef.current = false;
+              resolve();
+            };
+            audio.onerror = () => {
+              console.error('[TTS] Audio playback error');
+              URL.revokeObjectURL(audioUrl);
+              currentAudioRef.current = null;
+              isSpeakingRef.current = false;
+              resolve();
+            };
+            audio.play().catch(() => {
+              URL.revokeObjectURL(audioUrl);
+              currentAudioRef.current = null;
+              isSpeakingRef.current = false;
+              resolve();
+            });
+          });
+          return;
+        }
         
-        moveToNextQuestion();
-      } else {
-        // 通常問題：回答受付開始
-        await new Promise(r => setTimeout(r, DLY.afterThirdSpeakBeforeListen));
-        if (!isProcessingRef.current) {
-          setStatus('listening');
+        if (typeof contentObj.data === 'string') {
+          audioContent = contentObj.data;
+        } else if (Array.isArray(contentObj)) {
+          const uint8Array = new Uint8Array(contentObj);
+          const blob = new Blob([uint8Array], { type: 'audio/mpeg' });
+          const audioUrl = URL.createObjectURL(blob);
+          const audio = new Audio(audioUrl);
+          audio.volume = micActiveRef.current ? 0 : TTS_VOLUME;
+          currentAudioRef.current = audio;
+
+          await new Promise<void>((resolve) => {
+            audio.onended = () => {
+              URL.revokeObjectURL(audioUrl);
+              currentAudioRef.current = null;
+              isSpeakingRef.current = false;
+              resolve();
+            };
+            audio.onerror = () => {
+              console.error('[TTS] Audio playback error');
+              URL.revokeObjectURL(audioUrl);
+              currentAudioRef.current = null;
+              isSpeakingRef.current = false;
+              resolve();
+            };
+            audio.play().catch(() => {
+              URL.revokeObjectURL(audioUrl);
+              currentAudioRef.current = null;
+              isSpeakingRef.current = false;
+              resolve();
+            });
+          });
+          return;
         }
       }
-    } catch (e) {
-      console.error('Error in startQuestionForIndex:', e);
-    }
-  };
 
-  // ---------------------- Move to Next Question ----------------------
-  const moveToNextQuestion = () => {
+      if (!audioContent) {
+        console.error('[TTS] No valid audioContent found');
+        isSpeakingRef.current = false;
+        return;
+      }
+
+      const commaIndex = audioContent.indexOf(',');
+      if (commaIndex !== -1) {
+        audioContent = audioContent.substring(commaIndex + 1);
+      }
+      
+      audioContent = audioContent.replace(/[\s\n\r\t]/g, '');
+      
+      if (!audioContent || audioContent.length === 0) {
+        console.error('[TTS] Empty audio content after cleanup');
+        isSpeakingRef.current = false;
+        return;
+      }
+      
+      if (!audioContent.match(/^[A-Za-z0-9+/]*={0,2}$/)) {
+        console.error('[TTS] Invalid Base64 string');
+        isSpeakingRef.current = false;
+        return;
+      }
+      
+      let binaryString: string;
+      try {
+        binaryString = window.atob(audioContent);
+      } catch (decodeError) {
+        console.error('[TTS] Base64 decode error:', decodeError);
+        isSpeakingRef.current = false;
+        return;
+      }
+      
+      const bytes = new Uint8Array(binaryString.length);
+      for (let i = 0; i < binaryString.length; i++) {
+        bytes[i] = binaryString.charCodeAt(i);
+      }
+      
+      const blob = new Blob([bytes], { type: 'audio/mpeg' });
+      const audioUrl = URL.createObjectURL(blob);
+      const audio = new Audio(audioUrl);
+      audio.volume = micActiveRef.current ? 0 : TTS_VOLUME;
+      
+      currentAudioRef.current = audio;
+
+      await new Promise<void>((resolve) => {
+        audio.onended = () => {
+          URL.revokeObjectURL(audioUrl);
+          currentAudioRef.current = null;
+          isSpeakingRef.current = false;
+          console.log('[TTS] Playback completed');
+          resolve();
+        };
+
+        audio.onerror = () => {
+          console.error('[TTS] Audio playback error');
+          URL.revokeObjectURL(audioUrl);
+          currentAudioRef.current = null;
+          isSpeakingRef.current = false;
+          resolve();
+        };
+
+        audio.play().catch((err) => {
+          console.error('[TTS] Audio play error:', err);
+          URL.revokeObjectURL(audioUrl);
+          currentAudioRef.current = null;
+          isSpeakingRef.current = false;
+          resolve();
+        });
+      });
+    } catch (error) {
+      console.error('[TTS] Error:', error);
+      
+      if (axios.isAxiosError(error)) {
+        console.error('[TTS] Axios error:', {
+          message: error.message,
+          response: error.response?.data,
+          status: error.response?.status
+        });
+      }
+      
+      isSpeakingRef.current = false;
+    }
+  }, []);
+
+  // ---------------------- One Question ----------------------
+  const startQuestionForIndex = useCallback(async (questionIndex: number) => {
+    const q = questionsRef.current[questionIndex];
+    if (!q || statusRef.current === 'finished') return;
+
+    console.log(`[Question] Starting question ${questionIndex + 1}/${questionsRef.current.length}`, {
+      isDemo: q.is_demo,
+      currentCorrect: realCorrectRef.current
+    });
+
+    isProcessingRef.current = false;
+    setShowText(false);
+    setStatus('idle');
+    setEnemyVariant('normal');
+    setLastRecognized('');
+    capturedRef.current = [];
+
+    stopCurrentAudio();
+    forceStopRecognition();
+
+    setBannerText(q.is_demo && questionIndex === 0 ? 'Start Demo' : `Question ${questionIndex + 1} !`);
+    await new Promise(r => setTimeout(r, 1200));
+    setBannerText(null);
+
+    setStatus('speaking');
+    startTimer();
+
+    // ★ 1回目の読み上げ
+    await speakAwaitTTS(q.question_text);
+    if (isProcessingRef.current) {
+      console.log('[Question] Processing interrupted after 1st speak');
+      return;
+    }
+
+    await new Promise(r => setTimeout(r, DLY.betweenSpeaks));
+    if (isProcessingRef.current) {
+      console.log('[Question] Processing interrupted during delay after 1st speak');
+      return;
+    }
+
+    // ★ 2回目の読み上げ
+    await speakAwaitTTS(q.question_text);
+    if (isProcessingRef.current) {
+      console.log('[Question] Processing interrupted after 2nd speak');
+      return;
+    }
+
+    await new Promise(r => setTimeout(r, DLY.betweenSpeaks));
+    if (isProcessingRef.current) {
+      console.log('[Question] Processing interrupted during delay after 2nd speak');
+      return;
+    }
+
+    setShowText(true);
+    
+    // ★ 3回目の読み上げ
+    await speakAwaitTTS(q.question_text);
+    if (isProcessingRef.current) {
+      console.log('[Question] Processing interrupted after 3rd speak');
+      return;
+    }
+
+    if (q.is_demo && questionIndex === 0) {
+      await new Promise(r => setTimeout(r, DLY.afterThirdSpeakBeforeDemoAns));
+      if (isProcessingRef.current) {
+        console.log('[Question] Processing interrupted during demo delay');
+        return;
+      }
+      isProcessingRef.current = true;
+      clearTimer();
+      stopCurrentAudio();
+
+      setEnemyVariant('ko');
+      playSound('attack.mp3');
+      setStatus('beam');
+      await new Promise(r => setTimeout(r, DLY.beam));
+
+      setStatus('explosion');
+      await new Promise(r => setTimeout(r, DLY.explosion));
+
+      setStatus('reveal');
+      
+      if (q.answers?.[0]) {
+        await speakAwaitTTS(q.answers[0]);
+      }
+      
+      await new Promise(r => setTimeout(r, DLY.afterReveal));
+
+      startIntermissionThenNext();
+    } else {
+      setStatus('listening');
+    }
+  }, [clearTimer, startTimer, speakAwaitTTS, stopCurrentAudio, forceStopRecognition]);
+
+  // ---------------------- Intermission => Next ----------------------
+  const startIntermissionThenNext = useCallback(() => {
+    const q = questionsRef.current[idxRef.current];
+    const ans = q?.answers?.[0] ?? '';
+    console.log(`[Intermission] Question ${idxRef.current + 1} complete`, {
+      isDemo: q?.is_demo,
+      currentCorrect: realCorrectRef.current
+    });
+    
+    setIntermissionSnap({
+      text: q?.question_text ?? '',
+      answer: ans,
+      enemy: enemyVariant,
+    });
+    setStatus('intermission');
+
+    setTimeout(() => {
+      moveToNextQuestion();
+    }, DLY.intermission);
+  }, [enemyVariant]);
+
+  const moveToNextQuestion = useCallback(() => {
     clearTimer();
     isProcessingRef.current = false;
     setMicActive(false);
+    setIntermissionSnap(null);
+    setEnemyVariant('normal');
+
+    stopCurrentAudio();
+    forceStopRecognition();
+
+    const next = idxRef.current + 1;
+    console.log(`[Progress] Moving from question ${idxRef.current + 1} to ${next + 1}`, {
+      totalQuestions: questionsRef.current.length,
+      currentCorrect: realCorrectRef.current
+    });
     
-    // 音声認識を停止
-    if (recognitionRef.current) {
-      try {
-        recognitionRef.current.stop();
-      } catch {}
-    }
-    
-    const currentIdx = idxRef.current;
-    const nextIdx = currentIdx + 1;
-    console.log(`Moving from question ${currentIdx + 1} to ${nextIdx + 1} (Total: ${questionsRef.current.length})`);
-    
-    if (nextIdx >= questionsRef.current.length) {
-      console.log('All questions completed. Moving to result screen.');
+    if (next >= questionsRef.current.length) {
+      console.log('[Game] All questions completed');
       setStatus('finished');
       finishGame();
       return;
     }
     
-    setIdx(nextIdx);
-    idxRef.current = nextIdx;
+    setIdx(next);
+    idxRef.current = next;
     setShowText(false);
     setStatus('idle');
-    setCapturedTexts([]);
-    setLastRecognized('');
-    
-    setTimeout(() => {
-      startQuestionForIndex(nextIdx);
-    }, DLY.beforeNextQuestion);
-  };
+    setTimeout(() => startQuestionForIndex(next), DLY.beforeNextQuestion);
+  }, [clearTimer, stopCurrentAudio, forceStopRecognition, startQuestionForIndex]);
 
-  // ---------------------- Mic Toggle -----------------------
-  const toggleMic = () => {
-    const currentQ = questionsRef.current[idxRef.current];
-    if (!currentQ || statusRef.current !== 'listening' || isProcessingRef.current) return;
-    
-    const deadline = deadlineRef.current;
-    if (!deadline || Date.now() >= deadline) return;
+  // ---------------------- Mic Toggle & Evaluate ----------------------
+  const toggleMic = useCallback(() => {
+    if (!['speaking', 'listening', 'wrong'].includes(status) || timeLeft <= 0) return;
+    if (!micActive) startRecognition();
+    else stopRecognitionAndEvaluate();
+  }, [status, timeLeft, micActive]);
 
-    if (!micActive) {
-      // マイクをオンにする
-      startRecognition();
-    } else {
-      // マイクをオフにして評価
-      stopRecognitionAndEvaluate();
+  const startRecognition = useCallback(() => {
+    const SR = window.webkitSpeechRecognition || window.SpeechRecognition;
+    if (!SR) { 
+      alert('このブラウザは音声認識に未対応です(Chrome 推奨)'); 
+      return; 
     }
-  };
 
-  const startRecognition = () => {
-    const SR: any = (window as any).webkitSpeechRecognition || (window as any).SpeechRecognition;
-    if (!SR) {
-      alert('このブラウザは音声認識に未対応です（Chrome 推奨）');
-      return;
-    }
-    
     const rec = new SR();
     recognitionRef.current = rec;
     capturedRef.current = [];
-    
-    rec.lang = 'en-US';
-    rec.continuous = true; // 継続的に音声を取得
-    rec.interimResults = true; // 中間結果も取得
-    rec.maxAlternatives = 3; // 複数の候補を取得
+    setLastRecognized('');
+    stoppingRef.current = false;
 
-    rec.onresult = (e:any) => {
+    rec.lang = 'en-US';
+    rec.continuous = true;
+    rec.interimResults = true;
+    rec.maxAlternatives = 3;
+
+    rec.onresult = (e: SpeechRecognitionEvent) => {
       for (let i = e.resultIndex; i < e.results.length; i++) {
         const result = e.results[i];
-        for (let j = 0; j < result.length; j++) {
-          const alt = result[j];
-          const text = alt?.transcript ?? '';
-          if (text && text.trim()) {
-            const normalized = text.trim();
-            // 重複を避けて追加
-            if (!capturedRef.current.includes(normalized)) {
-              capturedRef.current.push(normalized);
-              setCapturedTexts([...capturedRef.current]);
-              setLastRecognized(normalized);
-              console.log('Captured:', normalized);
-            }
+        const alt = result[0];
+        const text = alt?.transcript ?? '';
+        if (text && text.trim()) {
+          const t = text.trim();
+          if (!capturedRef.current.includes(t)) {
+            capturedRef.current.push(t);
+            setLastRecognized(t);
+            console.log('[ASR] Captured:', { text: t, confidence: alt?.confidence, isFinal: result.isFinal });
           }
         }
       }
     };
-    
-    rec.onerror = (e:any) => {
-      console.log('Speech recognition error:', e.error);
-      // no-speechエラーは無視（ユーザーが話していないだけ）
-      if (e.error === 'no-speech') {
+
+    rec.onerror = (e: SpeechRecognitionErrorEvent) => { 
+      console.warn('[ASR] Error:', e.error); 
+    };
+
+    rec.onend = () => {
+      console.log('[ASR] Ended');
+      
+      // ★ 停止フラグが立っている、またはマイクが非アクティブなら再起動しない
+      if (stoppingRef.current || !micActiveRef.current) {
+        console.log('[ASR] Not restarting - stopping flag or mic inactive');
         return;
       }
-      // その他のエラーの場合は停止
-      setMicActive(false);
-    };
-    
-    rec.onend = () => {
-      console.log('Recognition ended');
-      setMicActive(false);
+      
+      // ★ タイムアウトまたは処理中の場合は再起動しない
+      if (isProcessingRef.current || timeLeftRef.current <= 0) {
+        console.log('[ASR] Not restarting - processing or timeout');
+        return;
+      }
+      
+      // ★ 有効なステータスでない場合は再起動しない
+      const shouldRestart = ['speaking', 'listening', 'wrong'].includes(statusRef.current);
+      
+      if (shouldRestart) {
+        try {
+          rec.start();
+          console.log('[ASR] Auto-restarted');
+        } catch (err) {
+          console.warn('[ASR] Failed to restart:', err);
+        }
+      } else {
+        console.log('[ASR] Not restarting - invalid status:', statusRef.current);
+      }
     };
 
+    try { 
+      rec.start(); 
+      setMicActive(true); 
+      console.log('[ASR] Started'); 
+    } catch (err) {
+      console.error('[ASR] Failed to start:', err);
+    }
+  }, []);
+
+  const stopRecognitionAndEvaluate = useCallback(async () => {
+    console.log('[ASR] Stopping for evaluation');
+    stoppingRef.current = true;
+    
     try {
-      rec.start();
-      setMicActive(true);
-      console.log('Mic ON - Started listening');
-    } catch (e) {
-      console.error('Failed to start recognition:', e);
-      setMicActive(false);
-    }
-  };
-
-  const stopRecognitionAndEvaluate = async () => {
-    if (recognitionRef.current) {
-      try {
+      if (recognitionRef.current) {
+        recognitionRef.current.onend = null;
         recognitionRef.current.stop();
-      } catch {}
+      }
+    } catch (err) {
+      console.warn('[ASR] Error during stop:', err);
     }
+    
     setMicActive(false);
-    console.log('Mic OFF - Evaluating captured texts:', capturedRef.current);
+    micActiveRef.current = false;
     
-    // 評価処理
-    const currentQ = questionsRef.current[idxRef.current];
-    if (!currentQ || isProcessingRef.current) return;
-    
-    const captured = capturedRef.current.map(normalize);
-    const answers = (currentQ.answers || []).map(normalize);
-    
-    console.log('Normalized captured:', captured);
-    console.log('Expected answers:', answers);
-    
-    // いずれかの発話が答えと一致するかチェック
+    console.log('[ASR] Stopped for evaluation');
+    evaluateCaptured();
+  }, []);
+
+  const evaluateCaptured = useCallback(async () => {
+    if (isProcessingRef.current) {
+      console.log('[Eval] Already processing - skipping');
+      return;
+    }
+    const q = questionsRef.current[idxRef.current];
+    if (!q) return;
+
+    const heardRaw = [...capturedRef.current];
+    const heard = heardRaw.map(normalize).filter(Boolean);
+    const answersRaw = (q.answers || []);
+    const answers = answersRaw.map(normalize).filter(Boolean);
+
+    console.groupCollapsed(`[Eval] Question ${idxRef.current + 1}`);
+    console.log('Heard (raw):', heardRaw);
+    console.log('Heard (normalized):', heard);
+    console.log('Answers (normalized):', answers);
+    console.log('Is Demo:', q.is_demo);
+
     let isCorrect = false;
-    for (const capturedText of captured) {
-      if (answers.some(ans => capturedText.includes(ans) || ans.includes(capturedText))) {
-        isCorrect = true;
-        break;
+    let matchDetails = '';
+    
+    outer: for (const h of heard) {
+      for (const a of answers) {
+        if (h === a) { 
+          isCorrect = true; 
+          matchDetails = `Exact match: "${h}" === "${a}"`;
+          break outer; 
+        }
+        const s = simLevenshtein(h, a);
+        const j = jaccard(h, a);
+        if (s >= 0.66 || j >= 0.6) {
+          isCorrect = true; 
+          matchDetails = `Fuzzy match: "${h}" ≈ "${a}" (Levenshtein: ${s.toFixed(2)}, Jaccard: ${j.toFixed(2)})`;
+          break outer;
+        }
       }
     }
-    
+
+    console.log('Result:', isCorrect ? '✓ CORRECT' : '✗ WRONG');
+    if (isCorrect) console.log('Match:', matchDetails);
+    console.groupEnd();
+
     if (isCorrect) {
-      // 正解処理
+      // ★ 処理開始をマーク（これ以降の音声読み上げをスキップさせる）
       isProcessingRef.current = true;
+      console.log('[Eval] Correct answer - setting isProcessingRef to true');
+      
+      // ★ タイマー停止と音声停止
       clearTimer();
+      stopCurrentAudio();
       
+      // ★ 音声認識を完全停止
+      forceStopRecognition();
+
+      // ★ デモ問題でない場合のみカウント
+      if (!q.is_demo) {
+        setRealCorrect(c => {
+          const newCount = c + 1;
+          console.log(`[Score] Correct answers: ${newCount} (non-demo)`);
+          realCorrectRef.current = newCount;
+          return newCount;
+        });
+      } else {
+        console.log('[Score] Demo question - not counting toward score');
+      }
+
+      setEnemyVariant('ko');
+      playSound('attack.mp3');
       setStatus('beam');
-      setCorrectCount(c => c + 1);
-      setRealCorrect(c => c + 1);
       await new Promise(r => setTimeout(r, DLY.beam));
-      
+
       setStatus('explosion');
       await new Promise(r => setTimeout(r, DLY.explosion));
-      
+
       setStatus('reveal');
-      await new Promise(r => setTimeout(r, DLY.afterReveal));
       
-      moveToNextQuestion();
+      if (q.answers?.[0]) {
+        await speakAwaitTTS(q.answers[0]);
+      }
+      
+      await new Promise(r => setTimeout(r, DLY.afterReveal));
+
+      startIntermissionThenNext();
     } else {
-      // 不正解
+      setEnemyVariant('attack');
       setStatus('wrong');
-      speakBubuu();
+      playSound('miss.mp3');
       setTimeout(() => {
         if (!isProcessingRef.current && deadlineRef.current && Date.now() < deadlineRef.current) {
+          setEnemyVariant('normal');
           setStatus('listening');
-          // 発話をリセット
-          capturedRef.current = [];
-          setCapturedTexts([]);
         }
       }, 600);
     }
-  };
+  }, [clearTimer, stopCurrentAudio, forceStopRecognition, speakAwaitTTS, startIntermissionThenNext]);
 
   // ---------------------- Finish Game ----------------------
-  const finishGame = async () => {
-    const allQuestions = questionsRef.current;
-    const nonDemoQuestions = allQuestions.filter(q => !q.is_demo);
-    console.log(`Game finished. Total correct: ${realCorrect}/${nonDemoQuestions.length}`);
-    console.log('All questions:', allQuestions.length, 'Non-demo:', nonDemoQuestions.length);
-    
-    const clear = realCorrect >= CORRECT_TO_CLEAR;
-    
+  const finishGame = useCallback(async () => {
+    const nonDemoCount = questionsRef.current.filter(q => !q.is_demo).length;
+    const finalCorrect = realCorrectRef.current;
+    const clear = finalCorrect >= CORRECT_TO_CLEAR;
+
+    console.log('[Game] Finished!', {
+      totalQuestions: questionsRef.current.length,
+      nonDemoQuestions: nonDemoCount,
+      correctAnswers: finalCorrect,
+      cleared: clear
+    });
+
+    const userId = localStorage.getItem('userId') || '';
+    const part_id = partInfo?.part_id || '';
+
     try {
-      const userId = localStorage.getItem('userId') || '';
-      const part_id = partInfo?.part_id || '';
-      if (userId && part_id) {
-        await fetch('http://localhost:4000/game/score', {
+      if (!userId) {
+        console.error('[API] No userId found in localStorage');
+        throw new Error('ユーザーIDが見つかりません');
+      }
+      if (!part_id) {
+        console.error('[API] No part_id found');
+        throw new Error('パートIDが見つかりません');
+      }
+
+      // ★ スコア送信
+      console.log('[API] Sending score...', { 
+        userId, 
+        part_id, 
+        scores: finalCorrect, 
+        clear 
+      });
+
+      const scoreResponse = await fetch('http://localhost:4000/game/score', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ 
+          userId, 
+          part_id, 
+          scores: finalCorrect, 
+          clear 
+        }),
+      });
+
+      if (!scoreResponse.ok) {
+        const errorText = await scoreResponse.text();
+        console.error('[API] Score submission failed:', {
+          status: scoreResponse.status,
+          statusText: scoreResponse.statusText,
+          body: errorText
+        });
+        throw new Error(`スコア送信失敗: ${scoreResponse.status}`);
+      }
+
+      const scoreData = await scoreResponse.json();
+      console.log('[API] Score saved successfully:', scoreData);
+
+      // ★ クリアした場合のみ進捗を更新
+      if (clear) {
+        console.log('[API] Attempting to advance progress...');
+        
+        const currentGrade = grade ?? localStorage.getItem('current_grade') ?? '1';
+        const currentPart = part ?? localStorage.getItem('current_part') ?? '1';
+        const currentSubpart = subpart ?? localStorage.getItem('current_subpart') ?? '1';
+
+        const advancePayload = {
+          userId,
+          current: {
+            grade: currentGrade,
+            part: currentPart,
+            subpart: currentSubpart,
+          },
+          part_id,
+          clear: true
+        };
+
+        console.log('[API] Advance payload:', advancePayload);
+
+        const advanceResponse = await fetch('http://localhost:4000/game/advance', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ userId, part_id, scores: realCorrect, clear }),
+          body: JSON.stringify(advancePayload),
         });
-        
-        if (clear) {
-          console.log('Clear achieved! Advancing progress...');
-          const cur = {
-            grade: grade ?? localStorage.getItem('current_grade') ?? '1',
-            part: part ?? localStorage.getItem('current_part') ?? '1',
-            subpart: subpart ?? localStorage.getItem('current_subpart') ?? '1',
-          };
-          await fetch('http://localhost:4000/game/advance', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ userId, current: cur, part_id, clear }),
+
+        if (!advanceResponse.ok) {
+          const errorText = await advanceResponse.text();
+          console.error('[API] Advance request failed:', {
+            status: advanceResponse.status,
+            statusText: advanceResponse.statusText,
+            body: errorText
+          });
+          throw new Error(`進捗更新失敗: ${advanceResponse.status}`);
+        }
+
+        const advanceData = await advanceResponse.json();
+        console.log('[API] Advance response:', advanceData);
+
+        if (advanceData.ok && advanceData.advanced) {
+          console.log('[API] Progress advanced successfully!', {
+            reason: advanceData.reason,
+            next: advanceData.next
+          });
+
+          // ★ LocalStorageを更新
+          if (advanceData.next) {
+            localStorage.setItem('current_grade', String(advanceData.next.grade_id));
+            localStorage.setItem('current_part', String(advanceData.next.part_no));
+            localStorage.setItem('current_subpart', String(advanceData.next.subpart_no));
+            console.log('[LocalStorage] Updated progress to:', {
+              grade: advanceData.next.grade_id,
+              part: advanceData.next.part_no,
+              subpart: advanceData.next.subpart_no
+            });
+          }
+        } else {
+          console.log('[API] Progress not advanced:', {
+            reason: advanceData.reason,
+            attempts: advanceData.attempts,
+            required: advanceData.required,
+            remaining: advanceData.remaining
           });
         }
+      } else {
+        console.log('[API] Not cleared - skipping advance request');
       }
-    } catch (e) {
-      console.warn('score/advance failed', e);
-    }
-    
-    nav('/result', { state: { clear, correct: realCorrect, total: nonDemoQuestions.length } });
-  };
 
-  // ---------------------- Start Button Handler ----------------------
-  const handleStartClick = () => {
+    } catch (err) {
+      console.error('[API] Error during finish game:', err);
+      if (axios.isAxiosError(err)) {
+        console.error('[API] Axios error details:', {
+          message: err.message,
+          response: err.response?.data,
+          status: err.response?.status,
+          config: {
+            url: err.config?.url,
+            method: err.config?.method,
+            data: err.config?.data
+          }
+        });
+      }
+      // エラーが発生してもリザルト画面には遷移する
+    }
+
+    // ★ リザルト画面に遷移（finalCorrectを使用）
+    console.log('[Navigation] Moving to result page:', {
+      clear,
+      correct: finalCorrect,
+      total: nonDemoCount
+    });
+
+    nav('/result', { 
+      state: { 
+        clear, 
+        correct: finalCorrect, 
+        total: nonDemoCount 
+      } 
+    });
+  }, [partInfo, grade, part, subpart, nav]);
+
+  // ---------------------- Start Button ----------------------
+  const handleStartClick = useCallback(() => {
+    console.log('[Game] Starting game');
     setShowRequirement(false);
-    setTimeout(() => {
-      startQuestionForIndex(0);
-    }, 100);
-  };
+    setTimeout(() => startQuestionForIndex(0), 100);
+  }, [startQuestionForIndex]);
 
   // ---------------------- Render -----------------------------
-  if (loading) return <div className="page"><h1 className="title">Loading...</h1></div>;
-  if (error) return <div className="page"><h1 className="title">Error</h1><div style={{color:'salmon'}}>{error}</div></div>;
-  if (!partInfo || questions.length === 0) return <div className="page"><h1 className="title">No Data</h1></div>;
+  if (loading) {
+    return (
+      <div className="page">
+        <h1 className="title">Loading...</h1>
+      </div>
+    );
+  }
+  
+  if (error) {
+    return (
+      <div className="page">
+        <h1 className="title">Error</h1>
+        <div style={{ color: 'salmon', padding: '20px' }}>{error}</div>
+        <div style={{ marginTop: '20px' }}>
+          <Button onClick={() => nav('/select')}>戻る</Button>
+        </div>
+      </div>
+    );
+  }
+  
+  if (!partInfo || questions.length === 0) {
+    return (
+      <div className="page">
+        <h1 className="title">No Data</h1>
+        <div style={{ color: '#94a3b8', padding: '20px' }}>
+          問題データが見つかりませんでした
+        </div>
+        <div style={{ marginTop: '20px' }}>
+          <Button onClick={() => nav('/select')}>戻る</Button>
+        </div>
+      </div>
+    );
+  }
+
+  const showIntermission = status === 'intermission' && intermissionSnap;
+
+  const enemyContainerClass = `enemy-container ${enemyVariant === 'normal' ? 'enemy-normal' : 'enemy-front'}`;
+  const enemyImgClass = `enemy-img ${
+    enemyVariant === 'ko' ? 'enemy-ko' :
+      enemyVariant === 'attack' ? 'enemy-attack' : ''
+  }`;
+
+  const gunBtnEnabled = ['speaking', 'listening', 'wrong'].includes(status) && timeLeft > 0;
+  const gunBtnClass = [
+    'gun-button',
+    gunBtnEnabled ? 'enabled' : 'disabled',
+    micActive ? 'mic-active' : 'mic-inactive'
+  ].join(' ');
 
   return (
-    <div className="page" style={{ position:'relative', minHeight:'100vh' }}>
-      {/* 左上：Time Limit */}
-      <div style={{ position:'absolute', top:14, left:16, color:'#fff' }}>
-        <div style={{ fontSize:20, marginBottom:6 }}>Time Limit</div>
-        <div style={{ 
-          width:56, height:56, borderRadius:8, 
-          background:'rgba(255,255,255,0.9)', color:'#000',
-          display:'flex', alignItems:'center', justifyContent:'center', fontSize:22 
-        }}>{timeLeft}</div>
+    <div className="play-page">
+      {/* 左上: Time Limit */}
+      <div className="time-limit-container">
+        <div className="time-limit-label">Time Limit</div>
+        <div className="time-limit-display">{timeLeft}</div>
       </div>
 
-      {/* 右上：マイク状態表示 */}
-      {status === 'listening' && (
-        <div style={{ position:'absolute', top:14, right:16 }}>
-          <div style={{
-            padding: '8px 16px',
-            borderRadius: 20,
-            background: micActive ? '#10b981' : '#6b7280',
-            color: '#fff',
-            fontWeight: 'bold',
-            fontSize: 14,
-            display: 'flex',
-            alignItems: 'center',
-            gap: 8,
-            boxShadow: micActive ? '0 0 20px rgba(16,185,129,0.5)' : 'none',
-            animation: micActive ? 'pulse 1.5s infinite' : 'none'
-          }}>
-            <div style={{
-              width: 8,
-              height: 8,
-              borderRadius: '50%',
-              background: micActive ? '#fff' : '#374151',
-              animation: micActive ? 'blink 1s infinite' : 'none'
-            }}/>
-            MIC: {micActive ? 'ON' : 'OFF'}
+      {/* 右上: マイク状態 */}
+      {['speaking', 'listening', 'wrong'].includes(status) && (
+        <div className="mic-status-container">
+          <div className={`mic-status-badge ${micActive ? 'active' : 'inactive'}`}>
+            <span className="mic-icon">{micActive ? '🎤' : '🔇'}</span>
+            <span className="mic-text">MIC: {micActive ? 'ON' : 'OFF'}</span>
           </div>
-          {lastRecognized && (
-            <div style={{
-              marginTop: 8,
-              padding: '4px 8px',
-              background: 'rgba(0,0,0,0.5)',
-              borderRadius: 4,
-              fontSize: 12,
-              color: '#e5e7eb'
-            }}>
-              Heard: "{lastRecognized}"
-            </div>
+          {!!lastRecognized && (
+            <div className="mic-heard-text">Heard: {lastRecognized}</div>
           )}
         </div>
       )}
 
-      {/* 左：何問目 */}
-      <div style={{ position:'absolute', top:260, left:'15vw', color:'#fff' }}>
-        <div style={{ 
-          width:64, height:64, borderRadius:6, 
-          background:'rgba(255,255,255,0.9)', color:'#000',
-          display:'flex', alignItems:'center', justifyContent:'center', fontSize:28 
-        }}>{questionNo}</div>
+      {/* 左: 問題番号 */}
+      <div className="question-number-container">
+        <div className="question-number-display">{questionNo}</div>
       </div>
 
-      {/* 上中央：敵 */}
-      <div style={{ 
-        display:'flex', justifyContent:'center', marginTop:20, 
-        position:'absolute', top:0, left:'50%', transform:'translateX(-50%)' 
-      }}>
-        {status === 'explosion' || status === 'beam' ? (
-          <img src="/enemy_ko.png" alt="enemy ko" style={{ height:64 }} />
-        ) : status === 'timeout' ? (
-          <img src="/enemy_attack.png" alt="enemy attack" style={{ height:64 }} />
-        ) : (
-          <img src="/enemy.png" alt="enemy" style={{ height:64 }} />
-        )}
+      {/* 上中央: 敵キャラクター */}
+      <div className={enemyContainerClass}>
+        <img 
+          src={
+            enemyVariant === 'ko' ? '/enemy_ko.png' :
+            enemyVariant === 'attack' ? '/enemy_attack.png' :
+            '/enemy.png'
+          } 
+          alt="enemy" 
+          className={enemyImgClass} 
+        />
       </div>
 
-      {/* 中央：要件 or 問題文 */}
+      {/* 中央: 要件 or 問題文 or Intermission */}
       {showRequirement ? (
-        <div className="login-box" style={{ maxWidth:700, margin:'24px auto', textAlign:'center' }}>
-          <h2 style={{ marginTop:0, color:'#ffffff' }}>Requirement</h2>
-          <div style={{ color: '#ffdf6b', fontSize:28, whiteSpace:'pre-wrap' }}>{partInfo.requirement}</div>
-          <div style={{ marginTop:18 }}>
+        <div className="requirement-box">
+          <h2 className="requirement-title">Requirement</h2>
+          <div className="requirement-text">{partInfo.requirement}</div>
+          <div className="requirement-button">
             <Button onClick={handleStartClick}>Start</Button>
           </div>
         </div>
+      ) : showIntermission ? (
+        <>
+          <div className="question-text">
+            {intermissionSnap?.text}
+          </div>
+          <div className="answer-display correct-answer">
+            <div className="answer-badge">CORRECT ANSWER</div>
+            <div className="answer-content">
+              <span className="answer-mark">✓</span>
+              <span className="answer-text">{intermissionSnap?.answer}</span>
+            </div>
+          </div>
+        </>
       ) : (
         <>
+          {/* バナーテキスト */}
+          {bannerText && (
+            <div className="banner-text">{bannerText}</div>
+          )}
+
           {/* 問題文 */}
-          <div style={{ 
-            textAlign:'center', fontSize:52, marginTop:10, minHeight:40, 
-            position:'absolute', top:90, color:'#ffffff' 
-          }}>
-            {showText && current ? current.question_text : ''}
+          <div className="question-text">
+            {!bannerText && showText && current ? current.question_text : ''}
           </div>
 
-          {/* 右側：問題画像 */}
+          {/* 問題画像 */}
           {current?.image_url && (
-            <div style={{ position:'absolute', top:150, right:60 }}>
-              <img src={current.image_url} alt="" style={{ width:260, height:'auto', borderRadius:4 }} />
+            <div className="question-image-container">
+              <img src={current.image_url} alt="" className="question-image" />
             </div>
           )}
 
           {/* 正解ビーム */}
-          {status === 'beam' && (
-            <div style={{ 
-              position:'absolute', width:10, left:'50%', transform:'translateX(-50%)', 
-              top:220, bottom:200, height:180, margin:'12px auto', 
-              background:'#7cf', boxShadow:'0 0 16px #7cf' 
-            }} />
-          )}
+          {status === 'beam' && <div className="beam-effect" />}
 
-          {/* 銃ボタン（マイクトグル） */}
-          <div style={{ 
-            position:'absolute', display:'flex', justifyContent:'center', 
-            marginTop:20, bottom:150, left:0, right:0 
-          }}>
+          {/* ガンボタン（マイク） */}
+          <div className="gun-button-container">
             <button
               onClick={toggleMic}
-              disabled={status !== 'listening'}
-              style={{ 
-                border:'none', 
-                background:'transparent', 
-                cursor: status === 'listening' ? 'pointer' : 'default',
-                opacity: status === 'listening' ? 1 : 0.5,
-                transition: 'all 0.3s',
-                transform: micActive ? 'scale(1.1)' : 'scale(1)',
-                filter: micActive ? 'drop-shadow(0 0 20px rgba(16,185,129,0.8))' : 'none'
-              }}
+              disabled={!gunBtnEnabled}
+              className={gunBtnClass}
+              aria-pressed={micActive}
+              title={micActive ? 'Stop & Evaluate' : 'Start Recording'}
             >
-              <img src="/gun.png" alt="gun" style={{ height: 80 }} />
+              <img src="/gun.png" alt="gun" className="gun-img" />
+              {micActive && <span className="pulse-ring"></span>}
             </button>
           </div>
 
-          {/* マイク操作ヒント */}
-          {status === 'listening' && (
-            <div style={{
-              position:'absolute',
-              bottom: 100,
-              left: '50%',
-              transform: 'translateX(-50%)',
-              color: '#94a3b8',
-              fontSize: 14
-            }}>
-              {micActive ? 'Click gun to stop & submit' : 'Click gun to start recording'}
-            </div>
-          )}
-
           {/* 解答表示 */}
-          {(status === 'reveal' || status === 'timeout') && current && (
-            <div style={{ 
-              position:'absolute', textAlign:'center', marginTop:10, 
-              fontSize:40, color:'#fff', bottom:70, left:0, right:0 
-            }}>
-              <span style={{ marginRight:8 }}>◯</span>
-              <span>{current.answers?.[0] ?? ''}</span>
+          {(['reveal', 'timeout'].includes(status)) && current && (
+            <div className="answer-display correct-answer">
+              <div className="answer-badge">CORRECT ANSWER</div>
+              <div className="answer-content">
+                <span className="answer-mark">✓</span>
+                <span className="answer-text">{current.answers?.[0] ?? ''}</span>
+              </div>
             </div>
           )}
         </>
       )}
-
-      {/* アニメーション用のスタイル */}
-      <style>{`
-        @keyframes pulse {
-          0% { transform: scale(1); }
-          50% { transform: scale(1.05); }
-          100% { transform: scale(1); }
-        }
-        @keyframes blink {
-          0%, 100% { opacity: 1; }
-          50% { opacity: 0.3; }
-        }
-      `}</style>
     </div>
   );
 };

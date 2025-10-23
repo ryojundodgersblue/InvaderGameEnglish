@@ -1,7 +1,7 @@
 // backend/src/routes/select.js
 const express = require('express');
 const router = express.Router();
-const { getSheetsClient, SPREADSHEET_ID } = require('../services/sheets');
+const { getSheetsClient, SPREADSHEET_ID } = require('../services/google');
 
 const PARTS_SHEET = 'parts';
 const PARTS_HEADER = ['part_id', 'grade_id', 'part_no', 'subpart_no', 'requirement'];
@@ -19,11 +19,21 @@ const log = {
   }
 };
 
-// GET /select/options
+// GET /select/options?user_id=xxx
 // 学年・パート・サブパートの選択可能なオプションを階層構造で返す
+// ユーザーの現在の進捗以下のみを返す
 router.get('/options', async (req, res) => {
   try {
-    log.info('Options request received');
+    const { user_id } = req.query;
+    
+    log.info('Options request received', { user_id });
+    
+    if (!user_id) {
+      return res.status(400).json({ 
+        ok: false, 
+        message: 'user_id が必要です' 
+      });
+    }
     
     if (!SPREADSHEET_ID) {
       log.error('SHEET_ID not configured');
@@ -35,7 +45,37 @@ router.get('/options', async (req, res) => {
 
     const sheets = await getSheetsClient(true);
     
-    // partsシートからデータを取得
+    // 1. usersシートからユーザーの現在の進捗を取得
+    const userResponse = await sheets.spreadsheets.values.get({
+      spreadsheetId: SPREADSHEET_ID,
+      range: 'users!A:E',
+      valueRenderOption: 'UNFORMATTED_VALUE',
+    });
+    
+    const userRows = userResponse.data.values || [];
+    const userHeader = userRows[0] || [];
+    const userData = userRows.slice(1).find(row => String(row[0]) === String(user_id));
+    
+    if (!userData) {
+      log.warn('User not found', { user_id });
+      return res.status(404).json({ 
+        ok: false, 
+        message: 'ユーザーが見つかりません' 
+      });
+    }
+    
+    const currentGrade = Number(userData[1] ?? 0);
+    const currentPart = Number(userData[2] ?? 0);
+    const currentSubpart = Number(userData[3] ?? 0);
+    
+    log.info('User progress fetched', { 
+      user_id, 
+      currentGrade, 
+      currentPart, 
+      currentSubpart 
+    });
+    
+    // 2. partsシートからデータを取得
     const response = await sheets.spreadsheets.values.get({
       spreadsheetId: SPREADSHEET_ID,
       range: `${PARTS_SHEET}!A1:E`,
@@ -70,37 +110,57 @@ router.get('/options', async (req, res) => {
       requirement: String(row[4] ?? '')
     }));
 
-    // 有効なデータのみフィルタ
-    const validParts = parts.filter(p => 
-      p.part_id && p.grade_id > 0 && p.part_no > 0 && p.subpart_no > 0
-    );
-
-    log.info('Valid parts filtered', { 
-      total: parts.length, 
-      valid: validParts.length 
+    // 3. 有効なデータで、かつ現在の進捗以下のもののみフィルタ
+    const validParts = parts.filter(p => {
+      if (!p.part_id || p.grade_id <= 0 || p.part_no <= 0 || p.subpart_no <= 0) {
+        return false;
+      }
+      
+      // 進捗制限のロジック
+      if (p.grade_id < currentGrade) {
+        // 過去の学年は全て選択可能
+        return true;
+      } else if (p.grade_id === currentGrade) {
+        // 現在の学年の場合
+        if (p.part_no < currentPart) {
+          // 過去のパートは全て選択可能
+          return true;
+        } else if (p.part_no === currentPart) {
+          // 現在のパートの場合、現在のサブパート以下のみ選択可能
+          return p.subpart_no <= currentSubpart;
+        } else {
+          // 未来のパートは選択不可
+          return false;
+        }
+      } else {
+        // 未来の学年は選択不可
+        return false;
+      }
     });
 
-    // 階層構造を構築
+    log.info('Valid parts filtered with progress limit', { 
+      total: parts.length, 
+      valid: validParts.length,
+      currentProgress: { currentGrade, currentPart, currentSubpart }
+    });
+
+    // 4. 階層構造を構築
     const structure = {};
     
-    // まず利用可能な学年を収集
     const grades = [...new Set(validParts.map(p => p.grade_id))].sort((a, b) => a - b);
     
     for (const gradeId of grades) {
       const gradeParts = validParts.filter(p => p.grade_id === gradeId);
       const partStructure = {};
       
-      // この学年のパート番号を収集
       const partNos = [...new Set(gradeParts.map(p => p.part_no))].sort((a, b) => a - b);
       
       for (const partNo of partNos) {
-        // このパートのサブパート番号を収集
         const subpartNos = gradeParts
           .filter(p => p.part_no === partNo)
           .map(p => p.subpart_no)
           .sort((a, b) => a - b);
         
-        // 重複を除去
         partStructure[partNo] = [...new Set(subpartNos)];
       }
       
@@ -115,7 +175,12 @@ router.get('/options', async (req, res) => {
     
     res.json({
       ok: true,
-      options: structure
+      options: structure,
+      currentProgress: {
+        grade: currentGrade,
+        part: currentPart,
+        subpart: currentSubpart
+      }
     });
     
   } catch (error) {

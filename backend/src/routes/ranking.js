@@ -1,7 +1,7 @@
 // backend/src/routes/ranking.js
 const express = require('express');
 const router = express.Router();
-const { getSheetsClient, SPREADSHEET_ID } = require('../services/sheets');
+const { getSheetsClient, SPREADSHEET_ID } = require('../services/google');
 
 const USERS_SHEET  = 'users';
 const SCORES_SHEET = 'scores';

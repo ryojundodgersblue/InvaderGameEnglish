@@ -1,7 +1,7 @@
 // backend/src/routes/playGame.js
 const express = require('express');
 const router = express.Router();
-const { getSheetsClient, SPREADSHEET_ID } = require('../services/sheets');
+const { getSheetsClient, SPREADSHEET_ID } = require('../services/google');
 
 const PARTS_SHEET     = 'parts';           // part_id | grade_id | part_no | subpart_no | requirement
 const QUESTIONS_SHEET = 'questions';       // question_id | part_id | display_order | is_demo | question_text | image_url
@@ -12,6 +12,7 @@ const USERS_SHEET     = 'users';           // id | user_id | password | nickname
 const PARTS_HEADER     = ['part_id','grade_id','part_no','subpart_no','requirement'];
 const QUESTIONS_HEADER = ['question_id','part_id','display_order','is_demo','question_text','image_url'];
 const ANSWERS_HEADER   = ['id','question_id','expected_text'];
+const SCORES_HEADER    = ['score_id','user_id','part_id','scores','clear','play_date'];
 const USERS_HEADER     = ['id','user_id','password','nickname','real_name','current_grade','current_part','current_subpart','is_admin','created_at','updated_at'];
 
 // ★ 10回挑戦で解放
@@ -203,6 +204,13 @@ router.post('/score', async (req, res) => {
       log.warn(routeName, 'Missing required parameters', { userId, part_id });
       return res.status(400).json({ ok:false, message:'userId/part_id は必須' });
     }
+    
+    // ★ scores の検証を追加
+    const scoreValue = Number(scores);
+    if (!Number.isFinite(scoreValue) || scoreValue < 0) {
+      log.warn(routeName, 'Invalid scores value', { scores, scoreValue });
+      return res.status(400).json({ ok:false, message:'scores は0以上の数値である必要があります' });
+    }
 
     const sheets = await getSheetsClient(false);
 
@@ -213,25 +221,65 @@ router.post('/score', async (req, res) => {
       valueRenderOption: 'UNFORMATTED_VALUE',
     });
     const sRows = s.data.values || [];
+    
+    // ★ ヘッダーチェックを追加
+    if (sRows.length > 0) {
+      const sHeader = (sRows[0]||[]).map(v=>String(v??'').trim());
+      const sOk = sHeader.length===SCORES_HEADER.length && SCORES_HEADER.every((h,i)=>h===sHeader[i]);
+      if (!sOk) {
+        log.error(routeName, 'Scores header mismatch', { expected: SCORES_HEADER, actual: sHeader });
+        return res.status(500).json({ ok:false, message:'scores ヘッダ不一致' });
+      }
+    }
+    
     let nextId = 1;
     if (sRows.length >= 2) {
       const ids = sRows.slice(1).map(r => Number(r[0]||0)).filter(n=>Number.isFinite(n));
       if (ids.length) nextId = Math.max(...ids)+1;
     }
 
-    const row = [ String(nextId), String(userId), String(part_id), Number(scores||0), String(!!clear), nowTS() ];
+    // ★ clear を boolean として確実に処理
+    const clearValue = clear === true || clear === 'true' || clear === 1 || clear === '1';
+    const row = [ 
+      String(nextId), 
+      String(userId), 
+      String(part_id), 
+      scoreValue,  // ★ 数値として保存
+      clearValue,  // ★ boolean として保存
+      nowTS() 
+    ];
+    
+    log.info(routeName, 'Appending score row', { row });
+    
     await sheets.spreadsheets.values.append({
       spreadsheetId: SPREADSHEET_ID,
       range: `${SCORES_SHEET}!A:F`,
-      valueInputOption: 'RAW',
+      valueInputOption: 'USER_ENTERED',  // ★ RAW から USER_ENTERED に変更（数値・booleanを適切に解釈）
       requestBody: { values: [row] },
     });
 
-    log.info(routeName, 'Score saved successfully', { score_id: nextId, userId, part_id, scores, clear: !!clear });
-    res.json({ ok:true, score_id: nextId });
+    log.info(routeName, 'Score saved successfully', { 
+      score_id: nextId, 
+      userId, 
+      part_id, 
+      scores: scoreValue, 
+      clear: clearValue 
+    });
+    
+    res.json({ 
+      ok:true, 
+      score_id: nextId,
+      saved: {
+        userId,
+        part_id,
+        scores: scoreValue,
+        clear: clearValue,
+        play_date: row[5]
+      }
+    });
   } catch (e) {
     log.error(routeName, 'Unexpected error', e);
-    res.status(500).json({ ok:false, message:'score 追加に失敗' });
+    res.status(500).json({ ok:false, message:'score 追加に失敗', error: e.message });
   }
 });
 
@@ -253,6 +301,12 @@ router.post('/advance', async (req, res) => {
     if (!userId || !current || !part_id) {
       log.warn(routeName, 'Missing required parameters', { userId, current, part_id });
       return res.status(400).json({ ok:false, message:'必要情報不足' });
+    }
+    
+    // ★ current オブジェクトの検証を追加
+    if (!current.grade || !current.part || current.subpart === undefined) {
+      log.warn(routeName, 'Invalid current object', { current });
+      return res.status(400).json({ ok:false, message:'current に grade/part/subpart が必要です' });
     }
 
     const sheets = await getSheetsClient(true);
@@ -276,10 +330,16 @@ router.post('/advance', async (req, res) => {
       String(r[idxPart]||'') === String(part_id)
     ).length;
 
+    const clearValue = clear === true || clear === 'true' || clear === 1 || clear === '1';
     const canAdvanceByAttempts = attempts >= REQUIRED_ATTEMPTS;
-    const canAdvance = !!clear || canAdvanceByAttempts;
+    const canAdvance = clearValue || canAdvanceByAttempts;
 
-    log.info(routeName, 'Advance decision', { clear, attempts, canAdvanceByAttempts, canAdvance });
+    log.info(routeName, 'Advance decision', { 
+      clear: clearValue, 
+      attempts, 
+      canAdvanceByAttempts, 
+      canAdvance 
+    });
 
     if (!canAdvance) {
       return res.json({
@@ -329,6 +389,8 @@ router.post('/advance', async (req, res) => {
         ok:true, advanced:false, reason:'progress mismatch',
         attempts, required: REQUIRED_ATTEMPTS,
         remaining: Math.max(0, REQUIRED_ATTEMPTS - attempts),
+        current_in_db: { grade: cg, part: cp, subpart: cs },
+        current_sent: current
       });
     }
 
@@ -356,11 +418,17 @@ router.post('/advance', async (req, res) => {
     );
 
     const curIdx = parts.findIndex(p => p.part_id === String(part_id));
-    if (curIdx < 0 || curIdx === parts.length-1) {
-      log.warn(routeName, 'No next part available', { part_id, currentIndex: curIdx, totalParts: parts.length });
+    if (curIdx < 0) {
+      log.warn(routeName, 'Current part not found in parts list', { part_id });
+      return res.status(404).json({ ok:false, message:'現在のpartが見つかりません' });
+    }
+    
+    if (curIdx === parts.length-1) {
+      log.info(routeName, 'Last part reached - no next part available', { part_id });
       return res.json({
-        ok:true, advanced:false, reason:'no next part',
-        attempts, required: REQUIRED_ATTEMPTS, remaining: 0
+        ok:true, advanced:false, reason:'last part reached',
+        attempts, required: REQUIRED_ATTEMPTS, remaining: 0,
+        message: '最終ステージをクリアしました！'
       });
     }
 
@@ -368,11 +436,19 @@ router.post('/advance', async (req, res) => {
 
     // 4) users を更新
     const sheetsWrite = await getSheetsClient(false);
+    
+    log.info(routeName, 'Updating user progress', {
+      userId,
+      absRow,
+      previous: { grade: cg, part: cp, subpart: cs },
+      next: { grade: next.grade_id, part: next.part_no, subpart: next.subpart_no }
+    });
+    
     await sheetsWrite.spreadsheets.values.update({
       spreadsheetId: SPREADSHEET_ID,
       range: `${USERS_SHEET}!F${absRow}:H${absRow}`,
-      valueInputOption: 'RAW',
-      requestBody: { values: [[ String(next.grade_id), String(next.part_no), String(next.subpart_no) ]] },
+      valueInputOption: 'USER_ENTERED',  // ★ RAW から USER_ENTERED に変更
+      requestBody: { values: [[ next.grade_id, next.part_no, next.subpart_no ]] },
     });
     await sheetsWrite.spreadsheets.values.update({
       spreadsheetId: SPREADSHEET_ID,
@@ -381,22 +457,30 @@ router.post('/advance', async (req, res) => {
       requestBody: { values: [[ nowTS() ]] },
     });
 
-    log.info(routeName, 'User progress updated', {
-      userId, previous: { grade: cg, part: cp, subpart: cs }, next, reason: clear ? 'cleared' : 'attempts'
+    log.info(routeName, 'User progress updated successfully', {
+      userId, 
+      previous: { grade: cg, part: cp, subpart: cs }, 
+      next: { grade: next.grade_id, part: next.part_no, subpart: next.subpart_no }, 
+      reason: clearValue ? 'cleared' : 'attempts'
     });
 
     res.json({
       ok:true,
       advanced:true,
-      reason: clear ? 'cleared' : 'attempts',
+      reason: clearValue ? 'cleared' : 'attempts',
       attempts,
       required: REQUIRED_ATTEMPTS,
       remaining: Math.max(0, REQUIRED_ATTEMPTS - attempts),
-      next
+      previous: { grade: cg, part: cp, subpart: cs },
+      next: {
+        grade_id: next.grade_id,
+        part_no: next.part_no,
+        subpart_no: next.subpart_no
+      }
     });
   } catch (e) {
     log.error(routeName, 'Unexpected error', e);
-    res.status(500).json({ ok:false, message:'進捗更新に失敗' });
+    res.status(500).json({ ok:false, message:'進捗更新に失敗', error: e.message });
   }
 });
 

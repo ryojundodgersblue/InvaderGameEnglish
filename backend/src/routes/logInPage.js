@@ -1,7 +1,7 @@
 // backend/src/routes/logInPage.js
 const express = require('express');
 const router = express.Router();
-const { getSheetsClient, SPREADSHEET_ID } = require('../services/sheets');
+const { getSheetsClient, SPREADSHEET_ID } = require('../services/google');
 
 const USER_SHEET_NAME = 'users';
 

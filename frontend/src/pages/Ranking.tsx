@@ -28,7 +28,7 @@ const Ranking: React.FC = () => {
         setMonth(json.month ?? '')
         setChallenge(json.items?.challenge ?? [])
         setAccuracy(json.items?.accuracy ?? [])
-      } catch (e) {
+      } catch {
         if (cancelled) return
         setError('ランキング取得に失敗しました')
         // フォールバック（任意）
@@ -57,9 +57,9 @@ const Ranking: React.FC = () => {
 
       <h1 className="title">Ranking 👑</h1>
       {!!month && (
-        <div style={{ textAlign: 'center', marginBottom: 8, opacity: 0.8 }}>
+        <h2 className="correct-month">
           Period: {month}
-        </div>
+        </h2>
       )}
       {loading && <div style={{ textAlign: 'center', marginBottom: 12 }}>Loading...</div>}
       {error && <div style={{ color: 'salmon', marginBottom: 12, textAlign: 'center' }}>{error}</div>}

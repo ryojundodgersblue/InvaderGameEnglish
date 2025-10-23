@@ -34,8 +34,16 @@ const SelectPage: React.FC = () => {
         setLoading(true)
         setError(null)
         
+        // user_id を取得
+        const userId = localStorage.getItem('userId')
+        if (!userId) {
+          setError('ログイン情報がありません')
+          setLoading(false)
+          return
+        }
+        
         console.log('Fetching options from /select/options...')
-        const res = await fetch('http://localhost:4000/select/options')
+        const res = await fetch(`http://localhost:4000/select/options?user_id=${userId}`)
         
         if (!res.ok) {
           throw new Error(`Failed to fetch options: ${res.status}`)
@@ -55,6 +63,14 @@ const SelectPage: React.FC = () => {
         setGradeOptions(availableGrades)
         
         console.log('Available grades:', availableGrades)
+        
+        // 現在の進捗情報もレスポンスから設定
+        if (data.currentProgress) {
+          localStorage.setItem('current_grade', String(data.currentProgress.grade))
+          localStorage.setItem('current_part', String(data.currentProgress.part))
+          localStorage.setItem('current_subpart', String(data.currentProgress.subpart))
+          console.log('Current progress updated from server:', data.currentProgress)
+        }
         
       } catch (e) {
         console.error('Failed to fetch options:', e)

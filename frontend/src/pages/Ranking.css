@@ -1,59 +1,176 @@
 /* src/pages/Ranking.css */
 
+/* ページ全体のコンテナ（中央揃え用） */
+.ranking-page {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start; /* 上から順に配置 */
+  min-height: 100vh;
+  padding: 20px 20px; /* 上余白を減らした */
+  position: relative;
+}
+
+/* 戻るボタン */
 .ranking-back {
   position: fixed;
   top: 16px;
   right: 16px;
+  z-index: 100;
 }
 
+/* ランキンググリッド */
 .rank-grid {
   display: grid;
   gap: 24px;
   grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
   width: min(1000px, 92vw);
+  margin: 0 auto;
+  justify-items: center; /* 中央揃え */
 }
 
+/* ランキング見出し */
 .rank-heading {
-  margin: 0 0 16px;
+  margin: 8px 0 12px; /* 上余白を減らす */
   text-align: center;
   line-height: 1.2;
-  font-size: 24px;
+  font-size: 28px; /* 少し大きく */
+  font-weight: 600;
   color: white;
 }
 
+/* 月表示テキスト */
+.correct-month {
+  text-align: center;
+  margin-bottom: 16px; /* 余白を少し広げて中央揃え */
+  opacity: 0.9;
+  color: #ffffff;
+  font-size: 22px; /* 少し大きく */
+}
+
+/* ランキングリスト */
 .rank-list {
   list-style: none;
   margin: 0;
   padding: 0;
   display: grid;
-  gap: 14px;
+  gap: 16px; /* 少し広め */
 }
 
+/* ランキング行 */
 .rank-row {
   display: grid;
-  grid-template-columns: 72px 1fr auto;
+  grid-template-columns: 80px 1fr auto; /* 少し広げる */
   align-items: center;
-  gap: 12px;
+  gap: 14px;
+  padding: 6px 0;
 }
 
+/* 順位番号 */
 .rank-no {
   color: #fff;
   opacity: 0.9;
   text-align: left;
+  font-size: 18px; /* サイズアップ */
+  font-weight: 600;
 }
 
+/* ユーザー名 */
 .rank-name {
   background: #fff;
   color: #222;
   border-radius: 6px;
-  padding: 6px 12px;
-  min-width: 140px;
+  padding: 10px 14px; /* 少し広げる */
+  min-width: 160px; /* サイズアップ */
   display: inline-block;
+  font-size: 17px; /* サイズアップ */
+  font-weight: 500;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
+/* スコア値 */
 .rank-val {
   color: #fff;
   opacity: 0.9;
-  min-width: 44px;
+  min-width: 48px;
   text-align: right;
+  font-size: 18px; /* サイズアップ */
+  font-weight: 600;
+}
+
+/* レスポンシブ対応 */
+@media (max-width: 768px) {
+  .rank-grid {
+    grid-template-columns: 1fr;
+    gap: 32px;
+  }
+
+  .rank-heading {
+    font-size: 24px;
+  }
+
+  .correct-month {
+    font-size: 18px;
+  }
+
+  .rank-row {
+    grid-template-columns: 64px 1fr auto;
+    gap: 12px;
+  }
+
+  .rank-no {
+    font-size: 16px;
+  }
+
+  .rank-name {
+    font-size: 15px;
+    padding: 8px 12px;
+    min-width: 120px;
+  }
+
+  .rank-val {
+    font-size: 16px;
+    min-width: 40px;
+  }
+}
+
+/* 1位のハイライト（オプション） */
+.rank-row:first-child .rank-no {
+  color: #ffd700;
+  opacity: 1;
+  font-size: 20px;
+}
+
+.rank-row:first-child .rank-name {
+  background: linear-gradient(135deg, #ffd700, #ffed4e);
+  color: #222;
+  font-weight: 600;
+}
+
+.rank-row:first-child .rank-val {
+  color: #ffd700;
+  opacity: 1;
+  font-size: 20px;
+}
+
+/* 2位のハイライト（オプション） */
+.rank-row:nth-child(2) .rank-no {
+  color: #c0c0c0;
+  opacity: 1;
+}
+
+.rank-row:nth-child(2) .rank-val {
+  color: #c0c0c0;
+  opacity: 1;
+}
+
+/* 3位のハイライト（オプション） */
+.rank-row:nth-child(3) .rank-no {
+  color: #cd7f32;
+  opacity: 1;
+}
+
+.rank-row:nth-child(3) .rank-val {
+  color: #cd7f32;
+  opacity: 1;
 }
