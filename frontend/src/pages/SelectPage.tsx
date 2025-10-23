@@ -43,7 +43,9 @@ const SelectPage: React.FC = () => {
         }
         
         console.log('Fetching options from /select/options...')
-        const res = await fetch(`http://localhost:4000/select/options?user_id=${userId}`)
+        const res = await fetch(`http://localhost:4000/select/options?user_id=${userId}`, {
+          credentials: 'include' // クッキーを送信
+        })
         
         if (!res.ok) {
           throw new Error(`Failed to fetch options: ${res.status}`)
@@ -246,7 +248,8 @@ const SelectPage: React.FC = () => {
       console.log('Validating selection before game start:', { grade, part, subpart })
       
       const validateRes = await fetch(
-        `http://localhost:4000/select/validate?grade=${grade}&part=${part}&subpart=${subpart}`
+        `http://localhost:4000/select/validate?grade=${grade}&part=${part}&subpart=${subpart}`,
+        { credentials: 'include' }
       )
       
       if (validateRes.ok) {

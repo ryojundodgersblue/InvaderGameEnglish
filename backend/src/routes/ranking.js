@@ -2,6 +2,7 @@
 const express = require('express');
 const router = express.Router();
 const { getSheetsClient, SPREADSHEET_ID } = require('../services/google');
+const { optionalAuth } = require('../middleware/auth');
 
 const USERS_SHEET  = 'users';
 const SCORES_SHEET = 'scores';
@@ -38,7 +39,7 @@ function idxOf(header, name) {
   return header.findIndex(h => String(h ?? '').trim().toLowerCase() === target);
 }
 
-router.get('/', async (_req, res) => {
+router.get('/', optionalAuth, async (_req, res) => {
   try {
     if (!SPREADSHEET_ID) {
       return res.status(500).json({ ok: false, message: 'SHEET_ID が未設定です' });

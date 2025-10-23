@@ -17,6 +17,7 @@ const LoginPage: React.FC = () => {
       const res = await fetch('http://localhost:4000/auth/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
+        credentials: 'include', // クッキーを送受信
         body: JSON.stringify({ userId, password }),
       })
 

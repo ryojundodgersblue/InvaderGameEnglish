@@ -2,6 +2,8 @@
 const express = require('express');
 const router = express.Router();
 const { getSheetsClient, SPREADSHEET_ID } = require('../services/google');
+const { authenticateToken } = require('../middleware/auth');
+const { validateQuery } = require('../middleware/validation');
 
 const PARTS_SHEET = 'parts';
 const PARTS_HEADER = ['part_id', 'grade_id', 'part_no', 'subpart_no', 'requirement'];
@@ -22,18 +24,28 @@ const log = {
 // GET /select/options?user_id=xxx
 // 学年・パート・サブパートの選択可能なオプションを階層構造で返す
 // ユーザーの現在の進捗以下のみを返す
-router.get('/options', async (req, res) => {
+router.get('/options',
+  authenticateToken,
+  validateQuery({
+    user_id: { type: 'string', required: true, minLength: 1, maxLength: 100 }
+  }),
+  async (req, res) => {
   try {
     const { user_id } = req.query;
-    
-    log.info('Options request received', { user_id });
-    
-    if (!user_id) {
-      return res.status(400).json({ 
-        ok: false, 
-        message: 'user_id が必要です' 
+
+    // 認証されたユーザーと要求されたuser_idが一致するか確認
+    if (req.user.userId !== user_id) {
+      log.warn('User ID mismatch', {
+        authenticated: req.user.userId,
+        requested: user_id
+      });
+      return res.status(403).json({
+        ok: false,
+        message: '権限がありません'
       });
     }
+
+    log.info('Options request received', { user_id });
     
     if (!SPREADSHEET_ID) {
       log.error('SHEET_ID not configured');
@@ -194,7 +206,14 @@ router.get('/options', async (req, res) => {
 
 // GET /select/validate
 // 選択された組み合わせが有効かチェック（オプション）
-router.get('/validate', async (req, res) => {
+router.get('/validate',
+  authenticateToken,
+  validateQuery({
+    grade: { type: 'number', required: true, min: 1, max: 100 },
+    part: { type: 'number', required: true, min: 1, max: 100 },
+    subpart: { type: 'number', required: true, min: 1, max: 100 }
+  }),
+  async (req, res) => {
   try {
     const { grade, part, subpart } = req.query;
     log.info('Validation request', { grade, part, subpart });
