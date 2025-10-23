@@ -2,6 +2,7 @@
 const express = require('express');
 const router = express.Router();
 const { getSheetsClient, SPREADSHEET_ID } = require('../services/google');
+const { verifyPassword, isPasswordHashed } = require('../utils/password');
 
 const USER_SHEET_NAME = 'users';
 
@@ -107,9 +108,26 @@ router.post('/login', async (req, res) => {
     }
     const row = dataRows[rowIndex];
 
-    // パスワードのプレーン比較（固定列 index=2）
+    // パスワード検証（固定列 index=2）
     const storedPassword = String(row[COL.password] || '');
-    if (storedPassword !== String(password)) {
+    let passwordMatch = false;
+
+    if (isPasswordHashed(storedPassword)) {
+      // ハッシュ化されたパスワードの場合はbcryptで検証
+      try {
+        passwordMatch = await verifyPassword(String(password), storedPassword);
+      } catch (err) {
+        logError(reqId, 'password verification error', { message: err?.message });
+        return res.status(500).json({ ok: false, message: 'サーバーエラーが発生しました' });
+      }
+    } else {
+      // 平文パスワードの場合（後方互換性のため）
+      // 注意: 早急にハッシュ化されたパスワードに移行してください
+      passwordMatch = (storedPassword === String(password));
+      logWarn(reqId, 'plain-text password detected', { userId: maskUser(userId) });
+    }
+
+    if (!passwordMatch) {
       logWarn(reqId, 'password mismatch', { userId: maskUser(userId) });
       return res.status(401).json({ ok: false, message: '認証に失敗しました' });
     }
