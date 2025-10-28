@@ -60,13 +60,13 @@ router.get('/options',
     // 1. usersシートからユーザーの現在の進捗を取得
     const userResponse = await sheets.spreadsheets.values.get({
       spreadsheetId: SPREADSHEET_ID,
-      range: 'users!A:E',
+      range: 'users!A:K',
       valueRenderOption: 'UNFORMATTED_VALUE',
     });
     
     const userRows = userResponse.data.values || [];
     const userHeader = userRows[0] || [];
-    const userData = userRows.slice(1).find(row => String(row[0]) === String(user_id));
+    const userData = userRows.slice(1).find(row => String(row[1]) === String(user_id));
     
     if (!userData) {
       log.warn('User not found', { user_id });
