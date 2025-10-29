@@ -952,11 +952,12 @@ const PlayPage: React.FC = () => {
       }
 
       // ★ スコア送信
-      console.log('[API] Sending score...', { 
-        userId, 
-        part_id, 
-        scores: finalCorrect, 
-        clear 
+      console.log('📤 [REQUEST] Sending score to backend...', {
+        userId,
+        part_id,
+        scores: finalCorrect,
+        clear,
+        endpoint: 'POST /game/score'
       });
 
       const scoreResponse = await fetch('http://localhost:4000/game/score', {
@@ -984,10 +985,13 @@ const PlayPage: React.FC = () => {
       const scoreData = await scoreResponse.json();
       console.log('[API] Score saved successfully:', scoreData);
 
+      // ★ スコア保存成功をコンソールに明示的にログ
+      console.log(`✅ [SUCCESS] Score saved to sheets! Score ID: ${scoreData.score_id}`);
+
       // ★ クリアした場合のみ進捗を更新
       if (clear) {
-        console.log('[API] Attempting to advance progress...');
-        
+        console.log('📈 [PROGRESS] Game cleared! Attempting to advance user progress...');
+
         const currentGrade = grade ?? localStorage.getItem('current_grade') ?? '1';
         const currentPart = part ?? localStorage.getItem('current_part') ?? '1';
         const currentSubpart = subpart ?? localStorage.getItem('current_subpart') ?? '1';
@@ -1003,7 +1007,10 @@ const PlayPage: React.FC = () => {
           clear: true
         };
 
-        console.log('[API] Advance payload:', advancePayload);
+        console.log('📤 [REQUEST] Sending progress update to backend...', {
+          ...advancePayload,
+          endpoint: 'POST /game/advance'
+        });
 
         const advanceResponse = await fetch('http://localhost:4000/game/advance', {
           method: 'POST',
@@ -1026,7 +1033,7 @@ const PlayPage: React.FC = () => {
         console.log('[API] Advance response:', advanceData);
 
         if (advanceData.ok && advanceData.advanced) {
-          console.log('[API] Progress advanced successfully!', {
+          console.log('✅ [SUCCESS] Progress advanced successfully!', {
             reason: advanceData.reason,
             next: advanceData.next
           });
@@ -1036,14 +1043,14 @@ const PlayPage: React.FC = () => {
             localStorage.setItem('current_grade', String(advanceData.next.grade_id));
             localStorage.setItem('current_part', String(advanceData.next.part_no));
             localStorage.setItem('current_subpart', String(advanceData.next.subpart_no));
-            console.log('[LocalStorage] Updated progress to:', {
+            console.log('✅ [SUCCESS] User progress updated in localStorage:', {
               grade: advanceData.next.grade_id,
               part: advanceData.next.part_no,
               subpart: advanceData.next.subpart_no
             });
           }
         } else {
-          console.log('[API] Progress not advanced:', {
+          console.log('ℹ️ [INFO] Progress not advanced (need more attempts):', {
             reason: advanceData.reason,
             attempts: advanceData.attempts,
             required: advanceData.required,
@@ -1056,6 +1063,19 @@ const PlayPage: React.FC = () => {
 
     } catch (err) {
       console.error('[API] Error during finish game:', err);
+
+      let errorMessage = 'スコアの保存中にエラーが発生しました。';
+      let shouldAlert = true;
+
+      if (err instanceof Error) {
+        errorMessage += `\n\nエラー: ${err.message}`;
+
+        // fetchエラーの場合
+        if (err.message.includes('Failed to fetch')) {
+          errorMessage = 'サーバーに接続できません。バックエンドが起動しているか確認してください。';
+        }
+      }
+
       if (axios.isAxiosError(err)) {
         console.error('[API] Axios error details:', {
           message: err.message,
@@ -1068,7 +1088,15 @@ const PlayPage: React.FC = () => {
           }
         });
       }
-      // エラーが発生してもリザルト画面には遷移する
+
+      // ユーザーにエラーを通知
+      if (shouldAlert) {
+        alert(
+          errorMessage +
+          '\n\nスコアが保存されていない可能性があります。' +
+          '\n詳細はブラウザのコンソール（F12）を確認してください。'
+        );
+      }
     }
 
     // ★ リザルト画面に遷移（finalCorrectを使用）
