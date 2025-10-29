@@ -15,9 +15,14 @@ type PartOptions = {
 const SelectPage: React.FC = () => {
   const navigate = useNavigate()
 
-  const [grade, setGrade] = useState('1')
-  const [part, setPart] = useState('1')
-  const [subpart, setSubpart] = useState('1')
+  // localStorageから初期値を取得（バックエンドから取得した進捗情報を使用）
+  const initialGrade = localStorage.getItem('current_grade') || '1'
+  const initialPart = localStorage.getItem('current_part') || '1'
+  const initialSubpart = localStorage.getItem('current_subpart') || '1'
+
+  const [grade, setGrade] = useState(initialGrade)
+  const [part, setPart] = useState(initialPart)
+  const [subpart, setSubpart] = useState(initialSubpart)
 
   const [gradeOptions, setGradeOptions] = useState<string[]>(['1'])
   const [partOptions, setPartOptions] = useState<string[]>(['1'])
@@ -106,7 +111,7 @@ const SelectPage: React.FC = () => {
   // 初期値の設定（オプション取得後）
   useEffect(() => {
     if (!allOptions || loading) return
-    
+
     try {
       const userId = localStorage.getItem('userId')
       if (!userId) {
@@ -114,86 +119,66 @@ const SelectPage: React.FC = () => {
         return
       }
 
-      // ユーザーの現在の進捗を取得
+      // ユーザーの現在の進捗を取得（バックエンドから取得済み）
       const currentGrade = localStorage.getItem('current_grade') || '1'
       const currentPart = localStorage.getItem('current_part') || '1'
       const currentSubpart = localStorage.getItem('current_subpart') || '1'
-      
-      console.log('Current progress:', { currentGrade, currentPart, currentSubpart })
 
-      // 学年を設定（利用可能な学年の中から選択）
+      console.log('Current progress from localStorage:', { currentGrade, currentPart, currentSubpart })
+
+      // 利用可能な学年を取得（バックエンドは既に進捗以下のデータのみを返している）
       const availableGrades = Object.keys(allOptions).sort((a, b) => Number(a) - Number(b))
+
+      // 学年の設定：現在の進捗の学年を選択（バックエンドが制限済み）
       let selectedGrade = currentGrade
-      
-      // 現在の学年が利用可能な学年に含まれているか確認
-      if (availableGrades.includes(currentGrade)) {
-        selectedGrade = currentGrade
-      } else {
-        // 含まれていない場合は、現在の学年以下で最大の学年を選択
-        const lowerGrades = availableGrades.filter(g => Number(g) <= Number(currentGrade))
-        if (lowerGrades.length > 0) {
-          selectedGrade = lowerGrades[lowerGrades.length - 1]
-        } else {
-          selectedGrade = availableGrades[0] || '1'
-        }
+      if (!availableGrades.includes(currentGrade)) {
+        // 万が一含まれていない場合は最大の学年を選択
+        selectedGrade = availableGrades[availableGrades.length - 1] || '1'
         console.log(`Grade ${currentGrade} not available, using ${selectedGrade}`)
       }
-      
+
       setGrade(selectedGrade)
 
-      // 選択された学年に対応するパートを設定
+      // パートオプションを設定
       const gradeParts = allOptions[selectedGrade] || {}
       const availableParts = Object.keys(gradeParts).sort((a, b) => Number(a) - Number(b))
       setPartOptions(availableParts)
-      
-      // パートを設定（利用可能なパートの中から選択）
+
+      // パートの設定：現在の進捗のパートを選択（バックエンドが制限済み）
       let selectedPart = currentPart
-      if (selectedGrade === currentGrade && availableParts.includes(currentPart)) {
-        selectedPart = currentPart
-      } else {
-        // 現在のパート以下で最大のパートを選択
-        const lowerParts = availableParts.filter(p => Number(p) <= Number(currentPart))
-        if (lowerParts.length > 0) {
-          selectedPart = lowerParts[lowerParts.length - 1]
-        } else {
-          selectedPart = availableParts[0] || '1'
-        }
-        if (selectedPart !== currentPart) {
-          console.log(`Part ${currentPart} not available in grade ${selectedGrade}, using ${selectedPart}`)
-        }
+      if (selectedGrade === currentGrade && !availableParts.includes(currentPart)) {
+        // 万が一含まれていない場合は最大のパートを選択
+        selectedPart = availableParts[availableParts.length - 1] || '1'
+        console.log(`Part ${currentPart} not available, using ${selectedPart}`)
       }
-      
+
       setPart(selectedPart)
 
-      // 選択されたパートに対応するサブパートを設定
+      // サブパートオプションを設定
       const availableSubparts = (gradeParts[selectedPart] || []).map(String).sort((a, b) => Number(a) - Number(b))
       setSubpartOptions(availableSubparts)
-      
-      // サブパートを設定
+
+      // サブパートの設定：現在の進捗のサブパートを選択（バックエンドが制限済み）
       let selectedSubpart = currentSubpart
-      if (selectedGrade === currentGrade && selectedPart === currentPart && availableSubparts.includes(currentSubpart)) {
-        selectedSubpart = currentSubpart
-      } else {
-        // 現在のサブパート以下で最大のサブパートを選択
-        const lowerSubparts = availableSubparts.filter(s => Number(s) <= Number(currentSubpart))
-        if (lowerSubparts.length > 0) {
-          selectedSubpart = lowerSubparts[lowerSubparts.length - 1]
-        } else {
-          selectedSubpart = availableSubparts[0] || '1'
-        }
-        if (selectedSubpart !== currentSubpart) {
-          console.log(`Subpart ${currentSubpart} not available, using ${selectedSubpart}`)
-        }
+      if (selectedGrade === currentGrade && selectedPart === currentPart && !availableSubparts.includes(currentSubpart)) {
+        // 万が一含まれていない場合は最大のサブパートを選択
+        selectedSubpart = availableSubparts[availableSubparts.length - 1] || '1'
+        console.log(`Subpart ${currentSubpart} not available, using ${selectedSubpart}`)
       }
-      
+
       setSubpart(selectedSubpart)
-      
-      console.log('Initial selection set:', { 
-        grade: selectedGrade, 
-        part: selectedPart, 
-        subpart: selectedSubpart 
+
+      console.log('Initial selection set:', {
+        grade: selectedGrade,
+        part: selectedPart,
+        subpart: selectedSubpart
       })
-      
+      console.log('Available options:', {
+        grades: availableGrades,
+        parts: availableParts,
+        subparts: availableSubparts
+      })
+
     } catch (e) {
       console.error('Error setting initial values:', e)
       setError(e instanceof Error ? e.message : String(e))
