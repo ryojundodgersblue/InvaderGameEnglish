@@ -5,6 +5,17 @@ import Button from '../components/Button'
 import '../App.css'
 import './LoginPage.css'
 
+interface LoginResponse {
+  ok: boolean
+  message?: string
+  user?: {
+    userId: string
+    name: string
+    current_grade: number
+    current_part: number
+  }
+}
+
 const LoginPage: React.FC = () => {
   const [userId, setUserId] = useState('')
   const [password, setPass] = useState('')
@@ -22,7 +33,7 @@ const LoginPage: React.FC = () => {
       })
 
       // ★ まず JSON を一度だけパース
-      const data = await res.json().catch(() => ({} as any))
+      const data = await res.json().catch((): LoginResponse => ({ ok: false }))
 
       // ★ ステータス or API の ok を確認
       if (!res.ok || !data?.ok) {
