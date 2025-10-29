@@ -76,9 +76,11 @@ router.get('/options',
       });
     }
     
-    const currentGrade = Number(userData[1] ?? 0);
-    const currentPart = Number(userData[2] ?? 0);
-    const currentSubpart = Number(userData[3] ?? 0);
+    // 列インデックスは logInPage.js の COL 定義に基づく
+    // COL.current_grade: 5, COL.current_part: 6, COL.current_subpart: 7
+    const currentGrade = Number(userData[5] ?? 0);
+    const currentPart = Number(userData[6] ?? 0);
+    const currentSubpart = Number(userData[7] ?? 0);
     
     log.info('User progress fetched', { 
       user_id, 
