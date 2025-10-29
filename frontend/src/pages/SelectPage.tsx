@@ -114,8 +114,9 @@ const SelectPage: React.FC = () => {
         setLoading(false)
       }
     }
-    
+
     fetchOptions()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   // 初期値の設定（オプション取得後）

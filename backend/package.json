@@ -1,12 +1,14 @@
 {
   "name": "my-sheets-api",
   "version": "1.0.0",
-  "description": "",
+  "description": "English Learning Game Backend API",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "start": "node index.js",
+    "dev": "node --watch index.js",
+    "test": "echo \"No tests configured yet. Add tests using a framework like Jest or Mocha.\" && exit 0"
   },
-  "keywords": [],
+  "keywords": ["api", "express", "education", "english"],
   "author": "",
   "license": "ISC",
   "type": "commonjs",
