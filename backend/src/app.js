@@ -35,6 +35,14 @@ app.use(cors({
 app.use(cookieParser());
 app.use(express.json());
 
+// リクエストログミドルウェア（デバッグ用）
+app.use((req, res, next) => {
+  console.log(`[${new Date().toISOString()}] ${req.method} ${req.path}`);
+  console.log('  Origin:', req.headers.origin || 'none');
+  console.log('  Cookies:', Object.keys(req.cookies || {}).join(', ') || 'none');
+  next();
+});
+
 // 動作確認用
 app.get('/health', (req, res) => res.json({ ok: true }));
 
