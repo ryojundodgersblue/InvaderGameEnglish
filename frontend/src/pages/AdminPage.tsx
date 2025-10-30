@@ -23,6 +23,12 @@ interface RegisterResult {
   password: string
 }
 
+interface FailureStats {
+  users: string[]
+  parts: string[]
+  stats: Record<string, Record<string, number>>
+}
+
 const AdminPage: React.FC = () => {
   const [nickname, setNickname] = useState('')
   const [realName, setRealName] = useState('')
@@ -30,6 +36,13 @@ const AdminPage: React.FC = () => {
   const [users, setUsers] = useState<User[]>([])
   const [error, setError] = useState<string | null>(null)
   const [success, setSuccess] = useState<string | null>(null)
+
+  // パート別ミス数
+  const [failureStats, setFailureStats] = useState<FailureStats | null>(null)
+
+  // パスワード変更
+  const [resetUserId, setResetUserId] = useState('')
+  const [resetResult, setResetResult] = useState<RegisterResult | null>(null)
 
   // ユーザー一覧を取得
   const fetchUsers = async () => {
@@ -45,16 +58,40 @@ const AdminPage: React.FC = () => {
 
       const data = await res.json()
       if (data.ok && data.users) {
-        setUsers(data.users)
+        // is_admin=trueのユーザーを除外
+        const nonAdminUsers = data.users.filter((user: User) => !user.is_admin)
+        setUsers(nonAdminUsers)
       }
     } catch (err) {
       setError(err instanceof Error ? err.message : String(err))
     }
   }
 
-  // 初回ロード時にユーザー一覧を取得
+  // パート別ミス数を取得
+  const fetchFailureStats = async () => {
+    try {
+      const res = await fetch('http://localhost:4000/admin/failure-stats', {
+        method: 'GET',
+        credentials: 'include',
+      })
+
+      if (!res.ok) {
+        throw new Error('パート別ミス数の取得に失敗しました')
+      }
+
+      const data = await res.json()
+      if (data.ok) {
+        setFailureStats(data)
+      }
+    } catch (err) {
+      setError(err instanceof Error ? err.message : String(err))
+    }
+  }
+
+  // 初回ロード時にユーザー一覧とパート別ミス数を取得
   useEffect(() => {
     fetchUsers()
+    fetchFailureStats()
   }, [])
 
   // 新規ユーザー登録
@@ -124,6 +161,43 @@ const AdminPage: React.FC = () => {
     }
   }
 
+  // パスワードリセット
+  const handleResetPassword = async () => {
+    setError(null)
+    setSuccess(null)
+    setResetResult(null)
+
+    if (!resetUserId.trim()) {
+      setError('ユーザーIDを入力してください')
+      return
+    }
+
+    try {
+      const res = await fetch('http://localhost:4000/admin/reset-password', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({ user_id: resetUserId }),
+      })
+
+      const data = await res.json()
+
+      if (!res.ok || !data.ok) {
+        throw new Error(data.message || 'パスワードリセットに失敗しました')
+      }
+
+      // リセット成功
+      setResetResult({
+        user_id: data.user_id,
+        password: data.password,
+      })
+      setSuccess('パスワードをリセットしました')
+      setResetUserId('')
+    } catch (err) {
+      setError(err instanceof Error ? err.message : String(err))
+    }
+  }
+
   return (
     <div className="admin-page">
       <h1 className="admin-title">管理者画面</h1>
@@ -169,11 +243,11 @@ const AdminPage: React.FC = () => {
             <thead>
               <tr>
                 <th>ユーザーID</th>
-                <th>PW</th>
                 <th>ニックネーム</th>
                 <th>名前</th>
                 <th>解いている最新の学年</th>
                 <th>解いている最新のパート</th>
+                <th>解いている最新のサブパート</th>
                 <th>操作</th>
               </tr>
             </thead>
@@ -188,6 +262,63 @@ const AdminPage: React.FC = () => {
             </tbody>
           </table>
         </div>
+      </section>
+
+      {/* パスワードリセットセクション */}
+      <section className="admin-section">
+        <h2 className="section-title">パスワードリセット</h2>
+        <div className="register-form">
+          <div className="form-row">
+            <div className="field">
+              <label>ユーザーID</label>
+              <TextBox value={resetUserId} onChange={setResetUserId} placeholder="00001" />
+            </div>
+            <Button onClick={handleResetPassword}>パスワードリセット</Button>
+          </div>
+
+          {resetResult && (
+            <div className="register-result">
+              <p className="result-title">パスワードリセット完了</p>
+              <p className="result-item">
+                <strong>ユーザーID:</strong> {resetResult.user_id}
+              </p>
+              <p className="result-item">
+                <strong>新しいパスワード:</strong> {resetResult.password}
+              </p>
+            </div>
+          )}
+        </div>
+      </section>
+
+      {/* パート別ミス数セクション */}
+      <section className="admin-section">
+        <h2 className="section-title">パート別ミス数</h2>
+        {failureStats && failureStats.users.length > 0 && failureStats.parts.length > 0 ? (
+          <div className="users-table-container">
+            <table className="users-table">
+              <thead>
+                <tr>
+                  <th>ユーザー名</th>
+                  {failureStats.parts.map((part) => (
+                    <th key={part}>{part}</th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                {failureStats.users.map((userName) => (
+                  <tr key={userName}>
+                    <td>{userName}</td>
+                    {failureStats.parts.map((part) => (
+                      <td key={part}>{failureStats.stats[userName]?.[part] || 0}</td>
+                    ))}
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        ) : (
+          <p>データがありません</p>
+        )}
       </section>
     </div>
   )
@@ -218,7 +349,6 @@ const UserRow: React.FC<UserRowProps> = ({ user, onUpdate }) => {
   return (
     <tr>
       <td>{user.user_id}</td>
-      <td className="password-cell">{user.password.substring(0, 6)}...</td>
       <td>{user.nickname}</td>
       <td>{user.real_name}</td>
       <td>
@@ -247,6 +377,7 @@ const UserRow: React.FC<UserRowProps> = ({ user, onUpdate }) => {
           currentPart
         )}
       </td>
+      <td>{user.current_subpart}</td>
       <td>
         {isEditing ? (
           <div className="edit-buttons">

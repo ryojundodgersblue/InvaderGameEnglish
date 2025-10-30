@@ -253,4 +253,159 @@ router.put('/users/:userId',
   }
 });
 
+// パスワード変更
+router.post('/reset-password',
+  verifyToken,
+  requireAdmin,
+  validateBody({
+    user_id: { type: 'string', required: true, minLength: 1, maxLength: 100 }
+  }),
+  async (req, res) => {
+  const reqId = rid();
+  const { user_id } = req.body || {};
+
+  logInfo(reqId, 'reset password request', { user_id });
+
+  if (!user_id) {
+    return res.status(400).json({ ok: false, message: 'user_id が必要です' });
+  }
+
+  try {
+    const sheets = await getSheetsClient(false);
+
+    // 既存のユーザーを取得
+    const resp = await sheets.spreadsheets.values.get({
+      spreadsheetId: SPREADSHEET_ID,
+      range: `${USER_SHEET_NAME}!A1:K`,
+      valueRenderOption: 'UNFORMATTED_VALUE',
+    });
+
+    const rows = resp.data.values || [];
+    if (rows.length < 2) {
+      return res.status(404).json({ ok: false, message: 'ユーザーが見つかりません' });
+    }
+
+    const dataRows = rows.slice(1);
+
+    // user_idが一致する行を探す
+    const rowIndex = dataRows.findIndex(r => String(r[COL.user_id] || '') === String(user_id));
+    if (rowIndex === -1) {
+      logWarn(reqId, 'user not found', { user_id });
+      return res.status(404).json({ ok: false, message: 'ユーザーが見つかりません' });
+    }
+
+    // 更新する行（実際のシートの行番号は2から始まる + rowIndex）
+    const sheetRowNumber = rowIndex + 2;
+    const row = dataRows[rowIndex];
+
+    // 新しいパスワードを生成
+    const plainPassword = generatePassword(8);
+    const hashedPassword = await hashPassword(plainPassword);
+    const timestamp = new Date().toISOString();
+
+    // パスワードとupdated_atを更新
+    const updatedRow = [...row];
+    updatedRow[COL.password] = hashedPassword;
+    updatedRow[COL.updated_at] = timestamp;
+
+    await sheets.spreadsheets.values.update({
+      spreadsheetId: SPREADSHEET_ID,
+      range: `${USER_SHEET_NAME}!A${sheetRowNumber}:K${sheetRowNumber}`,
+      valueInputOption: 'RAW',
+      requestBody: {
+        values: [updatedRow],
+      },
+    });
+
+    logInfo(reqId, 'password reset', { user_id });
+
+    return res.json({
+      ok: true,
+      user_id,
+      password: plainPassword, // 平文パスワードを返す
+    });
+  } catch (err) {
+    logError(reqId, 'exception', { message: err?.message, stack: err?.stack });
+    return res.status(500).json({ ok: false, message: 'サーバーエラーが発生しました' });
+  }
+});
+
+// パート別ミス数取得
+router.get('/failure-stats', verifyToken, requireAdmin, async (req, res) => {
+  const reqId = rid();
+  logInfo(reqId, 'get failure-stats request');
+
+  try {
+    const sheets = await getSheetsClient(true);
+
+    // 1. usersシートから非管理者ユーザーを取得
+    const uResp = await sheets.spreadsheets.values.get({
+      spreadsheetId: SPREADSHEET_ID,
+      range: `${USER_SHEET_NAME}!A1:K`,
+      valueRenderOption: 'UNFORMATTED_VALUE',
+    });
+    const uRows = uResp.data.values || [];
+    if (uRows.length < 2) {
+      return res.json({ ok: true, users: [], parts: [], stats: {} });
+    }
+
+    const nonAdminUsers = uRows.slice(1)
+      .filter(row => {
+        const isAdmin = row[COL.is_admin] === true || String(row[COL.is_admin] || '').toLowerCase() === 'true';
+        return !isAdmin;
+      })
+      .map(row => ({
+        user_id: String(row[COL.user_id] || ''),
+        real_name: String(row[COL.real_name] || ''),
+      }));
+
+    // 2. partsシートからpart_idリストを取得
+    const pResp = await sheets.spreadsheets.values.get({
+      spreadsheetId: SPREADSHEET_ID,
+      range: 'parts!A1:A',
+      valueRenderOption: 'UNFORMATTED_VALUE',
+    });
+    const pRows = pResp.data.values || [];
+    const parts = pRows.slice(1).map(row => String(row[0] || '')).filter(p => p);
+
+    // 3. scoresシートから失敗データを取得
+    const sResp = await sheets.spreadsheets.values.get({
+      spreadsheetId: SPREADSHEET_ID,
+      range: 'scores!A1:F',
+      valueRenderOption: 'UNFORMATTED_VALUE',
+    });
+    const sRows = sResp.data.values || [];
+
+    // scoresの列インデックス: 0:score_id, 1:user_id, 2:part_id, 3:scores, 4:clear, 5:play_date
+    const failureScores = sRows.slice(1).filter(row => {
+      const clear = row[4] === true || String(row[4] || '').toLowerCase() === 'true';
+      return !clear; // clearがfalseのもののみ
+    });
+
+    // 4. 統計データを作成
+    const stats = {};
+    for (const user of nonAdminUsers) {
+      stats[user.real_name] = {};
+      for (const part of parts) {
+        const count = failureScores.filter(
+          row => String(row[1]) === user.user_id && String(row[2]) === part
+        ).length;
+        stats[user.real_name][part] = count;
+      }
+    }
+
+    logInfo(reqId, 'failure-stats fetched', { userCount: nonAdminUsers.length, partCount: parts.length });
+
+    return res.json({
+      ok: true,
+      users: nonAdminUsers.map(u => u.real_name),
+      parts,
+      stats,
+    });
+  } catch (err) {
+    logError(reqId, 'exception', { message: err?.message, stack: err?.stack });
+    return res.status(500).json({ ok: false, message: 'サーバーエラーが発生しました' });
+  }
+});
+
 module.exports = router;
