@@ -231,15 +231,15 @@
 /* 問題画像 */
 .question-image-container {
   position: absolute;
-  top: 400px;
-  left: 50%;
-  transform: translateX(-50%);
+  top: 50%;
+  right: 100px;
+  transform: translateY(-50%);
   z-index: 90;
 }
 
 .question-image {
-  max-width: 400px;
-  max-height: 300px;
+  max-width: 300px;
+  max-height: 250px;
   border-radius: 12px;
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
 }
@@ -396,6 +396,19 @@
     width: 48px;
     height: 48px;
     font-size: 22px;
+  }
+
+  .question-number-container {
+    left: 20px;
+  }
+
+  .question-image-container {
+    right: 20px;
+  }
+
+  .question-image {
+    max-width: 150px;
+    max-height: 120px;
   }
 
   .answer-text {
