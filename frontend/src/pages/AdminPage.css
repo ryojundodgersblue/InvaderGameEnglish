@@ -205,6 +205,67 @@
   box-shadow: 0 0 10px rgba(244, 67, 54, 0.5);
 }
 
+/* パート別ミス数セクション用のスタイル */
+.failure-stats-section {
+  max-width: 3000px; /* 通常の1200pxから2.5倍 */
+}
+
+.failure-stats-table-container {
+  overflow-x: auto;
+  position: relative;
+}
+
+.failure-stats-table {
+  width: 100%;
+  border-collapse: collapse;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.failure-stats-table thead {
+  background: rgba(0, 0, 0, 0.3);
+}
+
+.failure-stats-table th {
+  padding: 15px;
+  text-align: left;
+  font-weight: 600;
+  font-size: 1rem;
+  border-bottom: 2px solid rgba(255, 255, 255, 0.3);
+}
+
+.failure-stats-table td {
+  padding: 12px 15px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.failure-stats-table tbody tr {
+  transition: background 0.2s;
+}
+
+.failure-stats-table tbody tr:hover {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+/* 固定列のスタイル */
+.failure-stats-table .fixed-column {
+  position: sticky;
+  left: 0;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 10;
+  min-width: 150px;
+}
+
+.failure-stats-table thead .fixed-column {
+  background: rgba(0, 0, 0, 0.6);
+  z-index: 11;
+}
+
+.failure-stats-table tbody tr:hover .fixed-column {
+  background: rgba(0, 0, 0, 0.7);
+}
+
 @media (max-width: 768px) {
   .form-row {
     flex-direction: column;
@@ -218,5 +279,9 @@
   .users-table th,
   .users-table td {
     padding: 8px;
+  }
+
+  .failure-stats-section {
+    max-width: 100%;
   }
 }

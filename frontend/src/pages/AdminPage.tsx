@@ -235,6 +235,32 @@ const AdminPage: React.FC = () => {
         </div>
       </section>
 
+      {/* パスワードリセットセクション */}
+      <section className="admin-section">
+        <h2 className="section-title">パスワードリセット</h2>
+        <div className="register-form">
+          <div className="form-row">
+            <div className="field">
+              <label>ユーザーID</label>
+              <TextBox value={resetUserId} onChange={setResetUserId} placeholder="00001" />
+            </div>
+            <Button onClick={handleResetPassword}>パスワードリセット</Button>
+          </div>
+
+          {resetResult && (
+            <div className="register-result">
+              <p className="result-title">パスワードリセット完了</p>
+              <p className="result-item">
+                <strong>ユーザーID:</strong> {resetResult.user_id}
+              </p>
+              <p className="result-item">
+                <strong>新しいパスワード:</strong> {resetResult.password}
+              </p>
+            </div>
+          )}
+        </div>
+      </section>
+
       {/* ユーザー一覧セクション */}
       <section className="admin-section">
         <h2 className="section-title">ユーザー情報</h2>
@@ -264,41 +290,15 @@ const AdminPage: React.FC = () => {
         </div>
       </section>
 
-      {/* パスワードリセットセクション */}
-      <section className="admin-section">
-        <h2 className="section-title">パスワードリセット</h2>
-        <div className="register-form">
-          <div className="form-row">
-            <div className="field">
-              <label>ユーザーID</label>
-              <TextBox value={resetUserId} onChange={setResetUserId} placeholder="00001" />
-            </div>
-            <Button onClick={handleResetPassword}>パスワードリセット</Button>
-          </div>
-
-          {resetResult && (
-            <div className="register-result">
-              <p className="result-title">パスワードリセット完了</p>
-              <p className="result-item">
-                <strong>ユーザーID:</strong> {resetResult.user_id}
-              </p>
-              <p className="result-item">
-                <strong>新しいパスワード:</strong> {resetResult.password}
-              </p>
-            </div>
-          )}
-        </div>
-      </section>
-
       {/* パート別ミス数セクション */}
-      <section className="admin-section">
+      <section className="admin-section failure-stats-section">
         <h2 className="section-title">パート別ミス数</h2>
         {failureStats && failureStats.users.length > 0 && failureStats.parts.length > 0 ? (
-          <div className="users-table-container">
-            <table className="users-table">
+          <div className="failure-stats-table-container">
+            <table className="failure-stats-table">
               <thead>
                 <tr>
-                  <th>ユーザー名</th>
+                  <th className="fixed-column">ユーザー名</th>
                   {failureStats.parts.map((part) => (
                     <th key={part}>{part}</th>
                   ))}
@@ -307,7 +307,7 @@ const AdminPage: React.FC = () => {
               <tbody>
                 {failureStats.users.map((userName) => (
                   <tr key={userName}>
-                    <td>{userName}</td>
+                    <td className="fixed-column">{userName}</td>
                     {failureStats.parts.map((part) => (
                       <td key={part}>{failureStats.stats[userName]?.[part] || 0}</td>
                     ))}
