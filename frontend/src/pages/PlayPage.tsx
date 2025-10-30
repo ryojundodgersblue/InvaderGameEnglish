@@ -870,8 +870,8 @@ const PlayPage: React.FC = () => {
 
   // ---------------------- Mic Toggle & Evaluate ----------------------
   const toggleMic = useCallback(() => {
-    // ★ 問題の音声再生中はマイクを操作できないように修正（音声認識との競合を防ぐ）
-    if (!['listening', 'wrong'].includes(status) || timeLeft <= 0) return;
+    // ★ speaking, listening, wrong状態でマイクを操作可能（問題音声中でも回答可能）
+    if (!['speaking', 'listening', 'wrong'].includes(status) || timeLeft <= 0) return;
     if (!micActive) startRecognition();
     else stopRecognitionAndEvaluate();
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -879,9 +879,18 @@ const PlayPage: React.FC = () => {
 
   const startRecognition = useCallback(() => {
     const SR = window.webkitSpeechRecognition || window.SpeechRecognition;
-    if (!SR) { 
-      alert('このブラウザは音声認識に未対応です(Chrome 推奨)'); 
-      return; 
+    if (!SR) {
+      alert('このブラウザは音声認識に未対応です(Chrome 推奨)');
+      return;
+    }
+
+    // ★ 問題の音声再生中にマイクをオンにした場合、音声を停止してlistening状態に移行
+    if (statusRef.current === 'speaking') {
+      console.log('[ASR] Stopping question audio to start listening');
+      stopCurrentAudio();
+      setStatus('listening');
+      // アクティビティを更新
+      updateActivity();
     }
 
     const rec = new SR();
@@ -947,8 +956,8 @@ const PlayPage: React.FC = () => {
         return;
       }
 
-      // ★ 有効なステータスでない場合は再起動しない（speakingを除外）
-      const shouldRestart = ['listening', 'wrong'].includes(statusRef.current);
+      // ★ 有効なステータスでない場合は再起動しない
+      const shouldRestart = ['speaking', 'listening', 'wrong'].includes(statusRef.current);
 
       if (shouldRestart) {
         try {
@@ -1403,8 +1412,8 @@ const PlayPage: React.FC = () => {
       enemyVariant === 'attack' ? 'enemy-attack' : ''
   }`;
 
-  // ★ 問題の音声再生中はマイクボタンを無効化（音声認識との競合を防ぐ）
-  const gunBtnEnabled = ['listening', 'wrong'].includes(status) && timeLeft > 0 && !(current?.is_demo && idx === 0);
+  // ★ speaking, listening, wrong状態でマイクボタン有効（問題音声中でも回答可能）
+  const gunBtnEnabled = ['speaking', 'listening', 'wrong'].includes(status) && timeLeft > 0 && !(current?.is_demo && idx === 0);
   const gunBtnClass = [
     'gun-button',
     gunBtnEnabled ? 'enabled' : 'disabled',
@@ -1462,7 +1471,7 @@ const PlayPage: React.FC = () => {
       </div>
 
       {/* 右上: マイク状態 */}
-      {['listening', 'wrong'].includes(status) && (
+      {['speaking', 'listening', 'wrong'].includes(status) && (
         <div className="mic-status-container">
           <div className={`mic-status-badge ${micActive ? 'active' : 'inactive'}`}>
             <span className="mic-icon">{micActive ? '🎤' : '🔇'}</span>
