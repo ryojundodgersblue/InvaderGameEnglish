@@ -303,7 +303,7 @@ const PlayPage: React.FC = () => {
 
     const q = questionsRef.current[idxRef.current];
     if (q?.answers?.[0]) {
-      await speakAwaitTTS(q.answers[0]);
+      await speakAwaitTTS(q.answers[0], true);
     }
 
     // ★ 音声再生後もまだ処理中かチェック
@@ -446,7 +446,7 @@ const PlayPage: React.FC = () => {
   }, [micActive, muteCurrentAudio, unmuteCurrentAudio]);
 
   // ---------------------- Google TTS Speech ----------------------
-  const speakAwaitTTS = useCallback(async (text: string): Promise<void> => {
+  const speakAwaitTTS = useCallback(async (text: string, isAnswer = false): Promise<void> => {
     // ★ 処理が中断されている場合は音声再生をスキップ
     if (isProcessingRef.current && statusRef.current !== 'reveal' && statusRef.current !== 'beam' && statusRef.current !== 'explosion') {
       console.log('[TTS] Skipping speech - processing interrupted');
@@ -496,7 +496,7 @@ const PlayPage: React.FC = () => {
           const blob = new Blob([uint8Array], { type: 'audio/mpeg' });
           const audioUrl = URL.createObjectURL(blob);
           const audio = new Audio(audioUrl);
-          audio.volume = micActiveRef.current ? 0 : TTS_VOLUME;
+          audio.volume = isAnswer ? TTS_VOLUME : (micActiveRef.current ? 0 : TTS_VOLUME);
           currentAudioRef.current = audio;
 
           await new Promise<void>((resolve) => {
@@ -530,7 +530,7 @@ const PlayPage: React.FC = () => {
           const blob = new Blob([uint8Array], { type: 'audio/mpeg' });
           const audioUrl = URL.createObjectURL(blob);
           const audio = new Audio(audioUrl);
-          audio.volume = micActiveRef.current ? 0 : TTS_VOLUME;
+          audio.volume = isAnswer ? TTS_VOLUME : (micActiveRef.current ? 0 : TTS_VOLUME);
           currentAudioRef.current = audio;
 
           await new Promise<void>((resolve) => {
@@ -600,8 +600,8 @@ const PlayPage: React.FC = () => {
       const blob = new Blob([bytes], { type: 'audio/mpeg' });
       const audioUrl = URL.createObjectURL(blob);
       const audio = new Audio(audioUrl);
-      audio.volume = micActiveRef.current ? 0 : TTS_VOLUME;
-      
+      audio.volume = isAnswer ? TTS_VOLUME : (micActiveRef.current ? 0 : TTS_VOLUME);
+
       currentAudioRef.current = audio;
 
       await new Promise<void>((resolve) => {
@@ -725,11 +725,11 @@ const PlayPage: React.FC = () => {
       await new Promise(r => setTimeout(r, DLY.explosion));
 
       setStatus('reveal');
-      
+
       if (q.answers?.[0]) {
-        await speakAwaitTTS(q.answers[0]);
+        await speakAwaitTTS(q.answers[0], true);
       }
-      
+
       await new Promise(r => setTimeout(r, DLY.afterReveal));
 
       startIntermissionThenNext();
@@ -1035,7 +1035,7 @@ const PlayPage: React.FC = () => {
       setStatus('reveal');
 
       if (q.answers?.[0]) {
-        await speakAwaitTTS(q.answers[0]);
+        await speakAwaitTTS(q.answers[0], true);
       }
 
       // ★ 処理中断チェック
