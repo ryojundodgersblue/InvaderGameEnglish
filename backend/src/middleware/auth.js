@@ -94,6 +94,7 @@ function optionalAuth(req, res, next) {
 module.exports = {
   generateToken,
   authenticateToken,
+  verifyToken: authenticateToken, // エイリアス
   optionalAuth,
   JWT_SECRET,
   JWT_EXPIRES_IN

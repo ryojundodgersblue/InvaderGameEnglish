@@ -147,6 +147,9 @@ router.post('/login',
     const current_part     = Number(row[COL.current_part]     ?? 0) || 0;
     const current_subpart  = Number(row[COL.current_subpart]  ?? 0) || 0;
 
+    // 管理者フラグ（固定列 index=8）
+    const is_admin = row[COL.is_admin] === true || String(row[COL.is_admin] || '').toLowerCase() === 'true';
+
     const ms = Date.now() - t0;
     logInfo(reqId, 'login success', {
       userId: maskUser(userId),
@@ -154,6 +157,7 @@ router.post('/login',
       current_grade,
       current_part,
       current_subpart,
+      is_admin,
       durationMs: ms,
     });
 
@@ -164,6 +168,7 @@ router.post('/login',
       current_grade,
       current_part,
       current_subpart,
+      is_admin,
     });
 
     // HttpOnlyクッキーにトークンを設定
@@ -191,6 +196,7 @@ router.post('/login',
         current_grade,
         current_part,
         current_subpart,
+        is_admin,
       },
     });
   } catch (err) {
