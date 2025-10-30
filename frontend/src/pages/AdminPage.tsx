@@ -299,8 +299,8 @@ const AdminPage: React.FC = () => {
               <thead>
                 <tr>
                   <th className="fixed-column">ユーザー名</th>
-                  {failureStats.parts.map((part) => (
-                    <th key={part}>{part}</th>
+                  {failureStats.parts.map((part, index) => (
+                    <th key={`header-${part}-${index}`}>{part}</th>
                   ))}
                 </tr>
               </thead>
@@ -308,8 +308,8 @@ const AdminPage: React.FC = () => {
                 {failureStats.users.map((userName) => (
                   <tr key={userName}>
                     <td className="fixed-column">{userName}</td>
-                    {failureStats.parts.map((part) => (
-                      <td key={part}>{failureStats.stats[userName]?.[part] || 0}</td>
+                    {failureStats.parts.map((part, index) => (
+                      <td key={`${userName}-${part}-${index}`}>{failureStats.stats[userName]?.[part] || 0}</td>
                     ))}
                   </tr>
                 ))}
