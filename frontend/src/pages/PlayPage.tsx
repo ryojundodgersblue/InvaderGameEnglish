@@ -870,6 +870,7 @@ const PlayPage: React.FC = () => {
 
   // ---------------------- Mic Toggle & Evaluate ----------------------
   const toggleMic = useCallback(() => {
+    // ★ speaking, listening, wrong状態でマイクを操作可能（問題音声中でも回答可能）
     if (!['speaking', 'listening', 'wrong'].includes(status) || timeLeft <= 0) return;
     if (!micActive) startRecognition();
     else stopRecognitionAndEvaluate();
@@ -878,9 +879,18 @@ const PlayPage: React.FC = () => {
 
   const startRecognition = useCallback(() => {
     const SR = window.webkitSpeechRecognition || window.SpeechRecognition;
-    if (!SR) { 
-      alert('このブラウザは音声認識に未対応です(Chrome 推奨)'); 
-      return; 
+    if (!SR) {
+      alert('このブラウザは音声認識に未対応です(Chrome 推奨)');
+      return;
+    }
+
+    // ★ 問題の音声再生中にマイクをオンにした場合、音声を停止してlistening状態に移行
+    if (statusRef.current === 'speaking') {
+      console.log('[ASR] Stopping question audio to start listening');
+      stopCurrentAudio();
+      setStatus('listening');
+      // アクティビティを更新
+      updateActivity();
     }
 
     const rec = new SR();
@@ -1402,6 +1412,7 @@ const PlayPage: React.FC = () => {
       enemyVariant === 'attack' ? 'enemy-attack' : ''
   }`;
 
+  // ★ speaking, listening, wrong状態でマイクボタン有効（問題音声中でも回答可能）
   const gunBtnEnabled = ['speaking', 'listening', 'wrong'].includes(status) && timeLeft > 0 && !(current?.is_demo && idx === 0);
   const gunBtnClass = [
     'gun-button',
