@@ -664,7 +664,7 @@ const PlayPage: React.FC = () => {
     stopCurrentAudio();
     forceStopRecognition();
 
-    setBannerText(q.is_demo && questionIndex === 0 ? 'Start Demo' : `Question ${questionIndex + 1} !`);
+    setBannerText(q.is_demo && questionIndex === 0 ? 'start a demo !' : `Question ${questionIndex + 1} !`);
     await new Promise(r => setTimeout(r, 1200));
     setBannerText(null);
 
@@ -1317,7 +1317,7 @@ const PlayPage: React.FC = () => {
       enemyVariant === 'attack' ? 'enemy-attack' : ''
   }`;
 
-  const gunBtnEnabled = ['speaking', 'listening', 'wrong'].includes(status) && timeLeft > 0;
+  const gunBtnEnabled = ['speaking', 'listening', 'wrong'].includes(status) && timeLeft > 0 && !(current?.is_demo && idx === 0);
   const gunBtnClass = [
     'gun-button',
     gunBtnEnabled ? 'enabled' : 'disabled',
