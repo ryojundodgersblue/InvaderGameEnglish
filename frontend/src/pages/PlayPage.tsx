@@ -141,6 +141,28 @@ function playSound(filename: string) {
   audio.play().catch(() => { /* ignore */ });
 }
 
+// ★ 音声再生を待つ関数（攻撃音など）
+function playSoundAwait(filename: string): Promise<void> {
+  return new Promise((resolve) => {
+    const audio = new Audio(`/${filename}`);
+    audio.volume = SOUND_EFFECT_VOLUME;
+
+    const onEnd = () => {
+      audio.removeEventListener('ended', onEnd);
+      audio.removeEventListener('error', onEnd);
+      console.log(`[Sound] Finished playing: ${filename}`);
+      resolve();
+    };
+
+    audio.addEventListener('ended', onEnd);
+    audio.addEventListener('error', onEnd);
+
+    audio.play().catch(() => {
+      onEnd();
+    });
+  });
+}
+
 // ------------------------ Component --------------------------
 const PlayPage: React.FC = () => {
   const nav = useNavigate();
@@ -159,6 +181,7 @@ const PlayPage: React.FC = () => {
   const [status, setStatus] = useState<Status>('idle');
   const [realCorrect, setRealCorrect] = useState(0);
   const [error, setError] = useState<string | null>(null);
+  const [freezeDetected, setFreezeDetected] = useState(false);
 
   const [enemyVariant, setEnemyVariant] = useState<EnemyVariant>('normal');
   const [micActive, setMicActive] = useState(false);
@@ -187,6 +210,9 @@ const PlayPage: React.FC = () => {
   const timeLeftRef = useRef<number>(ROUND_TIME_SEC);
   useEffect(() => { timeLeftRef.current = timeLeft; }, [timeLeft]);
 
+  const freezeDetectionTimerRef = useRef<number | null>(null);
+  const lastActivityRef = useRef<number>(Date.now());
+
   const isProcessingRef = useRef(false);
   const questionsRef = useRef<Q[]>([]);
   const idxRef = useRef(0);
@@ -200,6 +226,39 @@ const PlayPage: React.FC = () => {
 
   const current = questions[idx];
   const questionNo = idx + 1;
+
+  // ---------------------- Freeze Detection ----------------------
+  const startFreezeDetection = useCallback(() => {
+    lastActivityRef.current = Date.now();
+    if (freezeDetectionTimerRef.current) {
+      window.clearInterval(freezeDetectionTimerRef.current);
+    }
+    freezeDetectionTimerRef.current = window.setInterval(() => {
+      const timeSinceActivity = Date.now() - lastActivityRef.current;
+      // 30秒間処理が進まない場合、フリーズと判定
+      if (timeSinceActivity > 30000) {
+        console.error('[Freeze] Game appears to be frozen - no activity for 30 seconds');
+        setFreezeDetected(true);
+        if (freezeDetectionTimerRef.current) {
+          window.clearInterval(freezeDetectionTimerRef.current);
+          freezeDetectionTimerRef.current = null;
+        }
+      }
+    }, 5000); // 5秒ごとにチェック
+    console.log('[Freeze] Detection started');
+  }, []);
+
+  const updateActivity = useCallback(() => {
+    lastActivityRef.current = Date.now();
+  }, []);
+
+  const stopFreezeDetection = useCallback(() => {
+    if (freezeDetectionTimerRef.current) {
+      window.clearInterval(freezeDetectionTimerRef.current);
+      freezeDetectionTimerRef.current = null;
+      console.log('[Freeze] Detection stopped');
+    }
+  }, []);
 
   // ---------------------- Stop Recognition (完全停止) ----------------------
   const forceStopRecognition = useCallback(() => {
@@ -274,6 +333,9 @@ const PlayPage: React.FC = () => {
       return;
     }
 
+    // ★ アクティビティを更新
+    updateActivity();
+
     // ★ 処理開始フラグを立てる（他の処理をブロック）
     isProcessingRef.current = true;
     console.log(`[Timeout] Question ${idxRef.current + 1} timed out`);
@@ -322,7 +384,7 @@ const PlayPage: React.FC = () => {
 
     startIntermissionThenNext();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [forceStopRecognition, waitForCurrentAudioToFinish]);
+  }, [forceStopRecognition, waitForCurrentAudioToFinish, updateActivity]);
 
   const startTimer = useCallback(() => {
     clearTimer();
@@ -407,6 +469,7 @@ const PlayPage: React.FC = () => {
       clearTimer();
       stopCurrentAudio();
       forceStopRecognition();
+      stopFreezeDetection();
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [grade, part, subpart, clearTimer, forceStopRecognition]);
@@ -654,6 +717,10 @@ const PlayPage: React.FC = () => {
       currentCorrect: realCorrectRef.current
     });
 
+    // ★ フリーズ検出を開始
+    startFreezeDetection();
+    updateActivity();
+
     isProcessingRef.current = false;
     setShowText(false);
     setStatus('idle');
@@ -717,7 +784,8 @@ const PlayPage: React.FC = () => {
       stopCurrentAudio();
 
       setEnemyVariant('ko');
-      playSound('attack.mp3');
+      // ★ 攻撃音を再生（非同期で開始）
+      const attackSoundPromise = playSoundAwait('attack.mp3');
       setStatus('beam');
       await new Promise(r => setTimeout(r, DLY.beam));
 
@@ -725,6 +793,11 @@ const PlayPage: React.FC = () => {
       await new Promise(r => setTimeout(r, DLY.explosion));
 
       setStatus('reveal');
+
+      // ★ 攻撃音が完全に終了するのを待つ（修正②）
+      console.log('[Sound] Waiting for attack sound to finish before playing answer...');
+      await attackSoundPromise;
+      console.log('[Sound] Attack sound finished, now playing answer');
 
       if (q.answers?.[0]) {
         await speakAwaitTTS(q.answers[0], true);
@@ -737,7 +810,7 @@ const PlayPage: React.FC = () => {
       setStatus('listening');
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [clearTimer, startTimer, speakAwaitTTS, stopCurrentAudio, forceStopRecognition]);
+  }, [clearTimer, startTimer, speakAwaitTTS, stopCurrentAudio, forceStopRecognition, startFreezeDetection, updateActivity]);
 
   // ---------------------- Intermission => Next ----------------------
   const startIntermissionThenNext = useCallback(() => {
@@ -762,6 +835,9 @@ const PlayPage: React.FC = () => {
   }, [enemyVariant]);
 
   const moveToNextQuestion = useCallback(() => {
+    // ★ アクティビティを更新
+    updateActivity();
+
     clearTimer();
     isProcessingRef.current = false;
     setMicActive(false);
@@ -790,7 +866,7 @@ const PlayPage: React.FC = () => {
     setStatus('idle');
     setTimeout(() => startQuestionForIndex(next), DLY.beforeNextQuestion);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [clearTimer, stopCurrentAudio, forceStopRecognition, startQuestionForIndex]);
+  }, [clearTimer, stopCurrentAudio, forceStopRecognition, startQuestionForIndex, updateActivity]);
 
   // ---------------------- Mic Toggle & Evaluate ----------------------
   const toggleMic = useCallback(() => {
@@ -901,7 +977,7 @@ const PlayPage: React.FC = () => {
   const stopRecognitionAndEvaluate = useCallback(async () => {
     console.log('[ASR] Stopping for evaluation');
     stoppingRef.current = true;
-    
+
     try {
       if (recognitionRef.current) {
         recognitionRef.current.onend = null;
@@ -910,7 +986,7 @@ const PlayPage: React.FC = () => {
     } catch (err) {
       console.warn('[ASR] Error during stop:', err);
     }
-    
+
     setMicActive(false);
     micActiveRef.current = false;
 
@@ -926,9 +1002,20 @@ const PlayPage: React.FC = () => {
       return;
     }
 
+    // ★ アクティビティを更新
+    updateActivity();
+
+    // ★ 競合状態対策: 処理開始をマーク（タイムアウトとの競合を防ぐ）
+    isProcessingRef.current = true;
+    console.log('[Eval] Starting evaluation - setting isProcessingRef to true');
+
+    // ★ タイマーを即座に停止（タイムアウトとの競合を防ぐ）
+    clearTimer();
+
     const q = questionsRef.current[idxRef.current];
     if (!q) {
       console.log('[Eval] No question found - skipping');
+      isProcessingRef.current = false;
       return;
     }
 
@@ -977,19 +1064,6 @@ const PlayPage: React.FC = () => {
     console.groupEnd();
 
     if (isCorrect) {
-      // ★ 競合状態対策: 処理開始直前に再度チェック
-      if (isProcessingRef.current) {
-        console.log('[Eval] Another process started - aborting');
-        return;
-      }
-
-      // ★ 処理開始をマーク（これ以降の他の処理をブロック）
-      isProcessingRef.current = true;
-      console.log('[Eval] Correct answer - setting isProcessingRef to true');
-
-      // ★ タイマー停止
-      clearTimer();
-
       // ★ 問題の音声が終了するまで待つ（修正①）
       await waitForCurrentAudioToFinish();
 
@@ -1013,7 +1087,8 @@ const PlayPage: React.FC = () => {
       }
 
       setEnemyVariant('ko');
-      playSound('attack.mp3');
+      // ★ 攻撃音を再生（非同期で開始）
+      const attackSoundPromise = playSoundAwait('attack.mp3');
       setStatus('beam');
       await new Promise(r => setTimeout(r, DLY.beam));
 
@@ -1033,6 +1108,11 @@ const PlayPage: React.FC = () => {
       }
 
       setStatus('reveal');
+
+      // ★ 攻撃音が完全に終了するのを待つ（修正②）
+      console.log('[Sound] Waiting for attack sound to finish before playing answer...');
+      await attackSoundPromise;
+      console.log('[Sound] Attack sound finished, now playing answer');
 
       if (q.answers?.[0]) {
         await speakAwaitTTS(q.answers[0], true);
@@ -1060,17 +1140,22 @@ const PlayPage: React.FC = () => {
       playSound('miss.mp3');
 
       setTimeout(() => {
-        // ★ 競合状態対策: タイマーチェック時に処理中フラグも確認
-        if (!isProcessingRef.current && deadlineRef.current && Date.now() < deadlineRef.current) {
+        // ★ タイマーが残っているかチェック
+        if (deadlineRef.current && Date.now() < deadlineRef.current) {
+          // ★ 不正解の場合は処理完了をマーク（listening状態に戻る）
+          isProcessingRef.current = false;
+          console.log('[Eval] Wrong answer - resetting isProcessingRef and returning to listening state');
           setEnemyVariant('normal');
           setStatus('listening');
-          console.log('[Eval] Wrong answer - returning to listening state');
+          // タイマーを再開
+          startTimer();
         } else {
-          console.log('[Eval] Wrong answer - not returning to listening (processing or timeout)');
+          console.log('[Eval] Wrong answer - time expired, not returning to listening');
+          // タイムアウトの場合は処理を続行（isProcessingRef.currentはtrueのまま）
         }
       }, 600);
     }
-  }, [clearTimer, waitForCurrentAudioToFinish, forceStopRecognition, speakAwaitTTS, startIntermissionThenNext]);
+  }, [clearTimer, waitForCurrentAudioToFinish, forceStopRecognition, speakAwaitTTS, startIntermissionThenNext, updateActivity, startTimer]);
 
   // ---------------------- Finish Game ----------------------
   const finishGame = useCallback(async () => {
@@ -1326,6 +1411,48 @@ const PlayPage: React.FC = () => {
 
   return (
     <div className="play-page">
+      {/* フリーズ検出ダイアログ */}
+      {freezeDetected && (
+        <div style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          backgroundColor: 'rgba(0, 0, 0, 0.8)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          zIndex: 9999
+        }}>
+          <div style={{
+            backgroundColor: '#1e293b',
+            padding: '40px',
+            borderRadius: '12px',
+            maxWidth: '500px',
+            textAlign: 'center',
+            border: '2px solid #ef4444'
+          }}>
+            <h2 style={{ color: '#ef4444', marginBottom: '20px', fontSize: '24px' }}>
+              ⚠️ エラーが発生しました
+            </h2>
+            <p style={{ color: '#94a3b8', marginBottom: '30px', lineHeight: '1.6' }}>
+              ゲームが正常に動作していない可能性があります。<br />
+              ログイン画面に戻ってやり直してください。
+            </p>
+            <Button onClick={() => {
+              stopFreezeDetection();
+              clearTimer();
+              stopCurrentAudio();
+              forceStopRecognition();
+              nav('/login');
+            }}>
+              ログイン画面に戻る
+            </Button>
+          </div>
+        </div>
+      )}
+
       {/* 左上: Time Limit */}
       <div className="time-limit-container">
         <div className="time-limit-label">Time Limit</div>
