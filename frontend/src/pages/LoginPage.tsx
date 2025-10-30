@@ -13,6 +13,7 @@ interface LoginResponse {
     name: string
     current_grade: number
     current_part: number
+    is_admin: boolean
   }
 }
 
@@ -46,20 +47,26 @@ const LoginPage: React.FC = () => {
       localStorage.setItem('userName', user.name ?? '')
       localStorage.setItem('current_grade', String(user.current_grade ?? ''))
       localStorage.setItem('current_part',  String(user.current_part  ?? ''))
+      localStorage.setItem('is_admin', String(user.is_admin ?? false))
 
       console.log('Login successful, user info:', {
         userId: user.userId,
         name: user.name,
         current_grade: user.current_grade,
-        current_part: user.current_part
+        current_part: user.current_part,
+        is_admin: user.is_admin
       })
 
       // クッキーが設定されているか確認（開発者ツールで確認用）
       console.log('All cookies:', document.cookie)
       console.log('Note: authToken is HttpOnly and will not appear in document.cookie')
 
-      // 成功したら遷移
-      navigate('/select')
+      // 成功したら遷移（管理者の場合は管理画面へ）
+      if (user.is_admin) {
+        navigate('/admin')
+      } else {
+        navigate('/select')
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : String(err))
     }

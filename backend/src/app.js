@@ -7,6 +7,7 @@ const rankingRouter = require('./routes/ranking');
 const playGameRouter = require('./routes/playGame');
 const selectRouter = require('./routes/select');
 const ttsRouter = require('./routes/tts');
+const adminRouter = require('./routes/admin');
 const { sanitizeError } = require('./middleware/validation');
 
 const app = express();
@@ -71,6 +72,7 @@ app.use('/ranking', rankingRouter); // 例: GET  /ranking
 app.use('/game',    playGameRouter);
 app.use('/select',  selectRouter);
 app.use('/api/tts', ttsRouter);
+app.use('/admin',   adminRouter);   // 例: GET  /admin/users, POST /admin/users
 
 // 404ハンドラー - 定義されていないルートへのアクセス
 app.use((req, res, next) => {
