@@ -939,7 +939,8 @@ const PlayPage: React.FC = () => {
     });
 
     const userId = localStorage.getItem('userId') || '';
-    const part_id = partInfo?.part_id || '';
+    // ★ questionsから part_id を取得（全ての質問は同じpart_idを持つ）
+    const part_id = questionsRef.current[0]?.part_id || partInfo?.part_id || '';
 
     try {
       if (!userId) {
@@ -947,7 +948,11 @@ const PlayPage: React.FC = () => {
         throw new Error('ユーザーIDが見つかりません');
       }
       if (!part_id) {
-        console.error('[API] No part_id found');
+        console.error('[API] No part_id found', {
+          questionsCount: questionsRef.current.length,
+          firstQuestionPartId: questionsRef.current[0]?.part_id,
+          partInfo: partInfo
+        });
         throw new Error('パートIDが見つかりません');
       }
 
