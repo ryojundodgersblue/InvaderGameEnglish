@@ -70,19 +70,19 @@ router.get('/', optionalAuth, async (_req, res) => {
       }
 
       const uHeader = uRows[0].map(v => String(v ?? ''));
-      const idxUid  = idxOf(uHeader, 'user_id');
+      const idxId   = idxOf(uHeader, 'id');
       const idxNick = idxOf(uHeader, 'nickname');
 
-      if (idxUid < 0 || idxNick < 0) {
+      if (idxId < 0 || idxNick < 0) {
         console.error('[ranking] users header not found', { uHeader });
         return res.json({ month: mk, items: { challenge: [], accuracy: [] } });
       }
 
       usersMap = new Map();
       for (const r of uRows.slice(1)) {
-        const uid  = String(r[idxUid] ?? '').trim();
+        const id   = String(r[idxId] ?? '').trim();
         const nick = String(r[idxNick] ?? '').trim();
-        if (uid) usersMap.set(uid, nick);
+        if (id) usersMap.set(id, nick || id);
       }
 
       // MapをRedisに保存するために、オブジェクトに変換
