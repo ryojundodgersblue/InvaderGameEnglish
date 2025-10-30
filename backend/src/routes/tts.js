@@ -16,8 +16,41 @@ router.post('/synthesize', async (req, res) => {
       pitch = 0
     } = req.body;
 
+    // 入力バリデーション（セキュリティ強化）
     if (!text) {
       return res.status(400).json({ error: 'Text is required' });
+    }
+
+    if (typeof text !== 'string') {
+      return res.status(400).json({ error: 'Text must be a string' });
+    }
+
+    // テキスト長の制限（Google TTS APIの制限は5000文字）
+    const maxTextLength = parseInt(process.env.TTS_MAX_TEXT_LENGTH || '1000', 10);
+    if (text.length > maxTextLength) {
+      return res.status(400).json({
+        error: 'Text is too long',
+        maxLength: maxTextLength,
+        actualLength: text.length
+      });
+    }
+
+    // speakingRateの範囲チェック（Google TTS APIの有効範囲: 0.25 - 4.0）
+    const rate = Number(speakingRate);
+    if (!Number.isFinite(rate) || rate < 0.25 || rate > 4.0) {
+      return res.status(400).json({
+        error: 'Invalid speakingRate',
+        validRange: '0.25 - 4.0'
+      });
+    }
+
+    // pitchの範囲チェック（Google TTS APIの有効範囲: -20.0 - 20.0）
+    const p = Number(pitch);
+    if (!Number.isFinite(p) || p < -20.0 || p > 20.0) {
+      return res.status(400).json({
+        error: 'Invalid pitch',
+        validRange: '-20.0 - 20.0'
+      });
     }
 
     // Redisキャッシュをチェック

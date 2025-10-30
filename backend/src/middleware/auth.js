@@ -1,7 +1,22 @@
 // backend/src/middleware/auth.js
 const jwt = require('jsonwebtoken');
+const crypto = require('crypto');
 
-const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key-change-in-production';
+// 本番環境では環境変数が必須、開発環境ではランダム生成
+let JWT_SECRET = process.env.JWT_SECRET;
+
+if (!JWT_SECRET) {
+  if (process.env.NODE_ENV === 'production') {
+    console.error('[SECURITY] JWT_SECRET is not set in production environment!');
+    throw new Error('JWT_SECRET must be set in production environment');
+  } else {
+    // 開発環境では警告を出してランダム生成
+    JWT_SECRET = crypto.randomBytes(64).toString('hex');
+    console.warn('[SECURITY] JWT_SECRET not set, using randomly generated key for development');
+    console.warn('[SECURITY] This key will change on restart. Set JWT_SECRET in .env for consistency');
+  }
+}
+
 const JWT_EXPIRES_IN = '24h';
 
 /**
