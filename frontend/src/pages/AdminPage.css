@@ -213,11 +213,13 @@
 .failure-stats-table-container {
   overflow-x: auto;
   position: relative;
+  max-width: 100%;
 }
 
 .failure-stats-table {
   width: 100%;
-  border-collapse: collapse;
+  border-collapse: separate;
+  border-spacing: 0;
   background: rgba(255, 255, 255, 0.05);
   border-radius: 8px;
   overflow: hidden;
@@ -252,18 +254,20 @@
 .failure-stats-table .fixed-column {
   position: sticky;
   left: 0;
-  background: rgba(0, 0, 0, 0.5);
+  background: rgba(0, 90, 156, 0.95);
   z-index: 10;
   min-width: 150px;
+  border-right: 2px solid rgba(255, 255, 255, 0.3);
+  box-shadow: 2px 0 5px rgba(0, 0, 0, 0.3);
 }
 
 .failure-stats-table thead .fixed-column {
-  background: rgba(0, 0, 0, 0.6);
+  background: rgba(0, 70, 120, 0.95);
   z-index: 11;
 }
 
 .failure-stats-table tbody tr:hover .fixed-column {
-  background: rgba(0, 0, 0, 0.7);
+  background: rgba(0, 110, 180, 0.95);
 }
 
 @media (max-width: 768px) {
