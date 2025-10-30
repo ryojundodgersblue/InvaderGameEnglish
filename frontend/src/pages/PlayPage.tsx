@@ -222,12 +222,44 @@ const PlayPage: React.FC = () => {
 
   // ---------------------- Timer ----------------------
   const clearTimer = useCallback(() => {
-    if (timerRef.current) { 
-      window.clearInterval(timerRef.current); 
-      timerRef.current = null; 
+    if (timerRef.current) {
+      window.clearInterval(timerRef.current);
+      timerRef.current = null;
     }
     deadlineRef.current = null;
     console.log('[Timer] Cleared');
+  }, []);
+
+  // ★ 現在の音声が終了するまで待つ関数
+  const waitForCurrentAudioToFinish = useCallback(async () => {
+    if (!currentAudioRef.current || !isSpeakingRef.current) {
+      console.log('[TTS] No audio playing - continuing immediately');
+      return;
+    }
+
+    console.log('[TTS] Waiting for current audio to finish...');
+    return new Promise<void>((resolve) => {
+      const audio = currentAudioRef.current;
+      if (!audio) {
+        resolve();
+        return;
+      }
+
+      const onEnded = () => {
+        console.log('[TTS] Current audio finished');
+        audio.removeEventListener('ended', onEnded);
+        audio.removeEventListener('error', onEnded);
+        resolve();
+      };
+
+      audio.addEventListener('ended', onEnded);
+      audio.addEventListener('error', onEnded);
+
+      // 既に終了している場合のフォールバック
+      if (audio.ended || audio.paused) {
+        onEnded();
+      }
+    });
   }, []);
 
   const handleTimeout = useCallback(async () => {
@@ -249,8 +281,12 @@ const PlayPage: React.FC = () => {
     // ★ 音声認識を完全停止
     forceStopRecognition();
 
-    // ★ 音声を即座に停止
-    stopCurrentAudio();
+    // ★ 問題の音声が終了するまで待つ（修正①）
+    await waitForCurrentAudioToFinish();
+
+    // ★ 音量を確実に復元（修正②）
+    originalVolumeRef.current = TTS_VOLUME;
+    console.log('[Timeout] Audio volume restored for answer playback');
 
     setEnemyVariant('attack');
     setStatus('timeout');
@@ -286,7 +322,7 @@ const PlayPage: React.FC = () => {
 
     startIntermissionThenNext();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [forceStopRecognition]);
+  }, [forceStopRecognition, waitForCurrentAudioToFinish]);
 
   const startTimer = useCallback(() => {
     clearTimer();
@@ -951,9 +987,15 @@ const PlayPage: React.FC = () => {
       isProcessingRef.current = true;
       console.log('[Eval] Correct answer - setting isProcessingRef to true');
 
-      // ★ タイマー停止と音声停止
+      // ★ タイマー停止
       clearTimer();
-      stopCurrentAudio();
+
+      // ★ 問題の音声が終了するまで待つ（修正①）
+      await waitForCurrentAudioToFinish();
+
+      // ★ 音量を確実に復元（修正②）
+      originalVolumeRef.current = TTS_VOLUME;
+      console.log('[Eval] Audio volume restored for answer playback');
 
       // ★ 音声認識を完全停止
       forceStopRecognition();
@@ -1028,7 +1070,7 @@ const PlayPage: React.FC = () => {
         }
       }, 600);
     }
-  }, [clearTimer, stopCurrentAudio, forceStopRecognition, speakAwaitTTS, startIntermissionThenNext]);
+  }, [clearTimer, waitForCurrentAudioToFinish, forceStopRecognition, speakAwaitTTS, startIntermissionThenNext]);
 
   // ---------------------- Finish Game ----------------------
   const finishGame = useCallback(async () => {
