@@ -447,8 +447,8 @@ const PlayPage: React.FC = () => {
 
   // ---------------------- Google TTS Speech ----------------------
   const speakAwaitTTS = useCallback(async (text: string, isAnswer = false): Promise<void> => {
-    // ★ 処理が中断されている場合は音声再生をスキップ
-    if (isProcessingRef.current && statusRef.current !== 'reveal' && statusRef.current !== 'beam' && statusRef.current !== 'explosion') {
+    // ★ 処理が中断されている場合は音声再生をスキップ（ただし正解音声は必ず再生）
+    if (!isAnswer && isProcessingRef.current && statusRef.current !== 'reveal' && statusRef.current !== 'beam' && statusRef.current !== 'explosion') {
       console.log('[TTS] Skipping speech - processing interrupted');
       return;
     }
@@ -469,8 +469,8 @@ const PlayPage: React.FC = () => {
         { timeout: 10000 }
       );
 
-      // ★ リクエスト後も処理が中断されていないかチェック
-      if (isProcessingRef.current && statusRef.current !== 'reveal' && statusRef.current !== 'beam' && statusRef.current !== 'explosion') {
+      // ★ リクエスト後も処理が中断されていないかチェック（ただし正解音声は必ず再生）
+      if (!isAnswer && isProcessingRef.current && statusRef.current !== 'reveal' && statusRef.current !== 'beam' && statusRef.current !== 'explosion') {
         console.log('[TTS] Skipping playback - processing interrupted after request');
         isSpeakingRef.current = false;
         return;
