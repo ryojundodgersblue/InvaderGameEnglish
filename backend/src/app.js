@@ -18,22 +18,41 @@ const allowedOrigins = [
   process.env.FRONTEND_URL
 ].filter(Boolean);
 
+// 本番環境ではより厳格なチェック
+if (process.env.NODE_ENV === 'production' && allowedOrigins.length === 2) {
+  console.warn('[SECURITY] FRONTEND_URL not set in production environment');
+  console.warn('[SECURITY] Only localhost origins are allowed, which may not be intended for production');
+}
+
 app.use(cors({
   origin: function(origin, callback) {
-    // originがundefinedの場合（同一オリジン）またはallowedOriginsに含まれる場合は許可
-    if (!origin || allowedOrigins.includes(origin)) {
+    // 本番環境では同一オリジンリクエスト（originがundefined）も厳格にチェック
+    if (!origin) {
+      // 同一オリジンリクエストは許可（通常のブラウザリクエスト）
+      if (process.env.NODE_ENV === 'production') {
+        console.log('[CORS] Same-origin request allowed');
+      }
+      return callback(null, true);
+    }
+
+    if (allowedOrigins.includes(origin)) {
       callback(null, true);
     } else {
+      console.warn('[CORS] Rejected origin:', origin);
       callback(new Error('CORS policy violation'));
     }
   },
   credentials: true, // クッキーを含むリクエストを許可
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization']
+  allowedHeaders: ['Content-Type', 'Authorization'],
+  maxAge: 86400 // プリフライトリクエストのキャッシュ（24時間）
 }));
 
 app.use(cookieParser());
-app.use(express.json());
+// JSONボディのサイズ制限（DoS攻撃対策）
+app.use(express.json({ limit: '10mb' }));
+// URLエンコードされたボディのサイズ制限
+app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
 // リクエストログミドルウェア（デバッグ用）
 app.use((req, res, next) => {

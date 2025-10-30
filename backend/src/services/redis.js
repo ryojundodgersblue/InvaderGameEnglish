@@ -12,11 +12,20 @@ const REDIS_CONFIG = {
 };
 
 // キャッシュのデフォルトTTL（秒）
+// 環境変数で調整可能（性能最適化）
 const DEFAULT_TTL = {
-  SHEETS_DATA: 10 * 60,        // 10分
-  TTS_AUDIO: 24 * 60 * 60,     // 24時間
-  RANKING_DATA: 60,            // 60秒
+  SHEETS_DATA: parseInt(process.env.CACHE_TTL_SHEETS || '600', 10),        // デフォルト10分
+  TTS_AUDIO: parseInt(process.env.CACHE_TTL_TTS || '86400', 10),          // デフォルト24時間
+  RANKING_DATA: parseInt(process.env.CACHE_TTL_RANKING || '60', 10),      // デフォルト60秒
 };
+
+// TTL値のバリデーション
+Object.keys(DEFAULT_TTL).forEach(key => {
+  if (!Number.isFinite(DEFAULT_TTL[key]) || DEFAULT_TTL[key] < 0) {
+    console.warn(`[Redis] Invalid TTL for ${key}, using default`);
+    DEFAULT_TTL[key] = key === 'SHEETS_DATA' ? 600 : key === 'TTS_AUDIO' ? 86400 : 60;
+  }
+});
 
 let client = null;
 let isConnected = false;

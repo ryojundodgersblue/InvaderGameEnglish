@@ -77,15 +77,31 @@ const SOUND_EFFECT_VOLUME = 0.2;
 const TTS_VOLUME = 1.0;
 
 // ------------------------ Utilities --------------------------
-const normalize = (s: string) =>
-  s.toLowerCase().replace(/[^a-z0-9\s]/g, '').replace(/\s+/g, ' ').trim();
+// 正規表現を事前にコンパイル（性能最適化）
+const NORMALIZE_REGEX_1 = /[^a-z0-9\s]/g;
+const NORMALIZE_REGEX_2 = /\s+/g;
 
-function lev(a: string, b: string) {
+const normalize = (s: string) =>
+  s.toLowerCase().replace(NORMALIZE_REGEX_1, '').replace(NORMALIZE_REGEX_2, ' ').trim();
+
+function lev(a: string, b: string, maxDistance?: number) {
   const m = a.length, n = b.length;
+
+  // 性能最適化: 長さの差が大きすぎる場合は早期終了
+  if (maxDistance !== undefined && Math.abs(m - n) > maxDistance) {
+    return maxDistance + 1;
+  }
+
+  // 性能最適化: 空文字列のケース
+  if (m === 0) return n;
+  if (n === 0) return m;
+
   const dp = Array.from({ length: m + 1 }, () => new Array(n + 1).fill(0));
   for (let i = 0; i <= m; i++) dp[i][0] = i;
   for (let j = 0; j <= n; j++) dp[0][j] = j;
+
   for (let i = 1; i <= m; i++) {
+    let minInRow = Infinity;
     for (let j = 1; j <= n; j++) {
       const cost = a[i - 1] === b[j - 1] ? 0 : 1;
       dp[i][j] = Math.min(
@@ -93,6 +109,11 @@ function lev(a: string, b: string) {
         dp[i][j - 1] + 1,
         dp[i - 1][j - 1] + cost
       );
+      minInRow = Math.min(minInRow, dp[i][j]);
+    }
+    // 性能最適化: この行の最小値が閾値を超えたら早期終了
+    if (maxDistance !== undefined && minInRow > maxDistance) {
+      return maxDistance + 1;
     }
   }
   return dp[m][n];
@@ -210,11 +231,18 @@ const PlayPage: React.FC = () => {
   }, []);
 
   const handleTimeout = useCallback(async () => {
-    if (isProcessingRef.current || statusRef.current !== 'listening') {
-      console.log('[Timeout] Ignored - already processing or not listening');
+    // ★ 競合状態対策: 既に処理中、またはlistening状態でない場合は無視
+    if (isProcessingRef.current) {
+      console.log('[Timeout] Ignored - already processing');
       return;
     }
-    
+
+    if (statusRef.current !== 'listening') {
+      console.log('[Timeout] Ignored - not in listening state:', statusRef.current);
+      return;
+    }
+
+    // ★ 処理開始フラグを立てる（他の処理をブロック）
     isProcessingRef.current = true;
     console.log(`[Timeout] Question ${idxRef.current + 1} timed out`);
 
@@ -228,27 +256,33 @@ const PlayPage: React.FC = () => {
     setStatus('timeout');
 
     await new Promise(r => setTimeout(r, DLY.afterTimeoutBeforeReveal));
-    
-    // ★ タイムアウト後もまだ処理中かチェック
+
+    // ★ タイムアウト後もまだ処理中かチェック（他の処理に割り込まれていないか）
     if (!isProcessingRef.current) {
-      console.log('[Timeout] Processing was cancelled');
+      console.log('[Timeout] Processing was cancelled during delay');
       return;
     }
-    
+
     setStatus('reveal');
-    
+
     const q = questionsRef.current[idxRef.current];
     if (q?.answers?.[0]) {
       await speakAwaitTTS(q.answers[0]);
     }
-    
+
     // ★ 音声再生後もまだ処理中かチェック
     if (!isProcessingRef.current) {
       console.log('[Timeout] Processing was cancelled after TTS');
       return;
     }
-    
+
     await new Promise(r => setTimeout(r, DLY.afterReveal));
+
+    // ★ 最終チェック
+    if (!isProcessingRef.current) {
+      console.log('[Timeout] Processing was cancelled before intermission');
+      return;
+    }
 
     startIntermissionThenNext();
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -770,31 +804,52 @@ const PlayPage: React.FC = () => {
 
     rec.onend = () => {
       console.log('[ASR] Ended');
-      
-      // ★ 停止フラグが立っている、またはマイクが非アクティブなら再起動しない
-      if (stoppingRef.current || !micActiveRef.current) {
-        console.log('[ASR] Not restarting - stopping flag or mic inactive');
+
+      // ★ 競合状態対策: 停止フラグが立っている場合は再起動しない
+      if (stoppingRef.current) {
+        console.log('[ASR] Not restarting - stopping flag is set');
+        setMicActive(false);
+        micActiveRef.current = false;
         return;
       }
-      
+
+      // ★ マイクが非アクティブなら再起動しない
+      if (!micActiveRef.current) {
+        console.log('[ASR] Not restarting - mic is inactive');
+        return;
+      }
+
       // ★ タイムアウトまたは処理中の場合は再起動しない
-      if (isProcessingRef.current || timeLeftRef.current <= 0) {
-        console.log('[ASR] Not restarting - processing or timeout');
+      if (isProcessingRef.current) {
+        console.log('[ASR] Not restarting - processing in progress');
+        setMicActive(false);
+        micActiveRef.current = false;
         return;
       }
-      
+
+      if (timeLeftRef.current <= 0) {
+        console.log('[ASR] Not restarting - time expired');
+        setMicActive(false);
+        micActiveRef.current = false;
+        return;
+      }
+
       // ★ 有効なステータスでない場合は再起動しない
       const shouldRestart = ['speaking', 'listening', 'wrong'].includes(statusRef.current);
-      
+
       if (shouldRestart) {
         try {
           rec.start();
           console.log('[ASR] Auto-restarted');
         } catch (err) {
           console.warn('[ASR] Failed to restart:', err);
+          setMicActive(false);
+          micActiveRef.current = false;
         }
       } else {
         console.log('[ASR] Not restarting - invalid status:', statusRef.current);
+        setMicActive(false);
+        micActiveRef.current = false;
       }
     };
 
@@ -829,12 +884,17 @@ const PlayPage: React.FC = () => {
   }, []);
 
   const evaluateCaptured = useCallback(async () => {
+    // ★ 競合状態対策: 既に処理中の場合はスキップ
     if (isProcessingRef.current) {
       console.log('[Eval] Already processing - skipping');
       return;
     }
+
     const q = questionsRef.current[idxRef.current];
-    if (!q) return;
+    if (!q) {
+      console.log('[Eval] No question found - skipping');
+      return;
+    }
 
     const heardRaw = [...capturedRef.current];
     const heard = heardRaw.map(normalize).filter(Boolean);
@@ -849,20 +909,29 @@ const PlayPage: React.FC = () => {
 
     let isCorrect = false;
     let matchDetails = '';
-    
+
+    // ★ 性能最適化: 完全一致チェックを先に実行
     outer: for (const h of heard) {
       for (const a of answers) {
-        if (h === a) { 
-          isCorrect = true; 
+        if (h === a) {
+          isCorrect = true;
           matchDetails = `Exact match: "${h}" === "${a}"`;
-          break outer; 
-        }
-        const s = simLevenshtein(h, a);
-        const j = jaccard(h, a);
-        if (s >= 0.66 || j >= 0.6) {
-          isCorrect = true; 
-          matchDetails = `Fuzzy match: "${h}" ≈ "${a}" (Levenshtein: ${s.toFixed(2)}, Jaccard: ${j.toFixed(2)})`;
           break outer;
+        }
+      }
+    }
+
+    // ★ 完全一致しなかった場合のみ、ファジーマッチを実行
+    if (!isCorrect) {
+      outer2: for (const h of heard) {
+        for (const a of answers) {
+          const s = simLevenshtein(h, a);
+          const j = jaccard(h, a);
+          if (s >= 0.66 || j >= 0.6) {
+            isCorrect = true;
+            matchDetails = `Fuzzy match: "${h}" ≈ "${a}" (Levenshtein: ${s.toFixed(2)}, Jaccard: ${j.toFixed(2)})`;
+            break outer2;
+          }
         }
       }
     }
@@ -872,14 +941,20 @@ const PlayPage: React.FC = () => {
     console.groupEnd();
 
     if (isCorrect) {
-      // ★ 処理開始をマーク（これ以降の音声読み上げをスキップさせる）
+      // ★ 競合状態対策: 処理開始直前に再度チェック
+      if (isProcessingRef.current) {
+        console.log('[Eval] Another process started - aborting');
+        return;
+      }
+
+      // ★ 処理開始をマーク（これ以降の他の処理をブロック）
       isProcessingRef.current = true;
       console.log('[Eval] Correct answer - setting isProcessingRef to true');
-      
+
       // ★ タイマー停止と音声停止
       clearTimer();
       stopCurrentAudio();
-      
+
       // ★ 音声認識を完全停止
       forceStopRecognition();
 
@@ -900,26 +975,56 @@ const PlayPage: React.FC = () => {
       setStatus('beam');
       await new Promise(r => setTimeout(r, DLY.beam));
 
+      // ★ 処理中断チェック
+      if (!isProcessingRef.current) {
+        console.log('[Eval] Processing was cancelled during beam');
+        return;
+      }
+
       setStatus('explosion');
       await new Promise(r => setTimeout(r, DLY.explosion));
 
+      // ★ 処理中断チェック
+      if (!isProcessingRef.current) {
+        console.log('[Eval] Processing was cancelled during explosion');
+        return;
+      }
+
       setStatus('reveal');
-      
+
       if (q.answers?.[0]) {
         await speakAwaitTTS(q.answers[0]);
       }
-      
+
+      // ★ 処理中断チェック
+      if (!isProcessingRef.current) {
+        console.log('[Eval] Processing was cancelled after TTS');
+        return;
+      }
+
       await new Promise(r => setTimeout(r, DLY.afterReveal));
+
+      // ★ 最終チェック
+      if (!isProcessingRef.current) {
+        console.log('[Eval] Processing was cancelled before intermission');
+        return;
+      }
 
       startIntermissionThenNext();
     } else {
+      // ★ 不正解の場合: タイマーが残っている場合のみlistening状態に戻る
       setEnemyVariant('attack');
       setStatus('wrong');
       playSound('miss.mp3');
+
       setTimeout(() => {
+        // ★ 競合状態対策: タイマーチェック時に処理中フラグも確認
         if (!isProcessingRef.current && deadlineRef.current && Date.now() < deadlineRef.current) {
           setEnemyVariant('normal');
           setStatus('listening');
+          console.log('[Eval] Wrong answer - returning to listening state');
+        } else {
+          console.log('[Eval] Wrong answer - not returning to listening (processing or timeout)');
         }
       }, 600);
     }
