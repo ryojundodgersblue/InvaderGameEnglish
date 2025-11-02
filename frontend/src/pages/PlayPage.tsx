@@ -1235,7 +1235,13 @@ const PlayPage: React.FC = () => {
     setMicActive(false);
     micActiveRef.current = false;
 
-    console.log('[ASR] Stopped for evaluation');
+    // ★ 何も認識されていない場合は評価をスキップ
+    if (capturedRef.current.length === 0) {
+      console.log('[ASR] No speech captured - skipping evaluation, staying in listening state');
+      return;
+    }
+
+    console.log('[ASR] Stopped for evaluation - evaluating captured speech');
     evaluateCaptured();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
