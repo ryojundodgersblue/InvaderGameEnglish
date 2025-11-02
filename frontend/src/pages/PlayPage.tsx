@@ -17,11 +17,50 @@ type Q = {
 };
 type PartInfo = { part_id: string; requirement: string };
 type EnemyVariant = 'normal' | 'ko' | 'attack';
-type Status =
-  | 'idle' | 'speaking' | 'listening'
-  | 'beam' | 'explosion' | 'reveal'
-  | 'timeout' | 'wrong'
-  | 'intermission' | 'finished';
+
+// State Machine Types
+type IntermissionSnapshot = {
+  text: string;
+  answer: string;
+  enemy: EnemyVariant;
+};
+
+type GamePhase =
+  | 'idle'
+  | 'speaking'
+  | 'listening'
+  | 'beam'
+  | 'explosion'
+  | 'reveal'
+  | 'timeout'
+  | 'grace_period'
+  | 'wrong'
+  | 'intermission'
+  | 'finished';
+
+type GameState = {
+  phase: GamePhase;
+  enemyVariant: EnemyVariant;
+  hasRecognition: boolean;
+  intermissionSnap: IntermissionSnapshot | null;
+};
+
+type GameAction =
+  | { type: 'START_SPEAKING' }
+  | { type: 'START_LISTENING' }
+  | { type: 'RECOGNITION_DETECTED' }
+  | { type: 'START_BEAM' }
+  | { type: 'START_EXPLOSION' }
+  | { type: 'REVEAL_ANSWER' }
+  | { type: 'TIMEOUT' }
+  | { type: 'START_GRACE_PERIOD' }
+  | { type: 'WRONG_ANSWER' }
+  | { type: 'START_INTERMISSION'; snapshot: IntermissionSnapshot }
+  | { type: 'RESET_TO_IDLE' }
+  | { type: 'FINISH_GAME' };
+
+// Legacy type for backward compatibility
+type Status = GamePhase;
 
 interface SpeechRecognitionEvent extends Event {
   resultIndex: number;
@@ -57,6 +96,7 @@ declare global {
 
 // --------------------------- Consts ---------------------------
 const ROUND_TIME_SEC = 30;
+const GRACE_PERIOD_SEC = 3;
 const CORRECT_TO_CLEAR = 10;
 const MAX_QUESTIONS = 16;
 
@@ -163,6 +203,88 @@ function playSoundAwait(filename: string): Promise<void> {
   });
 }
 
+// ------------------------ State Machine Reducer --------------------------
+const initialGameState: GameState = {
+  phase: 'idle',
+  enemyVariant: 'normal',
+  hasRecognition: false,
+  intermissionSnap: null,
+};
+
+function gameStateReducer(state: GameState, action: GameAction): GameState {
+  console.log('[StateMachine]', { from: state.phase, action: action.type });
+
+  switch (action.type) {
+    case 'START_SPEAKING':
+      return { ...state, phase: 'speaking', enemyVariant: 'normal' };
+
+    case 'START_LISTENING':
+      return { ...state, phase: 'listening' };
+
+    case 'RECOGNITION_DETECTED':
+      return { ...state, hasRecognition: true };
+
+    case 'START_BEAM':
+      return { ...state, phase: 'beam', enemyVariant: 'ko' };
+
+    case 'START_EXPLOSION':
+      return { ...state, phase: 'explosion' };
+
+    case 'REVEAL_ANSWER':
+      return { ...state, phase: 'reveal' };
+
+    case 'TIMEOUT':
+      return { ...state, phase: 'timeout', enemyVariant: 'attack' };
+
+    case 'START_GRACE_PERIOD':
+      return { ...state, phase: 'grace_period', enemyVariant: 'attack' };
+
+    case 'WRONG_ANSWER':
+      return { ...state, phase: 'wrong', enemyVariant: 'attack' };
+
+    case 'START_INTERMISSION':
+      return {
+        ...state,
+        phase: 'intermission',
+        intermissionSnap: action.snapshot,
+      };
+
+    case 'RESET_TO_IDLE':
+      return {
+        ...state,
+        phase: 'idle',
+        enemyVariant: 'normal',
+        hasRecognition: false,
+        intermissionSnap: null,
+      };
+
+    case 'FINISH_GAME':
+      return { ...state, phase: 'finished' };
+
+    default:
+      return state;
+  }
+}
+
+// ------------------------ Utility: Promise-based delay --------------------------
+const delay = (ms: number, signal?: AbortSignal): Promise<void> => {
+  return new Promise((resolve, reject) => {
+    if (signal?.aborted) {
+      reject(new DOMException('Aborted', 'AbortError'));
+      return;
+    }
+
+    const timeout = setTimeout(resolve, ms);
+
+    if (signal) {
+      signal.addEventListener('abort', () => {
+        clearTimeout(timeout);
+        reject(new DOMException('Aborted', 'AbortError'));
+      });
+    }
+  });
+};
+
 // ------------------------ Component --------------------------
 const PlayPage: React.FC = () => {
   const nav = useNavigate();
@@ -178,28 +300,27 @@ const PlayPage: React.FC = () => {
   const [timeLeft, setTimeLeft] = useState(ROUND_TIME_SEC);
   const [showRequirement, setShowRequirement] = useState(true);
   const [showText, setShowText] = useState(false);
-  const [status, setStatus] = useState<Status>('idle');
   const [realCorrect, setRealCorrect] = useState(0);
   const [error, setError] = useState<string | null>(null);
   const [freezeDetected, setFreezeDetected] = useState(false);
 
-  const [enemyVariant, setEnemyVariant] = useState<EnemyVariant>('normal');
+  // State Machine
+  const [gameState, dispatch] = React.useReducer(gameStateReducer, initialGameState);
+  const { phase: status, enemyVariant, intermissionSnap } = gameState;
+
   const [micActive, setMicActive] = useState(false);
   const [lastRecognized, setLastRecognized] = useState<string>('');
-  
+
   const recognitionRef = useRef<SpeechRecognition | null>(null);
   const capturedRef = useRef<string[]>([]);
   const stoppingRef = useRef(false);
   const micActiveRef = useRef(false);
   useEffect(() => { micActiveRef.current = micActive; }, [micActive]);
 
-  const [intermissionSnap, setIntermissionSnap] = useState<{
-    text: string;
-    answer: string;
-    enemy: EnemyVariant;
-  } | null>(null);
-
   const [bannerText, setBannerText] = useState<string | null>(null);
+
+  // AbortController for cancellable async operations
+  const abortControllerRef = useRef<AbortController | null>(null);
 
   const currentAudioRef = useRef<HTMLAudioElement | null>(null);
   const isSpeakingRef = useRef(false);
@@ -328,9 +449,26 @@ const PlayPage: React.FC = () => {
       return;
     }
 
-    if (statusRef.current !== 'listening') {
-      console.log('[Timeout] Ignored - not in listening state:', statusRef.current);
+    if (statusRef.current !== 'listening' && statusRef.current !== 'grace_period') {
+      console.log('[Timeout] Ignored - not in listening/grace_period state:', statusRef.current);
       return;
+    }
+
+    // ★ 猶予期間チェック: マイクがONかつ何か認識されている場合、猶予期間を付与
+    const hasCaptured = capturedRef.current.length > 0;
+    if (statusRef.current === 'listening' && micActiveRef.current && hasCaptured) {
+      console.log(`[Timeout] Grace period activated - user is speaking (${capturedRef.current.length} phrases captured)`);
+
+      // 猶予期間を開始
+      dispatch({ type: 'START_GRACE_PERIOD' });
+      statusRef.current = 'grace_period';
+
+      // 猶予期間タイマーを設定
+      deadlineRef.current = Date.now() + GRACE_PERIOD_SEC * 1000;
+      setTimeLeft(GRACE_PERIOD_SEC);
+
+      console.log(`[Timeout] Grace period: ${GRACE_PERIOD_SEC} seconds to finish speaking`);
+      return; // 猶予期間が終わったら再度handleTimeoutが呼ばれる
     }
 
     // ★ アクティビティを更新
@@ -338,51 +476,62 @@ const PlayPage: React.FC = () => {
 
     // ★ 処理開始フラグを立てる（他の処理をブロック）
     isProcessingRef.current = true;
-    console.log(`[Timeout] Question ${idxRef.current + 1} timed out`);
+    console.log(`[Timeout] Question ${idxRef.current + 1} timed out${statusRef.current === 'grace_period' ? ' (after grace period)' : ''}`);
 
     // ★ 音声認識を完全停止
     forceStopRecognition();
 
-    // ★ 問題の音声が終了するまで待つ（修正①）
+    // 猶予期間後に認識結果があれば評価
+    if (statusRef.current === 'grace_period' && capturedRef.current.length > 0) {
+      console.log('[Timeout] Evaluating captured speech after grace period');
+      await evaluateCaptured();
+      return;
+    }
+
+    // ★ 問題の音声が終了するまで待つ
     await waitForCurrentAudioToFinish();
 
-    // ★ 音量を確実に復元（修正②）
+    // ★ 音量を確実に復元
     originalVolumeRef.current = TTS_VOLUME;
     console.log('[Timeout] Audio volume restored for answer playback');
 
-    setEnemyVariant('attack');
-    setStatus('timeout');
+    dispatch({ type: 'TIMEOUT' });
 
-    await new Promise(r => setTimeout(r, DLY.afterTimeoutBeforeReveal));
+    try {
+      await delay(DLY.afterTimeoutBeforeReveal, abortControllerRef.current?.signal);
 
-    // ★ タイムアウト後もまだ処理中かチェック（他の処理に割り込まれていないか）
-    if (!isProcessingRef.current) {
-      console.log('[Timeout] Processing was cancelled during delay');
-      return;
+      if (!isProcessingRef.current) {
+        console.log('[Timeout] Processing was cancelled during delay');
+        return;
+      }
+
+      dispatch({ type: 'REVEAL_ANSWER' });
+
+      const q = questionsRef.current[idxRef.current];
+      if (q?.answers?.[0]) {
+        await speakAwaitTTS(q.answers[0], true);
+      }
+
+      if (!isProcessingRef.current) {
+        console.log('[Timeout] Processing was cancelled after TTS');
+        return;
+      }
+
+      await delay(DLY.afterReveal, abortControllerRef.current?.signal);
+
+      if (!isProcessingRef.current) {
+        console.log('[Timeout] Processing was cancelled before intermission');
+        return;
+      }
+
+      startIntermissionThenNext();
+    } catch (e) {
+      if (e instanceof DOMException && e.name === 'AbortError') {
+        console.log('[Timeout] Aborted');
+      } else {
+        throw e;
+      }
     }
-
-    setStatus('reveal');
-
-    const q = questionsRef.current[idxRef.current];
-    if (q?.answers?.[0]) {
-      await speakAwaitTTS(q.answers[0], true);
-    }
-
-    // ★ 音声再生後もまだ処理中かチェック
-    if (!isProcessingRef.current) {
-      console.log('[Timeout] Processing was cancelled after TTS');
-      return;
-    }
-
-    await new Promise(r => setTimeout(r, DLY.afterReveal));
-
-    // ★ 最終チェック
-    if (!isProcessingRef.current) {
-      console.log('[Timeout] Processing was cancelled before intermission');
-      return;
-    }
-
-    startIntermissionThenNext();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [forceStopRecognition, waitForCurrentAudioToFinish, updateActivity]);
 
@@ -721,128 +870,152 @@ const PlayPage: React.FC = () => {
     startFreezeDetection();
     updateActivity();
 
+    // Create new AbortController for this question
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort();
+    }
+    abortControllerRef.current = new AbortController();
+
     isProcessingRef.current = false;
     setShowText(false);
-    setStatus('idle');
-    setEnemyVariant('normal');
+    dispatch({ type: 'RESET_TO_IDLE' });
     setLastRecognized('');
     capturedRef.current = [];
 
     stopCurrentAudio();
     forceStopRecognition();
 
-    setBannerText(q.is_demo && questionIndex === 0 ? 'start a demo !' : `Question ${questionIndex + 1} !`);
-    await new Promise(r => setTimeout(r, 1200));
-    setBannerText(null);
+    try {
+      setBannerText(q.is_demo && questionIndex === 0 ? 'start a demo !' : `Question ${questionIndex + 1} !`);
+      await delay(1200, abortControllerRef.current.signal);
+      setBannerText(null);
 
-    setStatus('speaking');
-    startTimer();
+      dispatch({ type: 'START_SPEAKING' });
+      statusRef.current = 'speaking';
+      startTimer();
 
-    // ★ 1回目の読み上げ
-    await speakAwaitTTS(q.question_text);
-    if (isProcessingRef.current) {
-      console.log('[Question] Processing interrupted after 1st speak');
-      return;
-    }
-
-    await new Promise(r => setTimeout(r, DLY.betweenSpeaks));
-    if (isProcessingRef.current) {
-      console.log('[Question] Processing interrupted during delay after 1st speak');
-      return;
-    }
-
-    // ★ 2回目の読み上げ
-    await speakAwaitTTS(q.question_text);
-    if (isProcessingRef.current) {
-      console.log('[Question] Processing interrupted after 2nd speak');
-      return;
-    }
-
-    await new Promise(r => setTimeout(r, DLY.betweenSpeaks));
-    if (isProcessingRef.current) {
-      console.log('[Question] Processing interrupted during delay after 2nd speak');
-      return;
-    }
-
-    setShowText(true);
-    
-    // ★ 3回目の読み上げ
-    await speakAwaitTTS(q.question_text);
-    if (isProcessingRef.current) {
-      console.log('[Question] Processing interrupted after 3rd speak');
-      return;
-    }
-
-    if (q.is_demo && questionIndex === 0) {
-      await new Promise(r => setTimeout(r, DLY.afterThirdSpeakBeforeDemoAns));
+      // ★ 1回目の読み上げ
+      await speakAwaitTTS(q.question_text);
       if (isProcessingRef.current) {
-        console.log('[Question] Processing interrupted during demo delay');
+        console.log('[Question] Processing interrupted after 1st speak');
         return;
       }
-      isProcessingRef.current = true;
-      clearTimer();
-      stopCurrentAudio();
 
-      setEnemyVariant('ko');
-      // ★ 攻撃音を再生（非同期で開始）
-      const attackSoundPromise = playSoundAwait('attack.mp3');
-      setStatus('beam');
-      await new Promise(r => setTimeout(r, DLY.beam));
-
-      setStatus('explosion');
-      await new Promise(r => setTimeout(r, DLY.explosion));
-
-      setStatus('reveal');
-
-      // ★ 攻撃音が完全に終了するのを待つ（修正②）
-      console.log('[Sound] Waiting for attack sound to finish before playing answer...');
-      await attackSoundPromise;
-      console.log('[Sound] Attack sound finished, now playing answer');
-
-      if (q.answers?.[0]) {
-        await speakAwaitTTS(q.answers[0], true);
+      await delay(DLY.betweenSpeaks, abortControllerRef.current.signal);
+      if (isProcessingRef.current) {
+        console.log('[Question] Processing interrupted during delay after 1st speak');
+        return;
       }
 
-      await new Promise(r => setTimeout(r, DLY.afterReveal));
+      // ★ 2回目の読み上げ
+      await speakAwaitTTS(q.question_text);
+      if (isProcessingRef.current) {
+        console.log('[Question] Processing interrupted after 2nd speak');
+        return;
+      }
 
-      startIntermissionThenNext();
-    } else {
-      setStatus('listening');
+      await delay(DLY.betweenSpeaks, abortControllerRef.current.signal);
+      if (isProcessingRef.current) {
+        console.log('[Question] Processing interrupted during delay after 2nd speak');
+        return;
+      }
+
+      setShowText(true);
+
+      // ★ 3回目の読み上げ
+      await speakAwaitTTS(q.question_text);
+      if (isProcessingRef.current) {
+        console.log('[Question] Processing interrupted after 3rd speak');
+        return;
+      }
+
+      if (q.is_demo && questionIndex === 0) {
+        await delay(DLY.afterThirdSpeakBeforeDemoAns, abortControllerRef.current.signal);
+        if (isProcessingRef.current) {
+          console.log('[Question] Processing interrupted during demo delay');
+          return;
+        }
+        isProcessingRef.current = true;
+        clearTimer();
+        stopCurrentAudio();
+
+        // ★ 攻撃音を再生（非同期で開始）
+        const attackSoundPromise = playSoundAwait('attack.mp3');
+        dispatch({ type: 'START_BEAM' });
+        statusRef.current = 'beam';
+        await delay(DLY.beam, abortControllerRef.current.signal);
+
+        dispatch({ type: 'START_EXPLOSION' });
+        statusRef.current = 'explosion';
+        await delay(DLY.explosion, abortControllerRef.current.signal);
+
+        dispatch({ type: 'REVEAL_ANSWER' });
+        statusRef.current = 'reveal';
+
+        // ★ 攻撃音が完全に終了するのを待つ
+        console.log('[Sound] Waiting for attack sound to finish before playing answer...');
+        await attackSoundPromise;
+        console.log('[Sound] Attack sound finished, now playing answer');
+
+        if (q.answers?.[0]) {
+          await speakAwaitTTS(q.answers[0], true);
+        }
+
+        await delay(DLY.afterReveal, abortControllerRef.current.signal);
+
+        startIntermissionThenNext();
+      } else {
+        dispatch({ type: 'START_LISTENING' });
+        statusRef.current = 'listening';
+      }
+    } catch (e) {
+      if (e instanceof DOMException && e.name === 'AbortError') {
+        console.log('[Question] Aborted');
+      } else {
+        throw e;
+      }
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [clearTimer, startTimer, speakAwaitTTS, stopCurrentAudio, forceStopRecognition, startFreezeDetection, updateActivity]);
 
   // ---------------------- Intermission => Next ----------------------
-  const startIntermissionThenNext = useCallback(() => {
+  const startIntermissionThenNext = useCallback(async () => {
     const q = questionsRef.current[idxRef.current];
     const ans = q?.answers?.[0] ?? '';
     console.log(`[Intermission] Question ${idxRef.current + 1} complete`, {
       isDemo: q?.is_demo,
       currentCorrect: realCorrectRef.current
     });
-    
-    setIntermissionSnap({
+
+    const snapshot: IntermissionSnapshot = {
       text: q?.question_text ?? '',
       answer: ans,
       enemy: enemyVariant,
-    });
-    setStatus('intermission');
+    };
 
-    setTimeout(() => {
+    dispatch({ type: 'START_INTERMISSION', snapshot });
+    statusRef.current = 'intermission';
+
+    try {
+      await delay(DLY.intermission, abortControllerRef.current?.signal);
       moveToNextQuestion();
-    }, DLY.intermission);
+    } catch (e) {
+      if (e instanceof DOMException && e.name === 'AbortError') {
+        console.log('[Intermission] Aborted');
+      } else {
+        throw e;
+      }
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [enemyVariant]);
 
-  const moveToNextQuestion = useCallback(() => {
+  const moveToNextQuestion = useCallback(async () => {
     // ★ アクティビティを更新
     updateActivity();
 
     clearTimer();
     isProcessingRef.current = false;
     setMicActive(false);
-    setIntermissionSnap(null);
-    setEnemyVariant('normal');
 
     stopCurrentAudio();
     forceStopRecognition();
@@ -852,26 +1025,38 @@ const PlayPage: React.FC = () => {
       totalQuestions: questionsRef.current.length,
       currentCorrect: realCorrectRef.current
     });
-    
+
     if (next >= questionsRef.current.length) {
       console.log('[Game] All questions completed');
-      setStatus('finished');
+      dispatch({ type: 'FINISH_GAME' });
+      statusRef.current = 'finished';
       finishGame();
       return;
     }
-    
+
     setIdx(next);
     idxRef.current = next;
     setShowText(false);
-    setStatus('idle');
-    setTimeout(() => startQuestionForIndex(next), DLY.beforeNextQuestion);
+    dispatch({ type: 'RESET_TO_IDLE' });
+    statusRef.current = 'idle';
+
+    try {
+      await delay(DLY.beforeNextQuestion, abortControllerRef.current?.signal);
+      startQuestionForIndex(next);
+    } catch (e) {
+      if (e instanceof DOMException && e.name === 'AbortError') {
+        console.log('[MoveNext] Aborted');
+      } else {
+        throw e;
+      }
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [clearTimer, stopCurrentAudio, forceStopRecognition, startQuestionForIndex, updateActivity]);
 
   // ---------------------- Mic Toggle & Evaluate ----------------------
   const toggleMic = useCallback(() => {
-    // ★ speaking, listening, wrong状態でマイクを操作可能（問題音声中でも回答可能）
-    if (!['speaking', 'listening', 'wrong'].includes(status) || timeLeft <= 0) return;
+    // ★ speaking, listening, wrong, grace_period状態でマイクを操作可能（問題音声中でも回答可能）
+    if (!['speaking', 'listening', 'wrong', 'grace_period'].includes(status) || timeLeft <= 0) return;
     if (!micActive) startRecognition();
     else stopRecognitionAndEvaluate();
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -888,7 +1073,8 @@ const PlayPage: React.FC = () => {
     if (statusRef.current === 'speaking') {
       console.log('[ASR] Stopping question audio to start listening');
       stopCurrentAudio();
-      setStatus('listening');
+      dispatch({ type: 'START_LISTENING' });
+      statusRef.current = 'listening';
       // アクティビティを更新
       updateActivity();
     }
@@ -914,14 +1100,15 @@ const PlayPage: React.FC = () => {
           if (!capturedRef.current.includes(t)) {
             capturedRef.current.push(t);
             setLastRecognized(t);
+            dispatch({ type: 'RECOGNITION_DETECTED' });
             console.log('[ASR] Captured:', { text: t, confidence: alt?.confidence, isFinal: result.isFinal });
           }
         }
       }
     };
 
-    rec.onerror = (e: SpeechRecognitionErrorEvent) => { 
-      console.warn('[ASR] Error:', e.error); 
+    rec.onerror = (e: SpeechRecognitionErrorEvent) => {
+      console.warn('[ASR] Error:', e.error);
     };
 
     rec.onend = () => {
@@ -956,8 +1143,8 @@ const PlayPage: React.FC = () => {
         return;
       }
 
-      // ★ 有効なステータスでない場合は再起動しない
-      const shouldRestart = ['speaking', 'listening', 'wrong'].includes(statusRef.current);
+      // ★ 有効なステータスでない場合は再起動しない（grace_periodを追加）
+      const shouldRestart = ['speaking', 'listening', 'wrong', 'grace_period'].includes(statusRef.current);
 
       if (shouldRestart) {
         try {
@@ -975,10 +1162,10 @@ const PlayPage: React.FC = () => {
       }
     };
 
-    try { 
-      rec.start(); 
-      setMicActive(true); 
-      console.log('[ASR] Started'); 
+    try {
+      rec.start();
+      setMicActive(true);
+      console.log('[ASR] Started');
     } catch (err) {
       console.error('[ASR] Failed to start:', err);
     }
@@ -1074,10 +1261,10 @@ const PlayPage: React.FC = () => {
     console.groupEnd();
 
     if (isCorrect) {
-      // ★ 問題の音声が終了するまで待つ（修正①）
+      // ★ 問題の音声が終了するまで待つ
       await waitForCurrentAudioToFinish();
 
-      // ★ 音量を確実に復元（修正②）
+      // ★ 音量を確実に復元
       originalVolumeRef.current = TTS_VOLUME;
       console.log('[Eval] Audio volume restored for answer playback');
 
@@ -1096,74 +1283,92 @@ const PlayPage: React.FC = () => {
         console.log('[Score] Demo question - not counting toward score');
       }
 
-      setEnemyVariant('ko');
-      // ★ 攻撃音を再生（非同期で開始）
-      const attackSoundPromise = playSoundAwait('attack.mp3');
-      setStatus('beam');
-      await new Promise(r => setTimeout(r, DLY.beam));
+      try {
+        // ★ 攻撃音を再生（非同期で開始）
+        const attackSoundPromise = playSoundAwait('attack.mp3');
+        dispatch({ type: 'START_BEAM' });
+        statusRef.current = 'beam';
+        await delay(DLY.beam, abortControllerRef.current?.signal);
 
-      // ★ 処理中断チェック
-      if (!isProcessingRef.current) {
-        console.log('[Eval] Processing was cancelled during beam');
-        return;
+        // ★ 処理中断チェック
+        if (!isProcessingRef.current) {
+          console.log('[Eval] Processing was cancelled during beam');
+          return;
+        }
+
+        dispatch({ type: 'START_EXPLOSION' });
+        statusRef.current = 'explosion';
+        await delay(DLY.explosion, abortControllerRef.current?.signal);
+
+        // ★ 処理中断チェック
+        if (!isProcessingRef.current) {
+          console.log('[Eval] Processing was cancelled during explosion');
+          return;
+        }
+
+        dispatch({ type: 'REVEAL_ANSWER' });
+        statusRef.current = 'reveal';
+
+        // ★ 攻撃音が完全に終了するのを待つ
+        console.log('[Sound] Waiting for attack sound to finish before playing answer...');
+        await attackSoundPromise;
+        console.log('[Sound] Attack sound finished, now playing answer');
+
+        if (q.answers?.[0]) {
+          await speakAwaitTTS(q.answers[0], true);
+        }
+
+        // ★ 処理中断チェック
+        if (!isProcessingRef.current) {
+          console.log('[Eval] Processing was cancelled after TTS');
+          return;
+        }
+
+        await delay(DLY.afterReveal, abortControllerRef.current?.signal);
+
+        // ★ 最終チェック
+        if (!isProcessingRef.current) {
+          console.log('[Eval] Processing was cancelled before intermission');
+          return;
+        }
+
+        startIntermissionThenNext();
+      } catch (e) {
+        if (e instanceof DOMException && e.name === 'AbortError') {
+          console.log('[Eval] Aborted');
+        } else {
+          throw e;
+        }
       }
-
-      setStatus('explosion');
-      await new Promise(r => setTimeout(r, DLY.explosion));
-
-      // ★ 処理中断チェック
-      if (!isProcessingRef.current) {
-        console.log('[Eval] Processing was cancelled during explosion');
-        return;
-      }
-
-      setStatus('reveal');
-
-      // ★ 攻撃音が完全に終了するのを待つ（修正②）
-      console.log('[Sound] Waiting for attack sound to finish before playing answer...');
-      await attackSoundPromise;
-      console.log('[Sound] Attack sound finished, now playing answer');
-
-      if (q.answers?.[0]) {
-        await speakAwaitTTS(q.answers[0], true);
-      }
-
-      // ★ 処理中断チェック
-      if (!isProcessingRef.current) {
-        console.log('[Eval] Processing was cancelled after TTS');
-        return;
-      }
-
-      await new Promise(r => setTimeout(r, DLY.afterReveal));
-
-      // ★ 最終チェック
-      if (!isProcessingRef.current) {
-        console.log('[Eval] Processing was cancelled before intermission');
-        return;
-      }
-
-      startIntermissionThenNext();
     } else {
       // ★ 不正解の場合: タイマーが残っている場合のみlistening状態に戻る
-      setEnemyVariant('attack');
-      setStatus('wrong');
+      dispatch({ type: 'WRONG_ANSWER' });
+      statusRef.current = 'wrong';
       playSound('miss.mp3');
 
-      setTimeout(() => {
+      try {
+        await delay(600, abortControllerRef.current?.signal);
+
         // ★ タイマーが残っているかチェック
         if (deadlineRef.current && Date.now() < deadlineRef.current) {
           // ★ 不正解の場合は処理完了をマーク（listening状態に戻る）
           isProcessingRef.current = false;
           console.log('[Eval] Wrong answer - resetting isProcessingRef and returning to listening state');
-          setEnemyVariant('normal');
-          setStatus('listening');
+          dispatch({ type: 'START_LISTENING' });
+          statusRef.current = 'listening';
           // タイマーを再開
           startTimer();
         } else {
           console.log('[Eval] Wrong answer - time expired, not returning to listening');
           // タイムアウトの場合は処理を続行（isProcessingRef.currentはtrueのまま）
         }
-      }, 600);
+      } catch (e) {
+        if (e instanceof DOMException && e.name === 'AbortError') {
+          console.log('[Eval] Wrong answer delay aborted');
+        } else {
+          throw e;
+        }
+      }
     }
   }, [clearTimer, waitForCurrentAudioToFinish, forceStopRecognition, speakAwaitTTS, startIntermissionThenNext, updateActivity, startTimer]);
 
@@ -1412,8 +1617,8 @@ const PlayPage: React.FC = () => {
       enemyVariant === 'attack' ? 'enemy-attack' : ''
   }`;
 
-  // ★ speaking, listening, wrong状態でマイクボタン有効（問題音声中でも回答可能）
-  const gunBtnEnabled = ['speaking', 'listening', 'wrong'].includes(status) && timeLeft > 0 && !(current?.is_demo && idx === 0);
+  // ★ speaking, listening, wrong, grace_period状態でマイクボタン有効（問題音声中でも回答可能）
+  const gunBtnEnabled = ['speaking', 'listening', 'wrong', 'grace_period'].includes(status) && timeLeft > 0 && !(current?.is_demo && idx === 0);
   const gunBtnClass = [
     'gun-button',
     gunBtnEnabled ? 'enabled' : 'disabled',
@@ -1467,11 +1672,40 @@ const PlayPage: React.FC = () => {
       {/* 左上: Time Limit */}
       <div className="time-limit-container">
         <div className="time-limit-label">Time Limit</div>
-        <div className="time-limit-display">{timeLeft}</div>
+        <div
+          className="time-limit-display"
+          style={{
+            color: status === 'grace_period' ? '#ef4444' : undefined,
+            animation: status === 'grace_period' ? 'pulse 0.5s ease-in-out infinite' : undefined
+          }}
+        >
+          {timeLeft}
+        </div>
       </div>
 
+      {/* Grace Period Warning */}
+      {status === 'grace_period' && (
+        <div style={{
+          position: 'absolute',
+          top: '120px',
+          left: '50%',
+          transform: 'translateX(-50%)',
+          backgroundColor: 'rgba(239, 68, 68, 0.9)',
+          color: 'white',
+          padding: '12px 24px',
+          borderRadius: '8px',
+          fontSize: '18px',
+          fontWeight: 'bold',
+          zIndex: 100,
+          animation: 'pulse 0.5s ease-in-out infinite',
+          boxShadow: '0 4px 12px rgba(239, 68, 68, 0.5)'
+        }}>
+          ⚠️ Finish speaking!
+        </div>
+      )}
+
       {/* 右上: マイク状態 */}
-      {['speaking', 'listening', 'wrong'].includes(status) && (
+      {['speaking', 'listening', 'wrong', 'grace_period'].includes(status) && (
         <div className="mic-status-container">
           <div className={`mic-status-badge ${micActive ? 'active' : 'inactive'}`}>
             <span className="mic-icon">{micActive ? '🎤' : '🔇'}</span>
