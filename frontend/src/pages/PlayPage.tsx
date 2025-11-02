@@ -641,8 +641,17 @@ const PlayPage: React.FC = () => {
 
   const stopCurrentAudio = useCallback(() => {
     if (currentAudioRef.current) {
-      currentAudioRef.current.pause();
-      currentAudioRef.current.currentTime = 0;
+      const audio = currentAudioRef.current;
+      audio.pause();
+      audio.currentTime = 0;
+
+      // ★ 重要: onendedハンドラを手動で呼び出して、speakAwaitTTSのPromiseを即座に解決
+      // これにより、3回目の読み上げ中に答えた場合でも15秒待たずに次の処理に進める
+      if (audio.onended) {
+        console.log('[TTS] Manually triggering onended to resolve pending Promise');
+        audio.onended(new Event('ended'));
+      }
+
       currentAudioRef.current = null;
     }
     isSpeakingRef.current = false;
