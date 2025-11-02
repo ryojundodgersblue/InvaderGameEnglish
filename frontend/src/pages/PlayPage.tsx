@@ -1312,7 +1312,7 @@ const PlayPage: React.FC = () => {
         for (const a of answers) {
           const s = simLevenshtein(h, a);
           const j = jaccard(h, a);
-          if (s >= 0.66 || j >= 0.6) {
+          if (s >= 0.6 || j >= 0.6) {
             isCorrect = true;
             matchDetails = `Fuzzy match: "${h}" ≈ "${a}" (Levenshtein: ${s.toFixed(2)}, Jaccard: ${j.toFixed(2)})`;
             break outer2;
