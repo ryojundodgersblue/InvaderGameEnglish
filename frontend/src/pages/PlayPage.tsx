@@ -1424,8 +1424,47 @@ const PlayPage: React.FC = () => {
           // タイマーを再開
           startTimer();
         } else {
-          console.log('[Eval] Wrong answer - time expired, not returning to listening');
-          // タイムアウトの場合は処理を続行（isProcessingRef.currentはtrueのまま）
+          // ★ 不正解でかつ時間切れの場合は、タイムアウトと同じ処理を実行
+          console.log('[Eval] Wrong answer - time expired, showing correct answer and moving to next');
+
+          // 音声認識を完全停止
+          forceStopRecognition();
+
+          // 問題の音声が終了するまで待つ
+          await waitForCurrentAudioToFinish();
+
+          // タイムアウト状態に遷移
+          dispatch({ type: 'TIMEOUT' });
+
+          await delay(DLY.afterTimeoutBeforeReveal, abortControllerRef.current?.signal);
+
+          if (!isProcessingRef.current) {
+            console.log('[Eval] Processing was cancelled during delay');
+            return;
+          }
+
+          // 正解を表示
+          dispatch({ type: 'REVEAL_ANSWER' });
+
+          const q = questionsRef.current[idxRef.current];
+          if (q?.answers?.[0]) {
+            await speakAwaitTTS(q.answers[0], true);
+          }
+
+          if (!isProcessingRef.current) {
+            console.log('[Eval] Processing was cancelled after TTS');
+            return;
+          }
+
+          await delay(DLY.afterReveal, abortControllerRef.current?.signal);
+
+          if (!isProcessingRef.current) {
+            console.log('[Eval] Processing was cancelled before intermission');
+            return;
+          }
+
+          // 次の問題へ
+          startIntermissionThenNext();
         }
       } catch (e) {
         if (e instanceof DOMException && e.name === 'AbortError') {
