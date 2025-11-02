@@ -484,6 +484,8 @@ const PlayPage: React.FC = () => {
     // 猶予期間後に認識結果があれば評価
     if (statusRef.current === 'grace_period' && capturedRef.current.length > 0) {
       console.log('[Timeout] Evaluating captured speech after grace period');
+      // ★ isProcessingRefをリセットして、evaluateCapturedが実行されるようにする
+      isProcessingRef.current = false;
       await evaluateCaptured();
       return;
     }
