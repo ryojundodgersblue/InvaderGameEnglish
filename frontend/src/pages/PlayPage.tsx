@@ -296,7 +296,6 @@ const PlayPage: React.FC = () => {
   const [showText, setShowText] = useState(false);
   const [realCorrect, setRealCorrect] = useState(0);
   const [error, setError] = useState<string | null>(null);
-  const [freezeDetected, setFreezeDetected] = useState(false);
 
   // State Machine
   const [gameState, dispatch] = React.useReducer(gameStateReducer, initialGameState);
@@ -353,7 +352,6 @@ const PlayPage: React.FC = () => {
       // 30秒間処理が進まない場合、フリーズと判定
       if (timeSinceActivity > 30000) {
         console.error('[Freeze] Game appears to be frozen - no activity for 30 seconds');
-        setFreezeDetected(true);
         if (freezeDetectionTimerRef.current) {
           window.clearInterval(freezeDetectionTimerRef.current);
           freezeDetectionTimerRef.current = null;
@@ -1714,47 +1712,6 @@ const PlayPage: React.FC = () => {
 
   return (
     <div className="play-page">
-      {/* フリーズ検出ダイアログ */}
-      {freezeDetected && (
-        <div style={{
-          position: 'fixed',
-          top: 0,
-          left: 0,
-          right: 0,
-          bottom: 0,
-          backgroundColor: 'rgba(0, 0, 0, 0.8)',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          zIndex: 9999
-        }}>
-          <div style={{
-            backgroundColor: '#1e293b',
-            padding: '40px',
-            borderRadius: '12px',
-            maxWidth: '500px',
-            textAlign: 'center',
-            border: '2px solid #ef4444'
-          }}>
-            <h2 style={{ color: '#ef4444', marginBottom: '20px', fontSize: '24px' }}>
-              ⚠️ エラーが発生しました
-            </h2>
-            <p style={{ color: '#94a3b8', marginBottom: '30px', lineHeight: '1.6' }}>
-              ゲームが正常に動作していない可能性があります。<br />
-              ログイン画面に戻ってやり直してください。
-            </p>
-            <Button onClick={() => {
-              stopFreezeDetection();
-              clearTimer();
-              stopCurrentAudio();
-              forceStopRecognition();
-              nav('/login');
-            }}>
-              ログイン画面に戻る
-            </Button>
-          </div>
-        </div>
-      )}
 
       {/* 左上: Time Limit */}
       <div className="time-limit-container">
