@@ -33,7 +33,6 @@ type GamePhase =
   | 'explosion'
   | 'reveal'
   | 'timeout'
-  | 'grace_period'
   | 'wrong'
   | 'intermission'
   | 'finished';
@@ -53,7 +52,6 @@ type GameAction =
   | { type: 'START_EXPLOSION' }
   | { type: 'REVEAL_ANSWER' }
   | { type: 'TIMEOUT' }
-  | { type: 'START_GRACE_PERIOD' }
   | { type: 'WRONG_ANSWER' }
   | { type: 'START_INTERMISSION'; snapshot: IntermissionSnapshot }
   | { type: 'RESET_TO_IDLE' }
@@ -96,7 +94,6 @@ declare global {
 
 // --------------------------- Consts ---------------------------
 const ROUND_TIME_SEC = 30;
-const GRACE_PERIOD_SEC = 3;
 const CORRECT_TO_CLEAR = 10;
 const MAX_QUESTIONS = 16;
 
@@ -235,9 +232,6 @@ function gameStateReducer(state: GameState, action: GameAction): GameState {
 
     case 'TIMEOUT':
       return { ...state, phase: 'timeout', enemyVariant: 'attack' };
-
-    case 'START_GRACE_PERIOD':
-      return { ...state, phase: 'grace_period', enemyVariant: 'attack' };
 
     case 'WRONG_ANSWER':
       return { ...state, phase: 'wrong', enemyVariant: 'attack' };
@@ -449,26 +443,9 @@ const PlayPage: React.FC = () => {
       return;
     }
 
-    if (statusRef.current !== 'listening' && statusRef.current !== 'grace_period') {
-      console.log('[Timeout] Ignored - not in listening/grace_period state:', statusRef.current);
+    if (statusRef.current !== 'listening') {
+      console.log('[Timeout] Ignored - not in listening state:', statusRef.current);
       return;
-    }
-
-    // ★ 猶予期間チェック: マイクがONかつ何か認識されている場合、猶予期間を付与
-    const hasCaptured = capturedRef.current.length > 0;
-    if (statusRef.current === 'listening' && micActiveRef.current && hasCaptured) {
-      console.log(`[Timeout] Grace period activated - user is speaking (${capturedRef.current.length} phrases captured)`);
-
-      // 猶予期間を開始
-      dispatch({ type: 'START_GRACE_PERIOD' });
-      statusRef.current = 'grace_period';
-
-      // 猶予期間タイマーを設定
-      deadlineRef.current = Date.now() + GRACE_PERIOD_SEC * 1000;
-      setTimeLeft(GRACE_PERIOD_SEC);
-
-      console.log(`[Timeout] Grace period: ${GRACE_PERIOD_SEC} seconds to finish speaking`);
-      return; // 猶予期間が終わったら再度handleTimeoutが呼ばれる
     }
 
     // ★ アクティビティを更新
@@ -476,19 +453,13 @@ const PlayPage: React.FC = () => {
 
     // ★ 処理開始フラグを立てる（他の処理をブロック）
     isProcessingRef.current = true;
-    console.log(`[Timeout] Question ${idxRef.current + 1} timed out${statusRef.current === 'grace_period' ? ' (after grace period)' : ''}`);
+    console.log(`[Timeout] Question ${idxRef.current + 1} timed out`);
+
+    // ★ タイマーを即座にクリア（重要: これにより再発火を防ぐ）
+    clearTimer();
 
     // ★ 音声認識を完全停止
     forceStopRecognition();
-
-    // 猶予期間後に認識結果があれば評価
-    if (statusRef.current === 'grace_period' && capturedRef.current.length > 0) {
-      console.log('[Timeout] Evaluating captured speech after grace period');
-      // ★ isProcessingRefをリセットして、evaluateCapturedが実行されるようにする
-      isProcessingRef.current = false;
-      await evaluateCaptured();
-      return;
-    }
 
     // ★ 問題の音声が終了するまで待つ
     await waitForCurrentAudioToFinish();
@@ -1114,8 +1085,8 @@ const PlayPage: React.FC = () => {
 
   // ---------------------- Mic Toggle & Evaluate ----------------------
   const toggleMic = useCallback(() => {
-    // ★ speaking, listening, wrong, grace_period状態でマイクを操作可能（問題音声中でも回答可能）
-    if (!['speaking', 'listening', 'wrong', 'grace_period'].includes(status) || timeLeft <= 0) return;
+    // ★ speaking, listening, wrong状態でマイクを操作可能（問題音声中でも回答可能）
+    if (!['speaking', 'listening', 'wrong'].includes(status) || timeLeft <= 0) return;
     if (!micActive) startRecognition();
     else stopRecognitionAndEvaluate();
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -1202,8 +1173,8 @@ const PlayPage: React.FC = () => {
         return;
       }
 
-      // ★ 有効なステータスでない場合は再起動しない（grace_periodを追加）
-      const shouldRestart = ['speaking', 'listening', 'wrong', 'grace_period'].includes(statusRef.current);
+      // ★ 有効なステータスでない場合は再起動しない
+      const shouldRestart = ['speaking', 'listening', 'wrong'].includes(statusRef.current);
 
       if (shouldRestart) {
         try {
@@ -1721,8 +1692,8 @@ const PlayPage: React.FC = () => {
       enemyVariant === 'attack' ? 'enemy-attack' : ''
   }`;
 
-  // ★ speaking, listening, wrong, grace_period状態でマイクボタン有効（問題音声中でも回答可能）
-  const gunBtnEnabled = ['speaking', 'listening', 'wrong', 'grace_period'].includes(status) && timeLeft > 0 && !(current?.is_demo && idx === 0);
+  // ★ speaking, listening, wrong状態でマイクボタン有効（問題音声中でも回答可能）
+  const gunBtnEnabled = ['speaking', 'listening', 'wrong'].includes(status) && timeLeft > 0 && !(current?.is_demo && idx === 0);
   const gunBtnClass = [
     'gun-button',
     gunBtnEnabled ? 'enabled' : 'disabled',
@@ -1776,40 +1747,13 @@ const PlayPage: React.FC = () => {
       {/* 左上: Time Limit */}
       <div className="time-limit-container">
         <div className="time-limit-label">Time Limit</div>
-        <div
-          className="time-limit-display"
-          style={{
-            color: status === 'grace_period' ? '#ef4444' : undefined,
-            animation: status === 'grace_period' ? 'pulse 0.5s ease-in-out infinite' : undefined
-          }}
-        >
+        <div className="time-limit-display">
           {timeLeft}
         </div>
       </div>
 
-      {/* Grace Period Warning */}
-      {status === 'grace_period' && (
-        <div style={{
-          position: 'absolute',
-          top: '120px',
-          left: '50%',
-          transform: 'translateX(-50%)',
-          backgroundColor: 'rgba(239, 68, 68, 0.9)',
-          color: 'white',
-          padding: '12px 24px',
-          borderRadius: '8px',
-          fontSize: '18px',
-          fontWeight: 'bold',
-          zIndex: 100,
-          animation: 'pulse 0.5s ease-in-out infinite',
-          boxShadow: '0 4px 12px rgba(239, 68, 68, 0.5)'
-        }}>
-          ⚠️ Finish speaking!
-        </div>
-      )}
-
       {/* 右上: マイク状態 */}
-      {['speaking', 'listening', 'wrong', 'grace_period'].includes(status) && (
+      {['speaking', 'listening', 'wrong'].includes(status) && (
         <div className="mic-status-container">
           <div className={`mic-status-badge ${micActive ? 'active' : 'inactive'}`}>
             <span className="mic-icon">{micActive ? '🎤' : '🔇'}</span>
