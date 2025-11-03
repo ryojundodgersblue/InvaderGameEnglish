@@ -94,18 +94,6 @@ const SelectPage: React.FC = () => {
         const errorMessage = e instanceof Error ? e.message : String(e)
         setError(errorMessage)
 
-        // 認証エラー（401/404）の場合はログインページにリダイレクト
-        if (errorMessage.includes('401') || errorMessage.includes('404')) {
-          console.warn('Authentication error detected, redirecting to login...')
-          localStorage.removeItem('userId')
-          localStorage.removeItem('userName')
-          localStorage.removeItem('current_grade')
-          localStorage.removeItem('current_part')
-          localStorage.removeItem('current_subpart')
-          setTimeout(() => navigate('/'), 2000)
-          return
-        }
-
         // エラー時のフォールバック
         setGradeOptions(['1'])
         setPartOptions(['1'])
