@@ -58,10 +58,11 @@ router.get('/options',
     const sheets = await getSheetsClient(true);
     
     // 1. usersシートからユーザーの現在の進捗を取得
+    // ★ FORMATTED_VALUE を使用して user_id の先頭ゼロを保持（例: 00002）
     const userResponse = await sheets.spreadsheets.values.get({
       spreadsheetId: SPREADSHEET_ID,
       range: 'users!A:K',
-      valueRenderOption: 'UNFORMATTED_VALUE',
+      valueRenderOption: 'FORMATTED_VALUE',
     });
     
     const userRows = userResponse.data.values || [];
