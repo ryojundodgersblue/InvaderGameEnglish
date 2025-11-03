@@ -78,10 +78,11 @@ router.post('/login',
     logInfo(reqId, 'sheets client obtained');
 
     // A〜K列まで取得（列は固定）
+    // ★ FORMATTED_VALUE を使用して user_id の先頭ゼロを保持（例: 00002）
     const resp = await sheets.spreadsheets.values.get({
       spreadsheetId: SPREADSHEET_ID,
       range: `${USER_SHEET_NAME}!A1:K`,
-      valueRenderOption: 'UNFORMATTED_VALUE',
+      valueRenderOption: 'FORMATTED_VALUE',
     });
 
     const rows = resp.data.values || [];

@@ -272,10 +272,11 @@ router.post('/score',
     const sheets = await getSheetsClient(false);
 
     // 次の score_id
+    // ★ FORMATTED_VALUE を使用して user_id の先頭ゼロを保持（例: 00002）
     const s = await sheets.spreadsheets.values.get({
       spreadsheetId: SPREADSHEET_ID,
       range: `${SCORES_SHEET}!A1:F`,
-      valueRenderOption: 'UNFORMATTED_VALUE',
+      valueRenderOption: 'FORMATTED_VALUE',
     });
     const sRows = s.data.values || [];
     
@@ -386,10 +387,11 @@ router.post('/advance',
     const sheets = await getSheetsClient(true);
 
     // 1) attempts をカウント
+    // ★ FORMATTED_VALUE を使用して user_id の先頭ゼロを保持（例: 00002）
     const sResp = await sheets.spreadsheets.values.get({
       spreadsheetId: SPREADSHEET_ID,
       range: `${SCORES_SHEET}!A1:F`,
-      valueRenderOption: 'UNFORMATTED_VALUE',
+      valueRenderOption: 'FORMATTED_VALUE',
     });
     const sRows = sResp.data.values || [];
     const sHeader = (sRows[0]||[]).map(v=>String(v??'').trim().toLowerCase());
@@ -427,10 +429,11 @@ router.post('/advance',
     }
 
     // 2) users 読み込み
+    // ★ FORMATTED_VALUE を使用して user_id の先頭ゼロを保持（例: 00002）
     const u = await sheets.spreadsheets.values.get({
       spreadsheetId: SPREADSHEET_ID,
       range: `${USERS_SHEET}!A1:K`,
-      valueRenderOption: 'UNFORMATTED_VALUE',
+      valueRenderOption: 'FORMATTED_VALUE',
     });
     const uRows = u.data.values || [];
     const uHeader = (uRows[0]||[]).map(v=>String(v??'').trim());

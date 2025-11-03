@@ -53,7 +53,7 @@ router.get('/users', verifyToken, requireAdmin, async (req, res) => {
     const resp = await sheets.spreadsheets.values.get({
       spreadsheetId: SPREADSHEET_ID,
       range: `${USER_SHEET_NAME}!A1:K`,
-      valueRenderOption: 'UNFORMATTED_VALUE',
+      valueRenderOption: 'FORMATTED_VALUE',
     });
 
     const rows = resp.data.values || [];
@@ -110,7 +110,7 @@ router.post('/users',
     const resp = await sheets.spreadsheets.values.get({
       spreadsheetId: SPREADSHEET_ID,
       range: `${USER_SHEET_NAME}!A1:K`,
-      valueRenderOption: 'UNFORMATTED_VALUE',
+      valueRenderOption: 'FORMATTED_VALUE',
     });
 
     const rows = resp.data.values || [];
@@ -203,7 +203,7 @@ router.put('/users/:userId',
     const resp = await sheets.spreadsheets.values.get({
       spreadsheetId: SPREADSHEET_ID,
       range: `${USER_SHEET_NAME}!A1:K`,
-      valueRenderOption: 'UNFORMATTED_VALUE',
+      valueRenderOption: 'FORMATTED_VALUE',
     });
 
     const rows = resp.data.values || [];
@@ -277,7 +277,7 @@ router.post('/reset-password',
     const resp = await sheets.spreadsheets.values.get({
       spreadsheetId: SPREADSHEET_ID,
       range: `${USER_SHEET_NAME}!A1:K`,
-      valueRenderOption: 'UNFORMATTED_VALUE',
+      valueRenderOption: 'FORMATTED_VALUE',
     });
 
     const rows = resp.data.values || [];
@@ -369,10 +369,11 @@ router.get('/failure-stats', verifyToken, requireAdmin, async (req, res) => {
     const parts = pRows.slice(1).map(row => String(row[0] || '')).filter(p => p);
 
     // 3. scoresシートから失敗データを取得
+    // ★ FORMATTED_VALUE を使用して user_id の先頭ゼロを保持（例: 00002）
     const sResp = await sheets.spreadsheets.values.get({
       spreadsheetId: SPREADSHEET_ID,
       range: 'scores!A1:F',
-      valueRenderOption: 'UNFORMATTED_VALUE',
+      valueRenderOption: 'FORMATTED_VALUE',
     });
     const sRows = sResp.data.values || [];
 
