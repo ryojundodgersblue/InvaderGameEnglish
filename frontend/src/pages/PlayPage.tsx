@@ -378,6 +378,7 @@ const PlayPage: React.FC = () => {
   // ---------------------- Stop Recognition (完全停止) ----------------------
   const forceStopRecognition = useCallback(() => {
     console.log('[ASR] Force stopping recognition');
+    // ★ 再起動を確実に防ぐため、停止フラグを設定
     stoppingRef.current = true;
     try {
       if (recognitionRef.current) {
@@ -1242,8 +1243,7 @@ const PlayPage: React.FC = () => {
     isProcessingRef.current = true;
     console.log('[Eval] Starting evaluation - setting isProcessingRef to true');
 
-    // ★ タイマーを即座に停止（タイムアウトとの競合を防ぐ）
-    clearTimer();
+    // ★ タイマーは正解の場合のみ停止（不正解の場合は継続させる）
 
     const q = questionsRef.current[idxRef.current];
     if (!q) {
@@ -1297,6 +1297,10 @@ const PlayPage: React.FC = () => {
     console.groupEnd();
 
     if (isCorrect) {
+      // ★ 正解の場合: タイマーを停止
+      clearTimer();
+      console.log('[Eval] Correct answer - timer cleared');
+
       // ★ 問題の音声が終了するまで待つ
       await waitForCurrentAudioToFinish();
 
@@ -1387,16 +1391,24 @@ const PlayPage: React.FC = () => {
 
         // ★ タイマーが残っているかチェック
         if (deadlineRef.current && Date.now() < deadlineRef.current) {
+          // ★ 認識結果をクリア（新しい回答を受け付けるため）
+          capturedRef.current = [];
+          setLastRecognized('');
+          console.log('[Eval] Wrong answer - cleared recognition results');
+
           // ★ 不正解の場合は処理完了をマーク（listening状態に戻る）
           isProcessingRef.current = false;
           console.log('[Eval] Wrong answer - resetting isProcessingRef and returning to listening state');
           dispatch({ type: 'START_LISTENING' });
           statusRef.current = 'listening';
-          // タイマーを再開
-          startTimer();
+          // ★ タイマーは継続（startTimer()を呼ばない）
+          console.log('[Eval] Timer continues - remaining time: ' + Math.ceil((deadlineRef.current - Date.now()) / 1000) + 's');
         } else {
           // ★ 不正解でかつ時間切れの場合は、タイムアウトと同じ処理を実行
           console.log('[Eval] Wrong answer - time expired, showing correct answer and moving to next');
+
+          // ★ タイマーを停止
+          clearTimer();
 
           // 音声認識を完全停止
           forceStopRecognition();
