@@ -342,7 +342,7 @@ router.get('/failure-stats', verifyToken, requireAdmin, async (req, res) => {
     const uResp = await sheets.spreadsheets.values.get({
       spreadsheetId: SPREADSHEET_ID,
       range: `${USER_SHEET_NAME}!A1:K`,
-      valueRenderOption: 'UNFORMATTED_VALUE',
+      valueRenderOption: 'FORMATTED_VALUE',
     });
     const uRows = uResp.data.values || [];
     if (uRows.length < 2) {
@@ -363,7 +363,7 @@ router.get('/failure-stats', verifyToken, requireAdmin, async (req, res) => {
     const pResp = await sheets.spreadsheets.values.get({
       spreadsheetId: SPREADSHEET_ID,
       range: 'parts!A1:A',
-      valueRenderOption: 'UNFORMATTED_VALUE',
+      valueRenderOption: 'FORMATTED_VALUE',
     });
     const pRows = pResp.data.values || [];
     const parts = pRows.slice(1).map(row => String(row[0] || '')).filter(p => p);

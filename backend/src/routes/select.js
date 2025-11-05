@@ -94,7 +94,7 @@ router.get('/options',
     const response = await sheets.spreadsheets.values.get({
       spreadsheetId: SPREADSHEET_ID,
       range: `${PARTS_SHEET}!A1:E`,
-      valueRenderOption: 'UNFORMATTED_VALUE',
+      valueRenderOption: 'FORMATTED_VALUE',
     });
     
     const rows = response.data.values || [];
@@ -238,11 +238,11 @@ router.get('/validate',
     }
 
     const sheets = await getSheetsClient(true);
-    
+
     const response = await sheets.spreadsheets.values.get({
       spreadsheetId: SPREADSHEET_ID,
       range: `${PARTS_SHEET}!A1:E`,
-      valueRenderOption: 'UNFORMATTED_VALUE',
+      valueRenderOption: 'FORMATTED_VALUE',
     });
     
     const rows = response.data.values || [];

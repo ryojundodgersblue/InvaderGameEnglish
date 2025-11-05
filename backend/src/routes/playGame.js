@@ -78,7 +78,7 @@ router.get('/part',
     const resp = await sheets.spreadsheets.values.get({
       spreadsheetId: SPREADSHEET_ID,
       range: `${PARTS_SHEET}!A1:E`,
-      valueRenderOption: 'UNFORMATTED_VALUE',
+      valueRenderOption: 'FORMATTED_VALUE',
     });
     const rows = resp.data.values || [];
     log.info(routeName, 'Parts data fetched', { totalRows: rows.length });
@@ -157,7 +157,7 @@ router.get('/questions',
     const q = await sheets.spreadsheets.values.get({
       spreadsheetId: SPREADSHEET_ID,
       range: `${QUESTIONS_SHEET}!A1:F`,
-      valueRenderOption: 'UNFORMATTED_VALUE',
+      valueRenderOption: 'FORMATTED_VALUE',
     });
     const qRows = q.data.values || [];
     log.info(routeName, 'Questions data fetched', { totalRows: qRows.length });
@@ -193,7 +193,7 @@ router.get('/questions',
     const a = await sheets.spreadsheets.values.get({
       spreadsheetId: SPREADSHEET_ID,
       range: `${ANSWERS_SHEET}!A1:C`,
-      valueRenderOption: 'UNFORMATTED_VALUE',
+      valueRenderOption: 'FORMATTED_VALUE',
     });
     const aRows = a.data.values || [];
     const aHeader = (aRows[0]||[]).map(v=>String(v??'').trim());
@@ -475,7 +475,7 @@ router.post('/advance',
     const p = await sheets.spreadsheets.values.get({
       spreadsheetId: SPREADSHEET_ID,
       range: `${PARTS_SHEET}!A1:E`,
-      valueRenderOption: 'UNFORMATTED_VALUE',
+      valueRenderOption: 'FORMATTED_VALUE',
     });
     const pRows = p.data.values || [];
     const pHeader = (pRows[0]||[]).map(v=>String(v??'').trim());

@@ -352,13 +352,37 @@ const PlayPage: React.FC = () => {
       // 30秒間処理が進まない場合、フリーズと判定
       if (timeSinceActivity > 30000) {
         console.error('[Freeze] Game appears to be frozen - no activity for 30 seconds');
+        console.log('[Freeze] Attempting to recover...');
+
+        // Stop freeze detection
         if (freezeDetectionTimerRef.current) {
           window.clearInterval(freezeDetectionTimerRef.current);
           freezeDetectionTimerRef.current = null;
         }
+
+        // Recovery actions
+        isProcessingRef.current = false;
+        clearTimer();
+        stopCurrentAudio();
+        forceStopRecognition();
+
+        // Notify user
+        setBannerText('Game recovered from freeze. Moving to next question...');
+        setTimeout(() => setBannerText(null), 3000);
+
+        // Attempt to move to next question or finish game
+        const nextIdx = idxRef.current + 1;
+        if (nextIdx < questionsRef.current.length) {
+          console.log('[Freeze] Moving to next question');
+          moveToNextQuestion();
+        } else {
+          console.log('[Freeze] Game finished due to freeze recovery');
+          dispatch({ type: 'FINISH_GAME' });
+        }
       }
     }, 5000); // 5秒ごとにチェック
     console.log('[Freeze] Detection started');
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const updateActivity = useCallback(() => {
@@ -501,11 +525,14 @@ const PlayPage: React.FC = () => {
       if (e instanceof DOMException && e.name === 'AbortError') {
         console.log('[Timeout] Aborted');
       } else {
+        console.error('[Timeout] Unexpected error:', e);
+        // Reset processing flag on error
+        isProcessingRef.current = false;
         throw e;
       }
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [forceStopRecognition, waitForCurrentAudioToFinish, updateActivity]);
+  }, [clearTimer, forceStopRecognition, waitForCurrentAudioToFinish, updateActivity]);
 
   const startTimer = useCallback(() => {
     clearTimer();
@@ -536,6 +563,8 @@ const PlayPage: React.FC = () => {
       try {
         setLoading(true);
         setError(null);
+
+        // Single source of truth: prioritize props, fallback to localStorage, then default
         const g = grade ?? localStorage.getItem('current_grade') ?? '1';
         const p = part ?? localStorage.getItem('current_part') ?? '1';
         const s = subpart ?? localStorage.getItem('current_subpart') ?? '1';
@@ -569,12 +598,10 @@ const PlayPage: React.FC = () => {
           nonDemo: qs.filter(q => !q.is_demo).length
         });
 
+        // Initialize game state (refs will be synced via useEffect)
         setQuestions(qs);
-        questionsRef.current = qs;
         setIdx(0);
-        idxRef.current = 0;
         setRealCorrect(0);
-        realCorrectRef.current = 0;
         setShowRequirement(true);
       } catch (e) {
         const err = e as Error;
@@ -587,10 +614,33 @@ const PlayPage: React.FC = () => {
 
     return () => {
       console.log('[Cleanup] Component unmounting');
+
+      // Abort all pending async operations
+      if (abortControllerRef.current) {
+        abortControllerRef.current.abort();
+        abortControllerRef.current = null;
+      }
+
+      // Clear all timers
       clearTimer();
-      stopCurrentAudio();
-      forceStopRecognition();
       stopFreezeDetection();
+
+      // Stop audio playback
+      stopCurrentAudio();
+
+      // Stop speech recognition
+      forceStopRecognition();
+
+      // Reset all ref values
+      isProcessingRef.current = false;
+      isSpeakingRef.current = false;
+      capturedRef.current = [];
+      questionsRef.current = [];
+      idxRef.current = 0;
+      realCorrectRef.current = 0;
+      deadlineRef.current = null;
+
+      console.log('[Cleanup] All resources cleaned up');
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [grade, part, subpart, clearTimer, forceStopRecognition]);
@@ -697,43 +747,51 @@ const PlayPage: React.FC = () => {
           audio.volume = isAnswer ? TTS_VOLUME : (micActiveRef.current ? 0 : TTS_VOLUME);
           currentAudioRef.current = audio;
 
-          // ★ タイムアウト付きでPromiseを待つ（画面固まり対策）
-          await Promise.race([
-            new Promise<void>((resolve) => {
-              audio.onended = () => {
-                URL.revokeObjectURL(audioUrl);
-                currentAudioRef.current = null;
-                isSpeakingRef.current = false;
-                resolve();
-              };
-              audio.onerror = () => {
-                console.error('[TTS] Audio playback error');
-                URL.revokeObjectURL(audioUrl);
-                currentAudioRef.current = null;
-                isSpeakingRef.current = false;
-                resolve();
-              };
-              audio.play().catch(() => {
-                URL.revokeObjectURL(audioUrl);
-                currentAudioRef.current = null;
-                isSpeakingRef.current = false;
-                resolve();
-              });
-            }),
-            // タイムアウト: 15秒で強制的にresolve
-            new Promise<void>((resolve) => {
-              setTimeout(() => {
-                console.warn('[TTS] Audio playback timeout (15s) - forcing resolve');
-                if (currentAudioRef.current === audio) {
-                  audio.pause();
+          // ★ タイムアウト付きでPromiseを待つ（メモリリーク対策: タイマーを適切にクリア）
+          let timeoutId: number | null = null;
+          try {
+            await Promise.race([
+              new Promise<void>((resolve) => {
+                audio.onended = () => {
+                  if (timeoutId !== null) clearTimeout(timeoutId);
                   URL.revokeObjectURL(audioUrl);
                   currentAudioRef.current = null;
                   isSpeakingRef.current = false;
-                }
-                resolve();
-              }, 15000);
-            })
-          ]);
+                  resolve();
+                };
+                audio.onerror = () => {
+                  if (timeoutId !== null) clearTimeout(timeoutId);
+                  console.error('[TTS] Audio playback error');
+                  URL.revokeObjectURL(audioUrl);
+                  currentAudioRef.current = null;
+                  isSpeakingRef.current = false;
+                  resolve();
+                };
+                audio.play().catch(() => {
+                  if (timeoutId !== null) clearTimeout(timeoutId);
+                  URL.revokeObjectURL(audioUrl);
+                  currentAudioRef.current = null;
+                  isSpeakingRef.current = false;
+                  resolve();
+                });
+              }),
+              // タイムアウト: 15秒で強制的にresolve
+              new Promise<void>((resolve) => {
+                timeoutId = window.setTimeout(() => {
+                  console.warn('[TTS] Audio playback timeout (15s) - forcing resolve');
+                  if (currentAudioRef.current === audio) {
+                    audio.pause();
+                    URL.revokeObjectURL(audioUrl);
+                    currentAudioRef.current = null;
+                    isSpeakingRef.current = false;
+                  }
+                  resolve();
+                }, 15000);
+              })
+            ]);
+          } finally {
+            if (timeoutId !== null) clearTimeout(timeoutId);
+          }
           return;
         }
         
@@ -747,43 +805,51 @@ const PlayPage: React.FC = () => {
           audio.volume = isAnswer ? TTS_VOLUME : (micActiveRef.current ? 0 : TTS_VOLUME);
           currentAudioRef.current = audio;
 
-          // ★ タイムアウト付きでPromiseを待つ（画面固まり対策）
-          await Promise.race([
-            new Promise<void>((resolve) => {
-              audio.onended = () => {
-                URL.revokeObjectURL(audioUrl);
-                currentAudioRef.current = null;
-                isSpeakingRef.current = false;
-                resolve();
-              };
-              audio.onerror = () => {
-                console.error('[TTS] Audio playback error');
-                URL.revokeObjectURL(audioUrl);
-                currentAudioRef.current = null;
-                isSpeakingRef.current = false;
-                resolve();
-              };
-              audio.play().catch(() => {
-                URL.revokeObjectURL(audioUrl);
-                currentAudioRef.current = null;
-                isSpeakingRef.current = false;
-                resolve();
-              });
-            }),
-            // タイムアウト: 15秒で強制的にresolve
-            new Promise<void>((resolve) => {
-              setTimeout(() => {
-                console.warn('[TTS] Audio playback timeout (15s) - forcing resolve');
-                if (currentAudioRef.current === audio) {
-                  audio.pause();
+          // ★ タイムアウト付きでPromiseを待つ（メモリリーク対策: タイマーを適切にクリア）
+          let timeoutId: number | null = null;
+          try {
+            await Promise.race([
+              new Promise<void>((resolve) => {
+                audio.onended = () => {
+                  if (timeoutId !== null) clearTimeout(timeoutId);
                   URL.revokeObjectURL(audioUrl);
                   currentAudioRef.current = null;
                   isSpeakingRef.current = false;
-                }
-                resolve();
-              }, 15000);
-            })
-          ]);
+                  resolve();
+                };
+                audio.onerror = () => {
+                  if (timeoutId !== null) clearTimeout(timeoutId);
+                  console.error('[TTS] Audio playback error');
+                  URL.revokeObjectURL(audioUrl);
+                  currentAudioRef.current = null;
+                  isSpeakingRef.current = false;
+                  resolve();
+                };
+                audio.play().catch(() => {
+                  if (timeoutId !== null) clearTimeout(timeoutId);
+                  URL.revokeObjectURL(audioUrl);
+                  currentAudioRef.current = null;
+                  isSpeakingRef.current = false;
+                  resolve();
+                });
+              }),
+              // タイムアウト: 15秒で強制的にresolve
+              new Promise<void>((resolve) => {
+                timeoutId = window.setTimeout(() => {
+                  console.warn('[TTS] Audio playback timeout (15s) - forcing resolve');
+                  if (currentAudioRef.current === audio) {
+                    audio.pause();
+                    URL.revokeObjectURL(audioUrl);
+                    currentAudioRef.current = null;
+                    isSpeakingRef.current = false;
+                  }
+                  resolve();
+                }, 15000);
+              })
+            ]);
+          } finally {
+            if (timeoutId !== null) clearTimeout(timeoutId);
+          }
           return;
         }
       }
@@ -834,47 +900,55 @@ const PlayPage: React.FC = () => {
 
       currentAudioRef.current = audio;
 
-      // ★ タイムアウト付きでPromiseを待つ（画面固まり対策）
-      await Promise.race([
-        new Promise<void>((resolve) => {
-          audio.onended = () => {
-            URL.revokeObjectURL(audioUrl);
-            currentAudioRef.current = null;
-            isSpeakingRef.current = false;
-            console.log('[TTS] Playback completed');
-            resolve();
-          };
-
-          audio.onerror = () => {
-            console.error('[TTS] Audio playback error');
-            URL.revokeObjectURL(audioUrl);
-            currentAudioRef.current = null;
-            isSpeakingRef.current = false;
-            resolve();
-          };
-
-          audio.play().catch((err) => {
-            console.error('[TTS] Audio play error:', err);
-            URL.revokeObjectURL(audioUrl);
-            currentAudioRef.current = null;
-            isSpeakingRef.current = false;
-            resolve();
-          });
-        }),
-        // タイムアウト: 15秒で強制的にresolve
-        new Promise<void>((resolve) => {
-          setTimeout(() => {
-            console.warn('[TTS] Audio playback timeout (15s) - forcing resolve');
-            if (currentAudioRef.current === audio) {
-              audio.pause();
+      // ★ タイムアウト付きでPromiseを待つ（メモリリーク対策: タイマーを適切にクリア）
+      let timeoutId: number | null = null;
+      try {
+        await Promise.race([
+          new Promise<void>((resolve) => {
+            audio.onended = () => {
+              if (timeoutId !== null) clearTimeout(timeoutId);
               URL.revokeObjectURL(audioUrl);
               currentAudioRef.current = null;
               isSpeakingRef.current = false;
-            }
-            resolve();
-          }, 15000);
-        })
-      ]);
+              console.log('[TTS] Playback completed');
+              resolve();
+            };
+
+            audio.onerror = () => {
+              if (timeoutId !== null) clearTimeout(timeoutId);
+              console.error('[TTS] Audio playback error');
+              URL.revokeObjectURL(audioUrl);
+              currentAudioRef.current = null;
+              isSpeakingRef.current = false;
+              resolve();
+            };
+
+            audio.play().catch((err) => {
+              if (timeoutId !== null) clearTimeout(timeoutId);
+              console.error('[TTS] Audio play error:', err);
+              URL.revokeObjectURL(audioUrl);
+              currentAudioRef.current = null;
+              isSpeakingRef.current = false;
+              resolve();
+            });
+          }),
+          // タイムアウト: 15秒で強制的にresolve
+          new Promise<void>((resolve) => {
+            timeoutId = window.setTimeout(() => {
+              console.warn('[TTS] Audio playback timeout (15s) - forcing resolve');
+              if (currentAudioRef.current === audio) {
+                audio.pause();
+                URL.revokeObjectURL(audioUrl);
+                currentAudioRef.current = null;
+                isSpeakingRef.current = false;
+              }
+              resolve();
+            }, 15000);
+          })
+        ]);
+      } finally {
+        if (timeoutId !== null) clearTimeout(timeoutId);
+      }
     } catch (error) {
       console.error('[TTS] Error:', error);
       
@@ -1102,6 +1176,9 @@ const PlayPage: React.FC = () => {
       alert('このブラウザは音声認識に未対応です(Chrome 推奨)');
       return;
     }
+
+    // Reset stopping flag to allow restart (fixes deadlock issue)
+    stoppingRef.current = false;
 
     // ★ 問題の音声再生中にマイクをオンにした場合、音声を停止してlistening状態に移行
     if (statusRef.current === 'speaking') {
@@ -1456,11 +1533,15 @@ const PlayPage: React.FC = () => {
         if (e instanceof DOMException && e.name === 'AbortError') {
           console.log('[Eval] Wrong answer delay aborted');
         } else {
+          console.error('[Eval] Unexpected error:', e);
+          // Reset processing flag on error to prevent deadlock
+          isProcessingRef.current = false;
           throw e;
         }
       }
     }
-  }, [clearTimer, waitForCurrentAudioToFinish, forceStopRecognition, speakAwaitTTS, startIntermissionThenNext, updateActivity, startTimer]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [clearTimer, waitForCurrentAudioToFinish, forceStopRecognition, updateActivity, startTimer, playSound]);
 
   // ---------------------- Finish Game ----------------------
   const finishGame = useCallback(async () => {
