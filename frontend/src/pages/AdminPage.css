@@ -217,12 +217,12 @@
 }
 
 .failure-stats-table {
-  width: 100%;
+  width: auto; /* 中身の幅で広がるようにして sticky が効くようにする */
+  min-width: max-content;
   border-collapse: separate;
   border-spacing: 0;
   background: rgba(255, 255, 255, 0.05);
   border-radius: 8px;
-  overflow: hidden;
 }
 
 .failure-stats-table thead {
@@ -267,6 +267,19 @@
 .failure-stats-table thead .fixed-column {
   background: rgba(0, 70, 120, 0.95);
   z-index: 12; /* 左上の交差セルを最前面に */
+}
+
+/* 念のため先頭列にも sticky を付与（class が漏れたケース対策） */
+.failure-stats-table th:first-child,
+.failure-stats-table td:first-child {
+  position: sticky;
+  left: 0;
+  background: rgba(0, 90, 156, 0.95);
+  z-index: 10;
+}
+.failure-stats-table thead th:first-child {
+  background: rgba(0, 70, 120, 0.95);
+  z-index: 12;
 }
 
 .failure-stats-table tbody tr:hover .fixed-column {
