@@ -183,14 +183,15 @@ router.put('/users/:userId',
   requireAdmin,
   validateBody({
     current_grade: { type: 'number', required: false },
-    current_part: { type: 'number', required: false }
+    current_part: { type: 'number', required: false },
+    current_subpart: { type: 'number', required: false }
   }),
   async (req, res) => {
   const reqId = rid();
   const { userId } = req.params;
-  const { current_grade, current_part } = req.body || {};
+  const { current_grade, current_part, current_subpart } = req.body || {};
 
-  logInfo(reqId, 'update user request', { userId, current_grade, current_part });
+  logInfo(reqId, 'update user request', { userId, current_grade, current_part, current_subpart  });
 
   if (!userId) {
     return res.status(400).json({ ok: false, message: 'userId が必要です' });
@@ -227,12 +228,14 @@ router.put('/users/:userId',
     // 更新値を設定
     const updatedGrade = current_grade !== undefined ? current_grade : Number(row[COL.current_grade] || 1);
     const updatedPart = current_part !== undefined ? current_part : Number(row[COL.current_part] || 1);
+    const updatedSubpart  = current_subpart  !== undefined ? current_subpart  : Number(row[COL.current_subpart] || 1);
     const timestamp = new Date().toISOString();
 
     // 行全体を更新
     const updatedRow = [...row];
     updatedRow[COL.current_grade] = updatedGrade;
     updatedRow[COL.current_part] = updatedPart;
+    updatedRow[COL.current_subpart] = updatedSubpart;
     updatedRow[COL.updated_at] = timestamp;
 
     await sheets.spreadsheets.values.update({

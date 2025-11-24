@@ -1607,7 +1607,7 @@ const PlayPage: React.FC = () => {
       console.error('[API] Error during finish game:', err);
 
       let errorMessage = 'スコアの保存中にエラーが発生しました。';
-      let shouldAlert = true;
+      const shouldAlert = true;
 
       if (err instanceof Error) {
         errorMessage += `\n\nエラー: ${err.message}`;

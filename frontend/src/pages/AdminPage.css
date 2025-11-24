@@ -235,6 +235,9 @@
   font-weight: 600;
   font-size: 1rem;
   border-bottom: 2px solid rgba(255, 255, 255, 0.3);
+  position: sticky;
+  top: 0;
+  z-index: 9;
 }
 
 .failure-stats-table td {
@@ -263,7 +266,7 @@
 
 .failure-stats-table thead .fixed-column {
   background: rgba(0, 70, 120, 0.95);
-  z-index: 11;
+  z-index: 12; /* 左上の交差セルを最前面に */
 }
 
 .failure-stats-table tbody tr:hover .fixed-column {

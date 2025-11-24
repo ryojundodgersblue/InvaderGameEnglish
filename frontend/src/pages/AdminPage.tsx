@@ -136,7 +136,7 @@ const AdminPage: React.FC = () => {
   }
 
   // ユーザー情報更新
-  const handleUpdate = async (userId: string, currentGrade: number, currentPart: number) => {
+  const handleUpdate = async (userId: string, currentGrade: number, currentPart: number, currentSubpart: number) => {
     setError(null)
     setSuccess(null)
 
@@ -145,7 +145,7 @@ const AdminPage: React.FC = () => {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
-        body: JSON.stringify({ current_grade: currentGrade, current_part: currentPart }),
+        body: JSON.stringify({ current_grade: currentGrade, current_part: currentPart, current_subpart: currentSubpart}),
       })
 
       const data = await res.json()
@@ -327,22 +327,24 @@ const AdminPage: React.FC = () => {
 // ユーザー行コンポーネント
 interface UserRowProps {
   user: User
-  onUpdate: (userId: string, currentGrade: number, currentPart: number) => void
+  onUpdate: (userId: string, currentGrade: number, currentPart: number, currentSubpart: number) => void
 }
 
 const UserRow: React.FC<UserRowProps> = ({ user, onUpdate }) => {
   const [currentGrade, setCurrentGrade] = useState(user.current_grade)
   const [currentPart, setCurrentPart] = useState(user.current_part)
+  const [currentSubpart, setCurrentSubpart] = useState(user.current_subpart)
   const [isEditing, setIsEditing] = useState(false)
 
   const handleSave = () => {
-    onUpdate(user.user_id, currentGrade, currentPart)
+    onUpdate(user.user_id, currentGrade, currentPart, currentSubpart)
     setIsEditing(false)
   }
 
   const handleCancel = () => {
     setCurrentGrade(user.current_grade)
     setCurrentPart(user.current_part)
+    setCurrentSubpart(user.current_subpart)
     setIsEditing(false)
   }
 
@@ -377,7 +379,19 @@ const UserRow: React.FC<UserRowProps> = ({ user, onUpdate }) => {
           currentPart
         )}
       </td>
-      <td>{user.current_subpart}</td>
+      <td>
+        {isEditing ? (
+          <input
+            type="number"
+            value={currentSubpart}
+            onChange={(e) => setCurrentSubpart(Number(e.target.value))}
+            className="edit-input"
+            min="1"
+          />
+        ) : (
+          currentPart
+        )}
+      </td>
       <td>
         {isEditing ? (
           <div className="edit-buttons">
