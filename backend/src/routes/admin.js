@@ -131,8 +131,8 @@ router.post('/users',
       nextId = lastId + 1;
       nextUserId = String(nextId).padStart(5, '0');
 
-      // nextIdが100以上の場合、上一桁が0なら1にする
-      if (nextId >= 100 && nextUserId[0] === '0') {
+      // 最上位桁が0の場合、1にする
+      if (nextUserId[0] === '0') {
         nextUserId = '1' + nextUserId.slice(1);
       }
     }
