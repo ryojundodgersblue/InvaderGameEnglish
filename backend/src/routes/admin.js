@@ -130,6 +130,11 @@ router.post('/users',
       const lastId = Number(lastRow[COL.id] || 0);
       nextId = lastId + 1;
       nextUserId = String(nextId).padStart(5, '0');
+
+      // 最上位桁が0の場合、1にする
+      if (nextUserId[0] === '0') {
+        nextUserId = '1' + nextUserId.slice(1);
+      }
     }
 
     // パスワードを自動生成
