@@ -509,7 +509,7 @@ const PlayPage: React.FC = () => {
       audio.currentTime = 0;
 
       // ★ 重要: onendedハンドラを手動で呼び出して、speakAwaitTTSのPromiseを即座に解決
-      // これにより、3回目の読み上げ中に答えた場合でも15秒待たずに次の処理に進める
+      // これにより、読み上げ中に答えた場合でも15秒待たずに次の処理に進める
       if (audio.onended) {
         console.log('[TTS] Manually triggering onended to resolve pending Promise');
         audio.onended(new Event('ended'));
@@ -840,19 +840,6 @@ const PlayPage: React.FC = () => {
       await speakAwaitTTS(q.question_text);
       if (isProcessingRef.current) {
         console.log('[Question] Processing interrupted after 2nd speak');
-        return;
-      }
-
-      await delay(DLY.betweenSpeaks, abortControllerRef.current.signal);
-      if (isProcessingRef.current) {
-        console.log('[Question] Processing interrupted during delay after 2nd speak');
-        return;
-      }
-
-      // ★ 3回目の読み上げ
-      await speakAwaitTTS(q.question_text);
-      if (isProcessingRef.current) {
-        console.log('[Question] Processing interrupted after 3rd speak');
         return;
       }
 
