@@ -1718,6 +1718,13 @@ const PlayPage: React.FC = () => {
   return (
     <div className="play-page">
 
+      {/* 左上: Stage Info */}
+      <div className="stage-info-container">
+        <div className="stage-info-text">
+          Grade: {grade || '1'} / Part: {part || '1'} / Subpart: {subpart || '1'}
+        </div>
+      </div>
+
       {/* 左上: Time Limit */}
       <div className="time-limit-container">
         <div className="time-limit-label">Time Limit</div>

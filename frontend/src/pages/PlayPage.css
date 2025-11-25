@@ -8,10 +8,28 @@
   overflow: hidden;
 }
 
+/* ステージ情報表示 */
+.stage-info-container {
+  position: absolute;
+  top: 8px;
+  left: 16px;
+  z-index: 100;
+}
+
+.stage-info-text {
+  font-size: 16px;
+  font-weight: 600;
+  color: #fff;
+  background: rgba(0, 0, 0, 0.5);
+  padding: 6px 12px;
+  border-radius: 6px;
+  white-space: nowrap;
+}
+
 /* タイムリミット表示 */
 .time-limit-container {
   position: absolute;
-  top: 14px;
+  top: 50px;
   left: 16px;
   color: #fff;
   z-index: 100;
