@@ -389,7 +389,7 @@ const UserRow: React.FC<UserRowProps> = ({ user, onUpdate }) => {
             min="1"
           />
         ) : (
-          currentPart
+          currentSubpart
         )}
       </td>
       <td>
