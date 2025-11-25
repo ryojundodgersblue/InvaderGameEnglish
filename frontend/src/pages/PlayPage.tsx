@@ -817,6 +817,9 @@ const PlayPage: React.FC = () => {
       await delay(1200, abortControllerRef.current.signal);
       setBannerText(null);
 
+      // ★ バナー表示後すぐに文字を表示
+      setShowText(true);
+
       dispatch({ type: 'START_SPEAKING' });
       statusRef.current = 'speaking';
 
@@ -845,8 +848,6 @@ const PlayPage: React.FC = () => {
         console.log('[Question] Processing interrupted during delay after 2nd speak');
         return;
       }
-
-      setShowText(true);
 
       // ★ 3回目の読み上げ
       await speakAwaitTTS(q.question_text);
