@@ -1590,6 +1590,22 @@ const PlayPage: React.FC = () => {
   return (
     <div className="play-page">
 
+      {/* 左上: 選択情報 */}
+      <div className="selection-info-container">
+        <div className="selection-info-item">
+          <span className="selection-info-label">Grade:</span>
+          <span className="selection-info-value">{grade || '1'}</span>
+        </div>
+        <div className="selection-info-item">
+          <span className="selection-info-label">Part:</span>
+          <span className="selection-info-value">{part || '1'}</span>
+        </div>
+        <div className="selection-info-item">
+          <span className="selection-info-label">Subpart:</span>
+          <span className="selection-info-value">{subpart || '1'}</span>
+        </div>
+      </div>
+
       {/* 右上: マイク状態 */}
       {['speaking', 'listening', 'wrong'].includes(status) && (
         <div className="mic-status-container">
