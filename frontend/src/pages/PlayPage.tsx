@@ -1107,6 +1107,8 @@ const PlayPage: React.FC = () => {
     // ★ 何も認識されていない場合は評価をスキップ
     if (capturedRef.current.length === 0) {
       console.log('[ASR] No speech captured - skipping evaluation, staying in listening state');
+      // ★ stoppingRefをリセットして次の音声認識を可能にする
+      stoppingRef.current = false;
       return;
     }
 
@@ -1286,7 +1288,9 @@ const PlayPage: React.FC = () => {
 
           // ★ 不正解の場合は処理完了をマーク（listening状態に戻る）
           isProcessingRef.current = false;
-          console.log('[Eval] Wrong answer - resetting isProcessingRef and returning to listening state');
+          // ★ stoppingRefをリセットして次の音声認識を可能にする
+          stoppingRef.current = false;
+          console.log('[Eval] Wrong answer - resetting isProcessingRef and stoppingRef, returning to listening state');
           dispatch({ type: 'START_LISTENING' });
           statusRef.current = 'listening';
         } else {
