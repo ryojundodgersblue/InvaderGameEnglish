@@ -95,7 +95,8 @@ declare global {
 // --------------------------- Consts ---------------------------
 const CORRECT_TO_CLEAR = 10;
 const MAX_QUESTIONS = 16;
-const MAX_ATTEMPTS = 3; // 最大チャレンジ回数
+const MAX_ATTEMPTS = 3; // 最大チャレンジ回数（デモ問題のみ使用）
+const QUIZ_TIME_LIMIT = 30; // クイズの制限時間（秒）
 
 const DLY = {
   betweenSpeaks: 1200,
@@ -296,6 +297,7 @@ const PlayPage: React.FC = () => {
   const [showText, setShowText] = useState(false);
   const [realCorrect, setRealCorrect] = useState(0);
   const [error, setError] = useState<string | null>(null);
+  const [timeLeft, setTimeLeft] = useState<number | null>(null); // 残り時間（秒）
 
   // State Machine
   const [gameState, dispatch] = React.useReducer(gameStateReducer, initialGameState);
@@ -311,6 +313,8 @@ const PlayPage: React.FC = () => {
   useEffect(() => { micActiveRef.current = micActive; }, [micActive]);
 
   const [bannerText, setBannerText] = useState<string | null>(null);
+
+  const timerIntervalRef = useRef<number | null>(null);
 
   // AbortController for cancellable async operations
   const abortControllerRef = useRef<AbortController | null>(null);
@@ -369,6 +373,49 @@ const PlayPage: React.FC = () => {
       console.log('[Freeze] Detection stopped');
     }
   }, []);
+
+  // ---------------------- Timer Management ----------------------
+  const startTimer = useCallback(() => {
+    console.log('[Timer] Starting countdown timer');
+    setTimeLeft(QUIZ_TIME_LIMIT);
+
+    if (timerIntervalRef.current) {
+      window.clearInterval(timerIntervalRef.current);
+    }
+
+    timerIntervalRef.current = window.setInterval(() => {
+      setTimeLeft((prev) => {
+        if (prev === null || prev <= 1) {
+          if (timerIntervalRef.current) {
+            window.clearInterval(timerIntervalRef.current);
+            timerIntervalRef.current = null;
+          }
+          console.log('[Timer] Time up!');
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+  }, []);
+
+  const stopTimer = useCallback(() => {
+    console.log('[Timer] Stopping timer');
+    if (timerIntervalRef.current) {
+      window.clearInterval(timerIntervalRef.current);
+      timerIntervalRef.current = null;
+    }
+    setTimeLeft(null);
+  }, []);
+
+  // タイムアップ時の処理
+  useEffect(() => {
+    const q = questionsRef.current[idxRef.current];
+    if (timeLeft === 0 && q && !q.is_demo && !isProcessingRef.current) {
+      console.log('[Timer] Time up - showing correct answer and moving to next question');
+      handleTimeUp();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [timeLeft]);
 
   // ---------------------- Stop Recognition (完全停止) ----------------------
   const forceStopRecognition = useCallback(() => {
@@ -482,9 +529,10 @@ const PlayPage: React.FC = () => {
       stopCurrentAudio();
       forceStopRecognition();
       stopFreezeDetection();
+      stopTimer();
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [grade, part, subpart, forceStopRecognition]);
+  }, [grade, part, subpart, forceStopRecognition, stopTimer]);
 
   // ---------------------- Audio Control ----------------------
   const muteCurrentAudio = useCallback(() => {
@@ -878,6 +926,11 @@ const PlayPage: React.FC = () => {
 
         startIntermissionThenNext();
       } else {
+        // ★ デモ以外の問題ではタイマーを開始
+        if (!q.is_demo) {
+          console.log('[Timer] Starting timer for non-demo question');
+          startTimer();
+        }
         dispatch({ type: 'START_LISTENING' });
         statusRef.current = 'listening';
       }
@@ -889,7 +942,7 @@ const PlayPage: React.FC = () => {
       }
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [speakAwaitTTS, stopCurrentAudio, forceStopRecognition, startFreezeDetection, updateActivity]);
+  }, [speakAwaitTTS, stopCurrentAudio, forceStopRecognition, startFreezeDetection, updateActivity, startTimer]);
 
   // ---------------------- Intermission => Next ----------------------
   const startIntermissionThenNext = useCallback(async () => {
@@ -931,6 +984,7 @@ const PlayPage: React.FC = () => {
 
     stopCurrentAudio();
     forceStopRecognition();
+    stopTimer(); // タイマーを停止
 
     const next = idxRef.current + 1;
     console.log(`[Progress] Moving from question ${idxRef.current + 1} to ${next + 1}`, {
@@ -963,7 +1017,7 @@ const PlayPage: React.FC = () => {
       }
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [stopCurrentAudio, forceStopRecognition, startQuestionForIndex, updateActivity]);
+  }, [stopCurrentAudio, forceStopRecognition, startQuestionForIndex, updateActivity, stopTimer]);
 
   // ---------------------- Mic Toggle & Evaluate ----------------------
   const toggleMic = useCallback(() => {
@@ -1105,6 +1159,70 @@ const PlayPage: React.FC = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  const handleTimeUp = useCallback(async () => {
+    console.log('[TimeUp] Handling time up');
+
+    // 既に処理中の場合はスキップ
+    if (isProcessingRef.current) {
+      console.log('[TimeUp] Already processing - skipping');
+      return;
+    }
+
+    isProcessingRef.current = true;
+    stopTimer();
+    forceStopRecognition();
+    stopCurrentAudio();
+
+    const q = questionsRef.current[idxRef.current];
+    if (!q) {
+      console.log('[TimeUp] No question found - skipping');
+      isProcessingRef.current = false;
+      return;
+    }
+
+    try {
+      // タイムアウト状態に遷移
+      dispatch({ type: 'TIMEOUT' });
+      statusRef.current = 'timeout';
+
+      await delay(DLY.afterTimeoutBeforeReveal, abortControllerRef.current?.signal);
+
+      if (!isProcessingRef.current) {
+        console.log('[TimeUp] Processing was cancelled during delay');
+        return;
+      }
+
+      // 正解を表示
+      dispatch({ type: 'REVEAL_ANSWER' });
+      statusRef.current = 'reveal';
+
+      if (q.answers?.[0]) {
+        await speakAwaitTTS(q.answers[0], true);
+      }
+
+      if (!isProcessingRef.current) {
+        console.log('[TimeUp] Processing was cancelled after TTS');
+        return;
+      }
+
+      await delay(DLY.afterReveal, abortControllerRef.current?.signal);
+
+      if (!isProcessingRef.current) {
+        console.log('[TimeUp] Processing was cancelled before intermission');
+        return;
+      }
+
+      // 次の問題へ
+      startIntermissionThenNext();
+    } catch (e) {
+      if (e instanceof DOMException && e.name === 'AbortError') {
+        console.log('[TimeUp] Aborted');
+      } else {
+        throw e;
+      }
+    }
+  }, [stopTimer, forceStopRecognition, stopCurrentAudio, speakAwaitTTS, startIntermissionThenNext]);
+
   const evaluateCaptured = useCallback(async () => {
     // ★ 競合状態対策: 既に処理中の場合はスキップ
     if (isProcessingRef.current) {
@@ -1178,6 +1296,9 @@ const PlayPage: React.FC = () => {
 
     if (isCorrect) {
       console.log('[Eval] Correct answer!');
+
+      // ★ タイマーを停止
+      stopTimer();
 
       // ★ 問題の音声が終了するまで待つ
       await waitForCurrentAudioToFinish();
@@ -1267,23 +1388,13 @@ const PlayPage: React.FC = () => {
       try {
         await delay(600, abortControllerRef.current?.signal);
 
-        // ★ 回答回数が3回未満なら、再チャレンジ可能
-        if (currentAttempt < MAX_ATTEMPTS) {
-          // ★ 認識結果をクリア（新しい回答を受け付けるため）
-          capturedRef.current = [];
-          setLastRecognized('');
-          console.log(`[Eval] Wrong answer - ${MAX_ATTEMPTS - currentAttempt} attempts remaining`);
+        // ★ デモ問題の場合のみ回答回数制限を適用
+        if (q.is_demo && currentAttempt >= MAX_ATTEMPTS) {
+          // ★ デモ問題で3回チャレンジした場合は、正解を表示して次の問題へ
+          console.log('[Eval] Wrong answer (demo) - max attempts reached, showing correct answer and moving to next');
 
-          // ★ 不正解の場合は処理完了をマーク（listening状態に戻る）
-          isProcessingRef.current = false;
-          // ★ stoppingRefをリセットして次の音声認識を可能にする
-          stoppingRef.current = false;
-          console.log('[Eval] Wrong answer - resetting isProcessingRef and stoppingRef, returning to listening state');
-          dispatch({ type: 'START_LISTENING' });
-          statusRef.current = 'listening';
-        } else {
-          // ★ 3回チャレンジした場合は、正解を表示して次の問題へ
-          console.log('[Eval] Wrong answer - max attempts reached, showing correct answer and moving to next');
+          // タイマーを停止
+          stopTimer();
 
           // 音声認識を完全停止
           forceStopRecognition();
@@ -1304,8 +1415,7 @@ const PlayPage: React.FC = () => {
           // 正解を表示
           dispatch({ type: 'REVEAL_ANSWER' });
 
-          const q = questionsRef.current[idxRef.current];
-          if (q?.answers?.[0]) {
+          if (q.answers?.[0]) {
             await speakAwaitTTS(q.answers[0], true);
           }
 
@@ -1323,6 +1433,25 @@ const PlayPage: React.FC = () => {
 
           // 次の問題へ
           startIntermissionThenNext();
+        } else {
+          // ★ デモ以外の問題、またはデモ問題で3回未満の場合は再チャレンジ可能
+          // ★ 認識結果をクリア（新しい回答を受け付けるため）
+          capturedRef.current = [];
+          setLastRecognized('');
+
+          if (q.is_demo) {
+            console.log(`[Eval] Wrong answer (demo) - ${MAX_ATTEMPTS - currentAttempt} attempts remaining`);
+          } else {
+            console.log('[Eval] Wrong answer (non-demo) - unlimited retries available');
+          }
+
+          // ★ 不正解の場合は処理完了をマーク（listening状態に戻る）
+          isProcessingRef.current = false;
+          // ★ stoppingRefをリセットして次の音声認識を可能にする
+          stoppingRef.current = false;
+          console.log('[Eval] Wrong answer - resetting isProcessingRef and stoppingRef, returning to listening state');
+          dispatch({ type: 'START_LISTENING' });
+          statusRef.current = 'listening';
         }
       } catch (e) {
         if (e instanceof DOMException && e.name === 'AbortError') {
@@ -1332,7 +1461,7 @@ const PlayPage: React.FC = () => {
         }
       }
     }
-  }, [waitForCurrentAudioToFinish, forceStopRecognition, speakAwaitTTS, startIntermissionThenNext, updateActivity]);
+  }, [waitForCurrentAudioToFinish, forceStopRecognition, speakAwaitTTS, startIntermissionThenNext, updateActivity, stopTimer]);
 
   // ---------------------- Finish Game ----------------------
   const finishGame = useCallback(async () => {
@@ -1616,6 +1745,16 @@ const PlayPage: React.FC = () => {
           {!!lastRecognized && (
             <div className="mic-heard-text">Heard: {lastRecognized}</div>
           )}
+        </div>
+      )}
+
+      {/* 左: タイマー表示（デモ以外の問題のみ） */}
+      {timeLeft !== null && current && !current.is_demo && (
+        <div className="timer-container">
+          <div className={`timer-display ${timeLeft <= 10 ? 'timer-warning' : ''} ${timeLeft <= 5 ? 'timer-danger' : ''}`}>
+            <div className="timer-label">TIME</div>
+            <div className="timer-value">{timeLeft}</div>
+          </div>
         </div>
       )}
 

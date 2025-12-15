@@ -96,6 +96,60 @@
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
+/* タイマー表示（左側上部） */
+.timer-container {
+  position: absolute;
+  top: 30%;
+  left: 100px;
+  transform: translateY(-50%);
+  z-index: 100;
+}
+
+.timer-display {
+  width: 90px;
+  height: 90px;
+  border-radius: 50%;
+  background: rgba(59, 130, 246, 0.95);
+  color: white;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 16px rgba(59, 130, 246, 0.4);
+  transition: all 0.3s ease;
+}
+
+.timer-display.timer-warning {
+  background: rgba(251, 146, 60, 0.95);
+  box-shadow: 0 4px 16px rgba(251, 146, 60, 0.4);
+  animation: pulse-timer 1s ease-in-out infinite;
+}
+
+.timer-display.timer-danger {
+  background: rgba(239, 68, 68, 0.95);
+  box-shadow: 0 4px 16px rgba(239, 68, 68, 0.5);
+  animation: pulse-timer 0.5s ease-in-out infinite;
+}
+
+@keyframes pulse-timer {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.1); }
+}
+
+.timer-label {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  margin-bottom: 2px;
+  opacity: 0.9;
+}
+
+.timer-value {
+  font-size: 36px;
+  font-weight: bold;
+  line-height: 1;
+}
+
 /* 問題番号表示（左側） */
 .question-number-container {
   position: absolute;
@@ -395,6 +449,24 @@
 
   .enemy-img {
     width: 150px;
+  }
+
+  .timer-container {
+    left: 20px;
+    top: 25%;
+  }
+
+  .timer-display {
+    width: 60px;
+    height: 60px;
+  }
+
+  .timer-label {
+    font-size: 9px;
+  }
+
+  .timer-value {
+    font-size: 24px;
   }
 
   .question-number-display {
