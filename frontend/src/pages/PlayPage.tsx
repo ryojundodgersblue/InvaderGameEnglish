@@ -353,6 +353,10 @@ const PlayPage: React.FC = () => {
     // 音声認識を完全停止
     forceStopRecognition();
 
+    // ★ 音量を確実に復元（マイクオン中にタイムアップした場合の対策）
+    originalVolumeRef.current = TTS_VOLUME;
+    console.log('[Timer] Audio volume restored after force stopping mic');
+
     // 問題の音声が終了するまで待つ
     await waitForCurrentAudioToFinish();
 
