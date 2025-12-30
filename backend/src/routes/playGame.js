@@ -181,12 +181,12 @@ router.get('/questions',
       }))
       .sort((a,b)=>a.display_order-b.display_order);
 
-    // 16問に調整
-    if (questions.length > 16) {
-      log.warn(routeName, 'Too many questions, trimming to 16', { original: questions.length });
-      questions = questions.slice(0, 16);
-    } else if (questions.length < 16) {
-      log.warn(routeName, 'Less than 16 questions found', { actual: questions.length });
+    // 8問に調整
+    if (questions.length > 8) {
+      log.warn(routeName, 'Too many questions, trimming to 8', { original: questions.length });
+      questions = questions.slice(0, 8);
+    } else if (questions.length < 8) {
+      log.warn(routeName, 'Less than 8 questions found', { actual: questions.length });
     }
 
     // 解答

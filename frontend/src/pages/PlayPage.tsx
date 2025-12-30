@@ -93,8 +93,8 @@ declare global {
 }
 
 // --------------------------- Consts ---------------------------
-const CORRECT_TO_CLEAR = 10;
-const MAX_QUESTIONS = 16;
+const CORRECT_TO_CLEAR = 5;
+const MAX_QUESTIONS = 8;
 const MAX_ATTEMPTS = 3; // 最大チャレンジ回数
 
 const DLY = {
