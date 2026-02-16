@@ -173,10 +173,11 @@ router.post('/login',
     });
 
     // HttpOnlyクッキーにトークンを設定
+    const isProduction = process.env.NODE_ENV === 'production';
     const cookieOptions = {
       httpOnly: true, // JavaScriptからアクセス不可（XSS対策）
-      secure: process.env.NODE_ENV === 'production', // 本番環境ではHTTPSのみ
-      sameSite: 'lax', // CSRF対策（開発環境で異なるポート間の通信を許可）
+      secure: isProduction, // 本番環境ではHTTPSのみ
+      sameSite: isProduction ? 'none' : 'lax', // クロスオリジン対応（本番はnone、開発はlax）
       maxAge: 24 * 60 * 60 * 1000, // 24時間
     };
 
