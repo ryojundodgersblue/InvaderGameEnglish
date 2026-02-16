@@ -3,6 +3,7 @@ import React, { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import Button from '../components/Button'
 import Dropdown from '../components/Dropdown'
+import { API_URL } from '../config'
 import '../App.css'
 
 // partsテーブルから取得したオプションの型
@@ -49,12 +50,12 @@ const SelectPage: React.FC = () => {
         
         console.log('Fetching options from /select/options...')
         console.log('Request details:', {
-          url: `http://localhost:4000/select/options?user_id=${userId}`,
+          url: `${API_URL}/select/options?user_id=${userId}`,
           credentials: 'include',
           userId: userId
         })
 
-        const res = await fetch(`http://localhost:4000/select/options?user_id=${userId}`, {
+        const res = await fetch(`${API_URL}/select/options?user_id=${userId}`, {
           credentials: 'include' // クッキーを送信
         })
 
@@ -246,7 +247,7 @@ const SelectPage: React.FC = () => {
       console.log('Validating selection before game start:', { grade, part, subpart })
       
       const validateRes = await fetch(
-        `http://localhost:4000/select/validate?grade=${grade}&part=${part}&subpart=${subpart}`,
+        `${API_URL}/select/validate?grade=${grade}&part=${part}&subpart=${subpart}`,
         { credentials: 'include' }
       )
       

@@ -2,6 +2,7 @@
 import React, { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import Button from '../components/Button'
+import { API_URL } from '../config'
 import './Ranking.css'
 
 type RankItem = { userId: string; name: string; }
@@ -20,7 +21,7 @@ const Ranking: React.FC = () => {
       try {
         setLoading(true)
         setError(null)
-        const res = await fetch('http://localhost:4000/ranking', {
+        const res = await fetch(`${API_URL}/ranking`, {
           credentials: 'include'
         })
         if (!res.ok) throw new Error('failed to fetch')

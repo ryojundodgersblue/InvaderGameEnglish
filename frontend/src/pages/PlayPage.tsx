@@ -2,6 +2,7 @@ import React, { useEffect, useRef, useState, useCallback } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import Button from '../components/Button';
+import { API_URL } from '../config';
 import '../App.css';
 import './PlayPage.css';
 
@@ -539,7 +540,7 @@ const PlayPage: React.FC = () => {
 
         console.log('[Load] Fetching data for:', { grade: g, part: p, subpart: s });
 
-        const r1 = await fetch(`http://localhost:4000/game/part?grade=${g}&part=${p}&subpart=${s}`, {
+        const r1 = await fetch(`${API_URL}/game/part?grade=${g}&part=${p}&subpart=${s}`, {
           credentials: 'include'
         });
         if (!r1.ok) {
@@ -550,7 +551,7 @@ const PlayPage: React.FC = () => {
         setPartInfo(j1.part);
         console.log('[Load] Part info loaded:', j1.part);
 
-        const r2 = await fetch(`http://localhost:4000/game/questions?part_id=${encodeURIComponent(j1.part.part_id)}`, {
+        const r2 = await fetch(`${API_URL}/game/questions?part_id=${encodeURIComponent(j1.part.part_id)}`, {
           credentials: 'include'
         });
         if (!r2.ok) {
@@ -653,7 +654,7 @@ const PlayPage: React.FC = () => {
       console.log('[TTS] Speaking:', text);
       
       const response = await axios.post(
-        'http://localhost:4000/api/tts/synthesize', 
+        `${API_URL}/api/tts/synthesize`,
         { 
           text,
           languageCode: 'en-US',
@@ -1436,7 +1437,7 @@ const PlayPage: React.FC = () => {
         endpoint: 'POST /game/score'
       });
 
-      const scoreResponse = await fetch('http://localhost:4000/game/score', {
+      const scoreResponse = await fetch(`${API_URL}/game/score`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
@@ -1488,7 +1489,7 @@ const PlayPage: React.FC = () => {
           endpoint: 'POST /game/advance'
         });
 
-        const advanceResponse = await fetch('http://localhost:4000/game/advance', {
+        const advanceResponse = await fetch(`${API_URL}/game/advance`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           credentials: 'include',

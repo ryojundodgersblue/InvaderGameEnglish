@@ -1,5 +1,5 @@
 // src/utils/googleTTS.tsx
-//import React from 'react';
+import { API_URL } from '../config';
 
 interface TTSOptions {
   text: string;
@@ -21,7 +21,7 @@ class GoogleTTSService {
   private currentAudio: HTMLAudioElement | null = null;
   private baseUrl: string;
 
-  constructor(baseUrl: string = 'http://localhost:4000') {
+  constructor(baseUrl: string = API_URL) {
     this.baseUrl = baseUrl;
   }
 

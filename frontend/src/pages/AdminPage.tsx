@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react'
 import TextBox from '../components/TextBox'
 import Button from '../components/Button'
+import { API_URL } from '../config'
 import '../App.css'
 import './AdminPage.css'
 
@@ -47,7 +48,7 @@ const AdminPage: React.FC = () => {
   // ユーザー一覧を取得
   const fetchUsers = async () => {
     try {
-      const res = await fetch('http://localhost:4000/admin/users', {
+      const res = await fetch(`${API_URL}/admin/users`, {
         method: 'GET',
         credentials: 'include',
       })
@@ -70,7 +71,7 @@ const AdminPage: React.FC = () => {
   // パート別ミス数を取得
   const fetchFailureStats = async () => {
     try {
-      const res = await fetch('http://localhost:4000/admin/failure-stats', {
+      const res = await fetch(`${API_URL}/admin/failure-stats`, {
         method: 'GET',
         credentials: 'include',
       })
@@ -106,7 +107,7 @@ const AdminPage: React.FC = () => {
     }
 
     try {
-      const res = await fetch('http://localhost:4000/admin/users', {
+      const res = await fetch(`${API_URL}/admin/users`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
@@ -141,7 +142,7 @@ const AdminPage: React.FC = () => {
     setSuccess(null)
 
     try {
-      const res = await fetch(`http://localhost:4000/admin/users/${userId}`, {
+      const res = await fetch(`${API_URL}/admin/users/${userId}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
@@ -173,7 +174,7 @@ const AdminPage: React.FC = () => {
     }
 
     try {
-      const res = await fetch('http://localhost:4000/admin/reset-password', {
+      const res = await fetch(`${API_URL}/admin/reset-password`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',

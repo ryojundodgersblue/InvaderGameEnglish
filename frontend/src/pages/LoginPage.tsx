@@ -2,6 +2,7 @@ import React, { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import TextBox from '../components/TextBox'
 import Button from '../components/Button'
+import { API_URL } from '../config'
 import '../App.css'
 import './LoginPage.css'
 
@@ -26,7 +27,7 @@ const LoginPage: React.FC = () => {
   const onLogin = async () => {
     setError(null)
     try {
-      const res = await fetch('http://localhost:4000/auth/login', {
+      const res = await fetch(`${API_URL}/auth/login`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include', // クッキーを送受信
