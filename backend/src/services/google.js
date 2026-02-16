@@ -1,10 +1,21 @@
 // backend/src/services/google.js
 const { google } = require('googleapis');
-const textToSpeech = require('@google-cloud/text-to-speech'); // ✅ 追加
+const textToSpeech = require('@google-cloud/text-to-speech');
 const path = require('path');
 
 const KEYFILE = process.env.GOOGLE_KEYFILE
   || path.join(__dirname, '../../credentials.json');
+
+// 環境変数からJSON認証情報を取得（Render等のクラウド環境用）
+let credentials = null;
+if (process.env.GOOGLE_CREDENTIALS_JSON) {
+  try {
+    credentials = JSON.parse(process.env.GOOGLE_CREDENTIALS_JSON);
+    console.log('[Google] Using credentials from GOOGLE_CREDENTIALS_JSON env var');
+  } catch (e) {
+    console.error('[Google] Failed to parse GOOGLE_CREDENTIALS_JSON:', e.message);
+  }
+}
 
 const SPREADSHEET_ID = process.env.SHEET_ID;
 
@@ -12,10 +23,11 @@ const SPREADSHEET_ID = process.env.SHEET_ID;
 let authClient = null;
 
 async function getAuthClient(scopes) {
-  const auth = new google.auth.GoogleAuth({
-    keyFile: KEYFILE,
-    scopes,
-  });
+  if (credentials) {
+    const auth = new google.auth.GoogleAuth({ credentials, scopes });
+    return await auth.getClient();
+  }
+  const auth = new google.auth.GoogleAuth({ keyFile: KEYFILE, scopes });
   return await auth.getClient();
 }
 
@@ -54,10 +66,8 @@ let ttsClient = null;
 async function getTTSClient() {
   if (ttsClient) return ttsClient;
   
-  // @google-cloud/text-to-speech を使用
-  ttsClient = new textToSpeech.TextToSpeechClient({
-    keyFilename: KEYFILE,
-  });
+  const ttsOptions = credentials ? { credentials } : { keyFilename: KEYFILE };
+  ttsClient = new textToSpeech.TextToSpeechClient(ttsOptions);
   
   return ttsClient;
 }
