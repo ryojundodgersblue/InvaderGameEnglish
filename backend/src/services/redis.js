@@ -29,7 +29,12 @@ Object.keys(DEFAULT_TTL).forEach(key => {
 
 let client = null;
 let isConnected = false;
-let redisAvailable = true;
+// Redis接続情報が設定されていない場合は最初から無効化
+let redisAvailable = !!(process.env.REDIS_HOST && process.env.REDIS_HOST !== 'localhost');
+
+if (!redisAvailable && process.env.NODE_ENV === 'production') {
+  console.log('[Redis] No REDIS_HOST configured - running without cache');
+}
 
 /**
  * Redisクライアントを取得または作成
