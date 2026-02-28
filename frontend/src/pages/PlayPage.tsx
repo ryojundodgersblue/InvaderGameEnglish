@@ -638,9 +638,9 @@ const PlayPage: React.FC = () => {
 
   // ---------------------- Google TTS Speech ----------------------
   const speakAwaitTTS = useCallback(async (text: string, isAnswer = false): Promise<void> => {
-    // ★ 正解音声の場合は、再生前に1.5秒の間を開ける
+    // ★ 正解音声の場合は、再生前に1秒の間を開ける
     if (isAnswer) {
-      await new Promise(resolve => setTimeout(resolve, 1500));
+      await new Promise(resolve => setTimeout(resolve, 1000));
     }
 
     // ★ 処理が中断されている場合は音声再生をスキップ（ただし正解音声は必ず再生）

@@ -242,6 +242,16 @@ const SelectPage: React.FC = () => {
   }
 
   const onGameStart = async () => {
+    // ブラウザの音声自動再生ブロックを解除するため、ユーザーアクション時に無音を再生
+    try {
+      // 超短い無音のWAVデータ
+      const silentAudio = new Audio('data:audio/wav;base64,UklGRigAAABXQVZFZm10IBIAAAABAAEARKwAAIhYAQACABAAAABkYXRhAgAAAAEA')
+      silentAudio.volume = 0
+      silentAudio.play().catch(() => {})
+    } catch (e) {
+      console.warn('Audio unlock failed:', e)
+    }
+
     // 組み合わせの検証（オプション）
     try {
       console.log('Validating selection before game start:', { grade, part, subpart })
