@@ -2,11 +2,13 @@
 import React from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import Button from '../components/Button';
+import { useAuth } from '../hooks/useAuth';
 import '../App.css';
 
 const ResultPage: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
+  const { logout } = useAuth();
   const state = location.state as { clear?: boolean; correct?: number; total?: number } | null;
 
   const clear = state?.clear ?? false;
@@ -33,14 +35,9 @@ const ResultPage: React.FC = () => {
     return '#f87171';
   };
 
-  // ★ これを追加（ログアウト処理）
   const handleLogout = () => {
-    localStorage.removeItem('userId');
-    localStorage.removeItem('userName');
-    localStorage.removeItem('current_grade');
-    localStorage.removeItem('current_part');
-    localStorage.removeItem('current_subpart');
-    navigate('/logIn'); 
+    logout();
+    navigate('/logIn');
   };
 
   return (

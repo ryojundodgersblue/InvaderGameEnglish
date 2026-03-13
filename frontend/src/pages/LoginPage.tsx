@@ -2,6 +2,7 @@ import React, { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import TextBox from '../components/TextBox'
 import Button from '../components/Button'
+import { useAuth } from '../hooks/useAuth'
 import { API_URL } from '../config'
 import '../App.css'
 import './LoginPage.css'
@@ -23,6 +24,7 @@ const LoginPage: React.FC = () => {
   const [password, setPass] = useState('')
   const [error, setError] = useState<string | null>(null)
   const navigate = useNavigate()
+  const { login } = useAuth()
 
   const onLogin = async () => {
     setError(null)
@@ -42,25 +44,15 @@ const LoginPage: React.FC = () => {
         throw new Error(data?.message || `Login failed (${res.status})`)
       }
 
-      // ★ ユーザー情報を保存
+      // ★ ユーザー情報をContextに保存
       const user = data.user || {}
-      localStorage.setItem('userId', user.userId ?? '')
-      localStorage.setItem('userName', user.name ?? '')
-      localStorage.setItem('current_grade', String(user.current_grade ?? ''))
-      localStorage.setItem('current_part',  String(user.current_part  ?? ''))
-      localStorage.setItem('is_admin', String(user.is_admin ?? false))
-
-      console.log('Login successful, user info:', {
-        userId: user.userId,
-        name: user.name,
-        current_grade: user.current_grade,
-        current_part: user.current_part,
-        is_admin: user.is_admin
+      login({
+        userId: user.userId ?? '',
+        name: user.name ?? '',
+        current_grade: user.current_grade ?? 1,
+        current_part: user.current_part ?? 1,
+        is_admin: user.is_admin ?? false,
       })
-
-      // クッキーが設定されているか確認（開発者ツールで確認用）
-      console.log('All cookies:', document.cookie)
-      console.log('Note: authToken is HttpOnly and will not appear in document.cookie')
 
       // 成功したら遷移（管理者の場合は管理画面へ）
       if (user.is_admin) {

@@ -3,6 +3,7 @@ import React, { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import Button from '../components/Button'
 import Dropdown from '../components/Dropdown'
+import { useAuth } from '../hooks/useAuth'
 import { API_URL } from '../config'
 import '../App.css'
 
@@ -15,11 +16,12 @@ type PartOptions = {
 
 const SelectPage: React.FC = () => {
   const navigate = useNavigate()
+  const { session, updateProgress } = useAuth()
 
-  // localStorageから初期値を取得（バックエンドから取得した進捗情報を使用）
-  const initialGrade = localStorage.getItem('current_grade') || '1'
-  const initialPart = localStorage.getItem('current_part') || '1'
-  const initialSubpart = localStorage.getItem('current_subpart') || '1'
+  // Contextから初期値を取得（バックエンドから取得した進捗情報を使用）
+  const initialGrade = session?.currentGrade || '1'
+  const initialPart = session?.currentPart || '1'
+  const initialSubpart = session?.currentSubpart || '1'
 
   const [grade, setGrade] = useState(initialGrade)
   const [part, setPart] = useState(initialPart)
@@ -41,34 +43,22 @@ const SelectPage: React.FC = () => {
         setError(null)
         
         // user_id を取得
-        const userId = localStorage.getItem('userId')
-        if (!userId) {
+        if (!session?.userId) {
           setError('ログイン情報がありません')
           setLoading(false)
           return
         }
-        
-        console.log('Fetching options from /select/options...')
-        console.log('Request details:', {
-          url: `${API_URL}/select/options?user_id=${userId}`,
-          credentials: 'include',
-          userId: userId
-        })
 
-        const res = await fetch(`${API_URL}/select/options?user_id=${userId}`, {
+        const res = await fetch(`${API_URL}/select/options?user_id=${session.userId}`, {
           credentials: 'include' // クッキーを送信
         })
 
-        console.log('Response status:', res.status, res.statusText)
-
         if (!res.ok) {
           const errorData = await res.json().catch(() => ({}))
-          console.error('Error response:', errorData)
           throw new Error(`Failed to fetch options: ${res.status} - ${errorData.message || res.statusText}`)
         }
-        
+
         const data = await res.json()
-        console.log('Options response:', data)
         
         if (!data.ok) {
           throw new Error(data.message || 'オプション取得エラー')
@@ -79,15 +69,10 @@ const SelectPage: React.FC = () => {
         // 利用可能な学年を設定
         const availableGrades = Object.keys(data.options).sort((a, b) => Number(a) - Number(b))
         setGradeOptions(availableGrades)
-        
-        console.log('Available grades:', availableGrades)
-        
-        // 現在の進捗情報もレスポンスから設定
+
+        // 現在の進捗情報もレスポンスからContextに設定
         if (data.currentProgress) {
-          localStorage.setItem('current_grade', String(data.currentProgress.grade))
-          localStorage.setItem('current_part', String(data.currentProgress.part))
-          localStorage.setItem('current_subpart', String(data.currentProgress.subpart))
-          console.log('Current progress updated from server:', data.currentProgress)
+          updateProgress(data.currentProgress.grade, data.currentProgress.part, data.currentProgress.subpart)
         }
         
       } catch (e) {
@@ -113,18 +98,15 @@ const SelectPage: React.FC = () => {
     if (!allOptions || loading) return
 
     try {
-      const userId = localStorage.getItem('userId')
-      if (!userId) {
+      if (!session?.userId) {
         setError('ログイン情報がありません')
         return
       }
 
-      // ユーザーの現在の進捗を取得（バックエンドから取得済み）
-      const currentGrade = localStorage.getItem('current_grade') || '1'
-      const currentPart = localStorage.getItem('current_part') || '1'
-      const currentSubpart = localStorage.getItem('current_subpart') || '1'
-
-      console.log('Current progress from localStorage:', { currentGrade, currentPart, currentSubpart })
+      // ユーザーの現在の進捗を取得（Contextから取得済み）
+      const currentGrade = session.currentGrade || '1'
+      const currentPart = session.currentPart || '1'
+      const currentSubpart = session.currentSubpart || '1'
 
       // 利用可能な学年を取得（バックエンドは既に進捗以下のデータのみを返している）
       const availableGrades = Object.keys(allOptions).sort((a, b) => Number(a) - Number(b))
@@ -132,9 +114,7 @@ const SelectPage: React.FC = () => {
       // 学年の設定：現在の進捗の学年を選択（バックエンドが制限済み）
       let selectedGrade = currentGrade
       if (!availableGrades.includes(currentGrade)) {
-        // 万が一含まれていない場合は最大の学年を選択
         selectedGrade = availableGrades[availableGrades.length - 1] || '1'
-        console.log(`Grade ${currentGrade} not available, using ${selectedGrade}`)
       }
 
       setGrade(selectedGrade)
@@ -147,9 +127,7 @@ const SelectPage: React.FC = () => {
       // パートの設定：現在の進捗のパートを選択（バックエンドが制限済み）
       let selectedPart = currentPart
       if (selectedGrade === currentGrade && !availableParts.includes(currentPart)) {
-        // 万が一含まれていない場合は最大のパートを選択
         selectedPart = availableParts[availableParts.length - 1] || '1'
-        console.log(`Part ${currentPart} not available, using ${selectedPart}`)
       }
 
       setPart(selectedPart)
@@ -161,23 +139,10 @@ const SelectPage: React.FC = () => {
       // サブパートの設定：現在の進捗のサブパートを選択（バックエンドが制限済み）
       let selectedSubpart = currentSubpart
       if (selectedGrade === currentGrade && selectedPart === currentPart && !availableSubparts.includes(currentSubpart)) {
-        // 万が一含まれていない場合は最大のサブパートを選択
         selectedSubpart = availableSubparts[availableSubparts.length - 1] || '1'
-        console.log(`Subpart ${currentSubpart} not available, using ${selectedSubpart}`)
       }
 
       setSubpart(selectedSubpart)
-
-      console.log('Initial selection set:', {
-        grade: selectedGrade,
-        part: selectedPart,
-        subpart: selectedSubpart
-      })
-      console.log('Available options:', {
-        grades: availableGrades,
-        parts: availableParts,
-        subparts: availableSubparts
-      })
 
     } catch (e) {
       console.error('Error setting initial values:', e)
@@ -187,7 +152,6 @@ const SelectPage: React.FC = () => {
 
   // 学年が変更された時の処理
   const handleGradeChange = (newGrade: string) => {
-    console.log('Grade changed to:', newGrade)
     setGrade(newGrade)
     
     if (!allOptions) return
@@ -205,19 +169,10 @@ const SelectPage: React.FC = () => {
     const availableSubparts = (gradeParts[newPart] || []).map(String).sort((a, b) => Number(a) - Number(b))
     setSubpartOptions(availableSubparts)
     setSubpart(availableSubparts[0] || '1')
-    
-    console.log('Updated selection after grade change:', {
-      grade: newGrade,
-      part: newPart,
-      subpart: availableSubparts[0] || '1',
-      availableParts,
-      availableSubparts
-    })
   }
 
   // パートが変更された時の処理
   const handlePartChange = (newPart: string) => {
-    console.log('Part changed to:', newPart)
     setPart(newPart)
     
     if (!allOptions) return
@@ -232,13 +187,6 @@ const SelectPage: React.FC = () => {
     // サブパートをリセット（最初のサブパートを選択）
     const newSubpart = availableSubparts[0] || '1'
     setSubpart(newSubpart)
-    
-    console.log('Updated selection after part change:', {
-      grade,
-      part: newPart,
-      subpart: newSubpart,
-      availableSubparts
-    })
   }
 
   const onGameStart = async () => {
@@ -254,8 +202,6 @@ const SelectPage: React.FC = () => {
 
     // 組み合わせの検証（オプション）
     try {
-      console.log('Validating selection before game start:', { grade, part, subpart })
-      
       const validateRes = await fetch(
         `${API_URL}/select/validate?grade=${grade}&part=${part}&subpart=${subpart}`,
         { credentials: 'include' }
@@ -273,7 +219,6 @@ const SelectPage: React.FC = () => {
       console.warn('Validation check failed, proceeding anyway:', e)
     }
     
-    console.log('Starting game with:', { grade, part, subpart })
     navigate('/play', { state: { grade, part, subpart } })
   }
 

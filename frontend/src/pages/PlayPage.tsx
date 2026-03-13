@@ -8,6 +8,7 @@ import './PlayPage.css';
 import type { Q, PartInfo, IntermissionSnapshot, GamePhase } from '../types/game';
 import type { SpeechRecognition, SpeechRecognitionEvent, SpeechRecognitionErrorEvent } from '../types/speechRecognition';
 import { CORRECT_TO_CLEAR, MAX_QUESTIONS, TIME_LIMIT, DLY, TTS_VOLUME, FUZZY_MATCH_THRESHOLD } from '../constants/game';
+import { useAuth } from '../hooks/useAuth';
 import { normalize, simLevenshtein, jaccard } from '../utils/textMatch';
 import { playSound, playSoundAwait } from '../utils/sound';
 import { delay } from '../utils/delay';
@@ -18,6 +19,7 @@ import { gameStateReducer, initialGameState } from '../hooks/gameReducer';
 const PlayPage: React.FC = () => {
   const nav = useNavigate();
   const loc = useLocation();
+  const { session, updateProgress } = useAuth();
   const { grade, part, subpart } =
     (loc.state as { grade?: string; part?: string; subpart?: string } | null) ||
     { grade: undefined, part: undefined, subpart: undefined };
@@ -216,9 +218,9 @@ const PlayPage: React.FC = () => {
       try {
         setLoading(true);
         setError(null);
-        const g = grade ?? localStorage.getItem('current_grade') ?? '1';
-        const p = part ?? localStorage.getItem('current_part') ?? '1';
-        const s = subpart ?? localStorage.getItem('current_subpart') ?? '1';
+        const g = grade ?? session?.currentGrade ?? '1';
+        const p = part ?? session?.currentPart ?? '1';
+        const s = subpart ?? session?.currentSubpart ?? '1';
 
         const r1 = await fetch(`${API_URL}/game/part?grade=${g}&part=${p}&subpart=${s}`, {
           credentials: 'include'
@@ -644,7 +646,7 @@ const PlayPage: React.FC = () => {
     const finalCorrect = realCorrectRef.current;
     const clear = finalCorrect >= CORRECT_TO_CLEAR;
 
-    const userId = localStorage.getItem('userId') || '';
+    const userId = session?.userId || '';
     const part_id = questionsRef.current[0]?.part_id || partInfo?.part_id || '';
 
     try {
@@ -667,9 +669,9 @@ const PlayPage: React.FC = () => {
 
       // クリアした場合のみ進捗を更新
       if (clear) {
-        const currentGrade = grade ?? localStorage.getItem('current_grade') ?? '1';
-        const currentPart = part ?? localStorage.getItem('current_part') ?? '1';
-        const currentSubpart = subpart ?? localStorage.getItem('current_subpart') ?? '1';
+        const currentGrade = grade ?? session?.currentGrade ?? '1';
+        const currentPart = part ?? session?.currentPart ?? '1';
+        const currentSubpart = subpart ?? session?.currentSubpart ?? '1';
 
         const advanceResponse = await fetch(`${API_URL}/game/advance`, {
           method: 'POST',
@@ -690,9 +692,7 @@ const PlayPage: React.FC = () => {
         const advanceData = await advanceResponse.json();
 
         if (advanceData.ok && advanceData.advanced && advanceData.next) {
-          localStorage.setItem('current_grade', String(advanceData.next.grade_id));
-          localStorage.setItem('current_part', String(advanceData.next.part_no));
-          localStorage.setItem('current_subpart', String(advanceData.next.subpart_no));
+          updateProgress(advanceData.next.grade_id, advanceData.next.part_no, advanceData.next.subpart_no);
         }
       }
     } catch (err) {
@@ -712,7 +712,7 @@ const PlayPage: React.FC = () => {
     }
 
     nav('/result', { state: { clear, correct: finalCorrect, total: nonDemoCount } });
-  }, [partInfo, grade, part, subpart, nav]);
+  }, [partInfo, grade, part, subpart, nav, session, updateProgress]);
 
   // ---------------------- Start Button ----------------------
   const handleStartClick = useCallback(() => {
