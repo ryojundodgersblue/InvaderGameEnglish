@@ -1,18 +1,16 @@
 // backend/src/routes/ranking.js
 const express = require('express');
 const router = express.Router();
-const { getSheetsClient, SPREADSHEET_ID } = require('../services/google');
 const { optionalAuth } = require('../middleware/auth');
 const { getCache, setCache, getRankingKey, getSheetsKey, DEFAULT_TTL } = require('../services/redis');
-
-const USERS_SHEET  = 'users';
-const SCORES_SHEET = 'scores';
+const {
+  SHEET_NAMES, RANKING_TOP_N,
+  ensureSheetId, fetchSheet,
+} = require('../utils/sheets');
 
 const nowMonthKey = () => {
   const d = new Date();
-  const y = d.getFullYear();
-  const m = String(d.getMonth() + 1).padStart(2, '0');
-  return `${y}/${m}`; // 例 "2025/08"
+  return `${d.getFullYear()}/${String(d.getMonth() + 1).padStart(2, '0')}`;
 };
 
 const toMonthKey = (v) => {
@@ -20,14 +18,11 @@ const toMonthKey = (v) => {
   if (!s) return '';
   const parts = s.split(/[\/\-\.]/);
   if (parts.length >= 2) {
-    const y = parts[0];
-    const m = String(parts[1]).padStart(2, '0');
-    return `${y}/${m}`;
+    return `${parts[0]}/${String(parts[1]).padStart(2, '0')}`;
   }
   return '';
 };
 
-// ヘッダ配列から大小無視・前後空白無視で列位置を取る
 function idxOf(header, name) {
   const target = String(name).trim().toLowerCase();
   return header.findIndex(h => String(h ?? '').trim().toLowerCase() === target);
@@ -35,37 +30,21 @@ function idxOf(header, name) {
 
 router.get('/', optionalAuth, async (_req, res) => {
   try {
-    if (!SPREADSHEET_ID) {
-      return res.status(500).json({ ok: false, message: 'SHEET_ID が未設定です' });
-    }
-
+    ensureSheetId();
     const mk = nowMonthKey();
 
-    // Redisキャッシュをチェック（60秒）
+    // Redisキャッシュ
     const rankingCacheKey = getRankingKey(mk);
     const cachedRanking = await getCache(rankingCacheKey);
+    if (cachedRanking) return res.json(cachedRanking);
 
-    if (cachedRanking) {
-      console.log('[ranking] Cache hit for month:', mk);
-      return res.json(cachedRanking);
-    }
-
-    const sheets = await getSheetsClient(true);
-
-    // ===== users 読み込み（user_id と nickname だけ使う）=====
-    const usersCacheKey = getSheetsKey(USERS_SHEET, 'all');
-    let usersMap = await getCache(usersCacheKey); // user_id -> nickname
+    // ===== users =====
+    const usersCacheKey = getSheetsKey(SHEET_NAMES.USERS, 'all');
+    let usersMap = await getCache(usersCacheKey);
 
     if (!usersMap) {
-      const uResp = await sheets.spreadsheets.values.get({
-        spreadsheetId: SPREADSHEET_ID,
-        range: `${USERS_SHEET}!A1:K`, // 幅広く取得（id〜updated_at まで想定）
-        valueRenderOption: 'FORMATTED_VALUE',
-        dateTimeRenderOption: 'FORMATTED_STRING',
-      });
-      const uRows = uResp.data.values || [];
+      const uRows = await fetchSheet(SHEET_NAMES.USERS, 'A1:K');
       if (uRows.length < 2) {
-        console.error('[ranking] users: rows < 2');
         return res.json({ month: mk, items: { challenge: [], accuracy: [] } });
       }
 
@@ -74,8 +53,7 @@ router.get('/', optionalAuth, async (_req, res) => {
       const idxNick = idxOf(uHeader, 'nickname');
 
       if (idxUserId < 0 || idxNick < 0) {
-        console.error('[ranking] users header not found', { uHeader });
-        return res.json({ month: mk, items: { challenge: [], accuracy: [] } });
+        return res.status(500).json({ ok: false, message: 'users ヘッダ不一致' });
       }
 
       usersMap = new Map();
@@ -85,24 +63,13 @@ router.get('/', optionalAuth, async (_req, res) => {
         if (userId) usersMap.set(userId, nick || userId);
       }
 
-      // MapをRedisに保存するために、オブジェクトに変換
-      const usersMapObject = Object.fromEntries(usersMap);
-      await setCache(usersCacheKey, usersMapObject, DEFAULT_TTL.SHEETS_DATA);
-      console.log('[ranking] Users data cached');
+      await setCache(usersCacheKey, Object.fromEntries(usersMap), DEFAULT_TTL.SHEETS_DATA);
     } else {
-      // キャッシュから取得した場合、Mapに変換
       usersMap = new Map(Object.entries(usersMap));
-      console.log('[ranking] Users data from cache');
     }
 
-    // ===== scores 読み込み（当月抽出）=====
-    const sResp = await sheets.spreadsheets.values.get({
-      spreadsheetId: SPREADSHEET_ID,
-      range: `${SCORES_SHEET}!A1:Z`, // 念のため広めに取得
-      valueRenderOption: 'FORMATTED_VALUE',
-      dateTimeRenderOption: 'FORMATTED_STRING',
-    });
-    const sRows = sResp.data.values || [];
+    // ===== scores =====
+    const sRows = await fetchSheet(SHEET_NAMES.SCORES, 'A1:F');
     if (sRows.length < 2) {
       return res.json({ month: mk, items: { challenge: [], accuracy: [] } });
     }
@@ -111,16 +78,15 @@ router.get('/', optionalAuth, async (_req, res) => {
     const idxUser = idxOf(sHeader, 'user_id');
     const idxScore = idxOf(sHeader, 'scores');
     let idxDate = idxOf(sHeader, 'play_date');
-    if (idxDate < 0) idxDate = idxOf(sHeader, 'play date'); // 表記ゆれ吸収
+    if (idxDate < 0) idxDate = idxOf(sHeader, 'play date');
 
     if (idxUser < 0 || idxScore < 0 || idxDate < 0) {
-      console.error('[ranking] scores header not found', { sHeader });
-      return res.json({ month: mk, items: { challenge: [], accuracy: [] } });
+      return res.status(500).json({ ok: false, message: 'scores ヘッダ不一致' });
     }
 
     const monthRows = sRows.slice(1).filter(r => toMonthKey(r[idxDate]) === mk);
 
-    // ① 挑戦回数（多い順）
+    // ① 挑戦回数
     const countByUser = new Map();
     for (const r of monthRows) {
       const uid = String(r[idxUser] ?? '').trim();
@@ -129,15 +95,11 @@ router.get('/', optionalAuth, async (_req, res) => {
     }
     const challenge = [...countByUser.entries()]
       .map(([uid, cnt]) => ({ userId: uid, name: usersMap.get(uid) || uid, _cnt: cnt }))
-      .sort((a, b) =>
-        b._cnt - a._cnt ||
-        (a.name || '').localeCompare(b.name || '') ||
-        a.userId.localeCompare(b.userId)
-      )
-      .slice(0, 3)
+      .sort((a, b) => b._cnt - a._cnt || (a.name || '').localeCompare(b.name || ''))
+      .slice(0, RANKING_TOP_N)
       .map(({ userId, name }) => ({ userId, name }));
 
-    // ② 正答率（平均 scores の高い順）
+    // ② 正答率
     const sum = new Map();
     const cnt = new Map();
     for (const r of monthRows) {
@@ -150,28 +112,18 @@ router.get('/', optionalAuth, async (_req, res) => {
     const accuracy = [...sum.entries()]
       .map(([uid, total]) => {
         const plays = cnt.get(uid) || 1;
-        const avg   = total / plays;
-        return { userId: uid, name: usersMap.get(uid) || uid, _avg: avg, _plays: plays };
+        return { userId: uid, name: usersMap.get(uid) || uid, _avg: total / plays, _plays: plays };
       })
-      .sort((a, b) =>
-        b._avg - a._avg ||
-        b._plays - a._plays ||
-        (a.name || '').localeCompare(b.name || '') ||
-        a.userId.localeCompare(b.userId)
-      )
-      .slice(0, 3)
+      .sort((a, b) => b._avg - a._avg || b._plays - a._plays || (a.name || '').localeCompare(b.name || ''))
+      .slice(0, RANKING_TOP_N)
       .map(({ userId, name }) => ({ userId, name }));
 
     const payload = { month: mk, items: { challenge, accuracy } };
-
-    // Redisキャッシュに保存（60秒）
     await setCache(rankingCacheKey, payload, DEFAULT_TTL.RANKING_DATA);
-    console.log('[ranking] Ranking data cached for month:', mk);
-
     res.json(payload);
   } catch (e) {
     console.error('[ranking] error:', e);
-    res.status(500).json({ ok: false, message: 'ランキング取得でエラーが発生しました' });
+    res.status(e.statusCode || 500).json({ ok: false, message: 'ランキング取得でエラーが発生しました' });
   }
 });
 
