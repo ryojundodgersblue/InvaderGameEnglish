@@ -3,6 +3,7 @@ import React from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import Button from '../components/Button';
 import { useAuth } from '../hooks/useAuth';
+import { CORRECT_TO_CLEAR } from '../constants/game';
 import '../App.css';
 
 const ResultPage: React.FC = () => {
@@ -63,7 +64,7 @@ const ResultPage: React.FC = () => {
           <div style={{ fontSize: 18, color: '#94a3b8', marginBottom: 30 }}>次のステージが解放されました！</div>
         ) : (
           <div style={{ fontSize: 18, color: '#94a3b8', marginBottom: 30 }}>
-            {total > 0 && Math.max(0, 10 - correct) > 0 && <>あと {Math.max(0, 10 - correct)} 問正解でクリア！</>}
+            {total > 0 && Math.max(0, CORRECT_TO_CLEAR - correct) > 0 && <>あと {Math.max(0, CORRECT_TO_CLEAR - correct)} 問正解でクリア！</>}
           </div>
         )}
 

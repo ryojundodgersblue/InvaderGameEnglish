@@ -120,6 +120,7 @@ export async function synthesizeSpeech(text: string): Promise<Response> {
   return fetch(`${API_URL}/api/tts/synthesize`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
+    credentials: 'include',
     body: JSON.stringify({
       text,
       languageCode: 'en-US',
