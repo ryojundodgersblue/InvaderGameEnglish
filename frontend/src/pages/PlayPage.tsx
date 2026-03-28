@@ -87,6 +87,7 @@ const PlayPage: React.FC = () => {
     if (isProcessingRef.current) return;
     isProcessingRef.current = true;
 
+    stopTimer();
     forceStopRecognition();
     originalVolumeRef.current = TTS_VOLUME;
 
@@ -112,6 +113,8 @@ const PlayPage: React.FC = () => {
       startIntermissionThenNext();
     } catch (e) {
       if (!(e instanceof DOMException && e.name === 'AbortError')) throw e;
+    } finally {
+      updateActivity();
     }
   }, []);
 
@@ -144,16 +147,20 @@ const PlayPage: React.FC = () => {
     }
   }, []);
 
+  const [frozen, setFrozen] = useState(false);
+
   // ---------------------- Freeze Detection ----------------------
   const startFreezeDetection = useCallback(() => {
     lastActivityRef.current = Date.now();
+    setFrozen(false);
     if (freezeDetectionTimerRef.current) {
       window.clearInterval(freezeDetectionTimerRef.current);
     }
     freezeDetectionTimerRef.current = window.setInterval(() => {
       const timeSinceActivity = Date.now() - lastActivityRef.current;
-      if (timeSinceActivity > 30000) {
+      if (timeSinceActivity > 30000 && statusRef.current !== 'finished' && statusRef.current !== 'idle') {
         console.error('[Freeze] Game appears to be frozen - no activity for 30 seconds');
+        setFrozen(true);
         if (freezeDetectionTimerRef.current) {
           window.clearInterval(freezeDetectionTimerRef.current);
           freezeDetectionTimerRef.current = null;
@@ -714,6 +721,31 @@ const PlayPage: React.FC = () => {
     nav('/result', { state: { clear, correct: finalCorrect, total: nonDemoCount } });
   }, [partInfo, grade, part, subpart, nav, session, updateProgress]);
 
+  // ---------------------- Freeze Recovery ----------------------
+  const handleFreezeRecovery = useCallback(() => {
+    setFrozen(false);
+    stopCurrentAudio();
+    forceStopRecognition();
+    stopTimer();
+
+    if (abortControllerRef.current) abortControllerRef.current.abort();
+
+    isProcessingRef.current = false;
+    updateActivity();
+
+    const next = idxRef.current + 1;
+    if (next >= questionsRef.current.length) {
+      dispatchAndSync({ type: 'FINISH_GAME' }, 'finished');
+      finishGame();
+    } else {
+      setIdx(next);
+      idxRef.current = next;
+      setShowText(false);
+      dispatchAndSync({ type: 'RESET_TO_IDLE' }, 'idle');
+      setTimeout(() => startQuestionForIndex(next), DLY.beforeNextQuestion);
+    }
+  }, [stopCurrentAudio, forceStopRecognition, stopTimer, updateActivity, dispatchAndSync, startQuestionForIndex, finishGame]);
+
   // ---------------------- Start Button ----------------------
   const handleStartClick = useCallback(() => {
     setShowRequirement(false);
@@ -892,6 +924,24 @@ const PlayPage: React.FC = () => {
             </div>
           )}
         </>
+      )}
+
+      {frozen && (
+        <div style={{
+          position: 'fixed', bottom: 30, left: '50%', transform: 'translateX(-50%)', zIndex: 1000,
+        }}>
+          <button
+            onClick={handleFreezeRecovery}
+            style={{
+              padding: '12px 32px', fontSize: 18, fontWeight: 'bold',
+              color: '#fff', background: '#e74c3c', border: 'none', borderRadius: 8,
+              cursor: 'pointer', boxShadow: '0 4px 12px rgba(0,0,0,0.3)',
+              animation: 'pulse 1.5s infinite',
+            }}
+          >
+            SKIP to Next Question
+          </button>
+        </div>
       )}
     </div>
   );

@@ -1,10 +1,10 @@
 import React, { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import TextBox from '../components/TextBox'
-import Button from '../components/Button'
 import { useAuth } from '../hooks/useAuth'
 import { API_URL } from '../config'
 import '../App.css'
+import '../components/Button.css'
 import './LoginPage.css'
 
 interface LoginResponse {
@@ -23,11 +23,14 @@ const LoginPage: React.FC = () => {
   const [userId, setUserId] = useState('')
   const [password, setPass] = useState('')
   const [error, setError] = useState<string | null>(null)
+  const [loading, setLoading] = useState(false)
   const navigate = useNavigate()
   const { login } = useAuth()
 
   const onLogin = async () => {
+    if (loading) return
     setError(null)
+    setLoading(true)
     try {
       const res = await fetch(`${API_URL}/auth/login`, {
         method: 'POST',
@@ -62,6 +65,8 @@ const LoginPage: React.FC = () => {
       }
     } catch (err) {
       setError(err instanceof Error ? err.message : String(err))
+    } finally {
+      setLoading(false)
     }
   }
 
@@ -78,7 +83,13 @@ const LoginPage: React.FC = () => {
           <label>Password</label>
           <TextBox type="password" value={password} onChange={setPass} placeholder="••••••••" />
         </div>
-        <Button onClick={onLogin}>LOGIN</Button>
+        <button
+          className={`btn login-btn ${loading ? 'login-btn-loading' : ''}`}
+          onClick={onLogin}
+          disabled={loading}
+        >
+          {loading ? 'Logging in...' : 'LOGIN'}
+        </button>
       </div>
     </div>
   )
