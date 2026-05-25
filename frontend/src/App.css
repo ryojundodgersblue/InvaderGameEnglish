@@ -34,3 +34,44 @@
   width: 100px;
   text-align: left;
 }
+
+/* iPhone 横画面 */
+@media (orientation: landscape) and (max-height: 500px) {
+  .page {
+    padding: 8px;
+    min-height: 100dvh;
+  }
+  .title {
+    font-size: 24px;
+    margin-bottom: 14px;
+  }
+  .login-box {
+    width: auto;
+    max-width: 92vw;
+    padding: 14px 18px;
+    border-radius: 8px;
+  }
+  .field {
+    margin-bottom: 10px;
+  }
+  .field label {
+    font-size: 14px;
+    width: 80px;
+  }
+  .btn {
+    margin: 8px 0 0;
+    padding: 8px 0;
+    font-size: 15px;
+  }
+  .textbox,
+  .dropdown {
+    font-size: 14px;
+    padding: 6px 10px;
+  }
+  .textbox {
+    width: 160px;
+  }
+  .dropdown {
+    min-width: 60px;
+  }
+}

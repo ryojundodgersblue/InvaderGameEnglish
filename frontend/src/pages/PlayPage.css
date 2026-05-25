@@ -3,7 +3,7 @@
 /* メインコンテナ */
 .play-page {
   position: relative;
-  min-height: 100vh;
+  min-height: 100dvh;
   width: 100%;
   overflow: hidden;
 }
@@ -469,5 +469,152 @@
   .gun-button {
     width: 128px;
     height: 128px;
+  }
+}
+
+/* iPhone 横画面（iPad は max-height: 500px を超えるため非対象） */
+@media (orientation: landscape) and (max-height: 500px) {
+  .selection-info-container {
+    top: 6px;
+    left: 6px;
+    padding: 6px 8px;
+    gap: 2px;
+    border-radius: 8px;
+  }
+  .selection-info-item {
+    font-size: 11px;
+    gap: 4px;
+  }
+  .selection-info-label {
+    min-width: 42px;
+  }
+
+  .mic-status-container {
+    top: 6px;
+    right: 6px;
+    gap: 4px;
+  }
+  .mic-status-badge {
+    padding: 6px 10px;
+    border-radius: 14px;
+    font-size: 12px;
+  }
+  .mic-icon {
+    font-size: 14px;
+  }
+  .mic-text {
+    font-size: 11px;
+  }
+  .mic-heard-text {
+    font-size: 11px;
+    padding: 5px 8px;
+    max-width: 180px;
+  }
+
+  .question-number-container {
+    top: 50%;
+    left: 12px;
+    transform: translateY(-50%);
+  }
+  .question-number-display {
+    width: 44px;
+    height: 44px;
+    font-size: 16px;
+  }
+
+  .timer-container {
+    top: 50%;
+    left: 12px;
+    transform: translateY(52px);
+  }
+  .timer-display {
+    width: 44px;
+    height: 44px;
+    font-size: 14px;
+  }
+
+  .enemy-container {
+    top: 8px;
+  }
+  .enemy-img {
+    width: 110px;
+  }
+
+  .requirement-box {
+    padding: 16px;
+    max-width: 92vw;
+    width: auto;
+    border-radius: 12px;
+  }
+  .requirement-title {
+    font-size: 18px;
+    margin-bottom: 8px;
+  }
+  .requirement-text {
+    font-size: 16px;
+    line-height: 1.4;
+    margin-bottom: 12px;
+  }
+
+  .banner-text {
+    font-size: 32px;
+  }
+
+  .question-text {
+    top: 130px;
+    width: 70%;
+    font-size: 28px;
+    min-height: 0;
+  }
+
+  .question-image-container {
+    right: 12px;
+  }
+  .question-image {
+    max-width: 120px;
+    max-height: 100px;
+    border-radius: 8px;
+  }
+
+  .beam-effect {
+    bottom: 80px;
+    height: 180px;
+  }
+  @keyframes beamShoot {
+    0% { height: 0; opacity: 0; }
+    50% { height: 180px; opacity: 1; }
+    100% { height: 180px; opacity: 0; }
+  }
+
+  .gun-button-container {
+    bottom: 8px;
+  }
+  .gun-button {
+    width: 88px;
+    height: 88px;
+  }
+
+  .answer-display {
+    bottom: 110px;
+    width: 70%;
+    max-width: 70vw;
+  }
+  .answer-display.correct-answer {
+    padding: 8px 12px;
+    border-radius: 10px;
+  }
+  .answer-badge {
+    font-size: 11px;
+    margin-bottom: 4px;
+    letter-spacing: 0.5px;
+  }
+  .answer-content {
+    gap: 8px;
+  }
+  .answer-mark {
+    font-size: 18px;
+  }
+  .answer-text {
+    font-size: 26px;
   }
 }

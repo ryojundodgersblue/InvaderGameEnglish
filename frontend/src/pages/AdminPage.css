@@ -1,5 +1,5 @@
 .admin-page {
-  min-height: 100vh;
+  min-height: 100dvh;
   padding: 40px 20px;
   background: linear-gradient(135deg, #005A9C 0%, #4A90E2 100%);
   color: white;
@@ -303,5 +303,74 @@
 
   .failure-stats-section {
     max-width: 100%;
+  }
+}
+
+/* iPhone 横画面 */
+@media (orientation: landscape) and (max-height: 500px) {
+  .admin-page {
+    padding: 12px 12px;
+  }
+  .admin-title {
+    font-size: 1.4rem;
+    margin-bottom: 14px;
+  }
+  .admin-section {
+    padding: 12px;
+    margin-bottom: 14px;
+    border-radius: 10px;
+  }
+  .section-title {
+    font-size: 1.1rem;
+    margin-bottom: 10px;
+    padding-bottom: 6px;
+  }
+  .register-form {
+    gap: 10px;
+  }
+  .form-row {
+    flex-direction: row;
+    gap: 8px;
+  }
+  .field label {
+    font-size: 0.85rem;
+  }
+  .register-result {
+    padding: 10px;
+    margin-top: 10px;
+  }
+  .result-title {
+    font-size: 1rem;
+    margin-bottom: 8px;
+  }
+  .result-item {
+    font-size: 0.9rem;
+    margin: 4px 0;
+  }
+  .users-table,
+  .failure-stats-table {
+    font-size: 0.8rem;
+  }
+  .users-table th,
+  .users-table td,
+  .failure-stats-table th,
+  .failure-stats-table td {
+    padding: 6px 8px;
+  }
+  .edit-input {
+    width: 56px;
+    padding: 4px 6px;
+    font-size: 0.85rem;
+  }
+  .edit-btn,
+  .save-btn,
+  .cancel-btn {
+    padding: 4px 8px;
+    font-size: 0.75rem;
+  }
+  .message {
+    padding: 8px 12px;
+    margin-bottom: 10px;
+    font-size: 0.9rem;
   }
 }

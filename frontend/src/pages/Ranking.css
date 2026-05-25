@@ -6,7 +6,7 @@
   flex-direction: column;
   align-items: center;
   justify-content: flex-start; /* 上から順に配置 */
-  min-height: 100vh;
+  min-height: 100dvh;
   padding: 20px 20px; /* 上余白を減らした */
   position: relative;
 }
@@ -173,4 +173,52 @@
 .rank-row:nth-child(3) .rank-val {
   color: #cd7f32;
   opacity: 1;
+}
+
+/* iPhone 横画面 */
+@media (orientation: landscape) and (max-height: 500px) {
+  .ranking-page {
+    padding: 8px 12px;
+  }
+  .ranking-back {
+    top: 6px;
+    right: 6px;
+  }
+  .rank-heading {
+    font-size: 18px;
+    margin: 4px 0 6px;
+  }
+  .correct-month {
+    font-size: 14px;
+    margin-bottom: 8px;
+  }
+  .rank-grid {
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 12px;
+    width: min(1000px, 96vw);
+  }
+  .rank-list {
+    gap: 4px;
+  }
+  .rank-row {
+    grid-template-columns: 40px 1fr auto;
+    gap: 8px;
+    padding: 2px 0;
+  }
+  .rank-no {
+    font-size: 13px;
+  }
+  .rank-name {
+    font-size: 13px;
+    padding: 4px 8px;
+    min-width: 90px;
+  }
+  .rank-val {
+    font-size: 13px;
+    min-width: 32px;
+  }
+  .rank-row:first-child .rank-no,
+  .rank-row:first-child .rank-val {
+    font-size: 14px;
+  }
 }

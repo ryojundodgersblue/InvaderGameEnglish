@@ -42,7 +42,7 @@ const ResultPage: React.FC = () => {
   };
 
   return (
-    <div className="page" style={{ textAlign: 'center', display: 'flex', flexDirection: 'column', justifyContent: 'center', minHeight: '100vh' }}>
+    <div className="page" style={{ textAlign: 'center', display: 'flex', flexDirection: 'column', justifyContent: 'center', minHeight: '100dvh' }}>
       <div style={{ maxWidth: 500, margin: '0 auto', width: '100%' }}>
         <h1 className="title" style={{ fontSize: 48, marginBottom: 20 }}>
           {getMessage()}

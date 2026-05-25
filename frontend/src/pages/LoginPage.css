@@ -18,3 +18,10 @@
   opacity: 0.7;
   cursor: wait !important;
 }
+
+/* iPhone 横画面 */
+@media (orientation: landscape) and (max-height: 500px) {
+  .login-page {
+    padding: 8px;
+  }
+}
