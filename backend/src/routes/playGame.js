@@ -6,12 +6,11 @@ const { validateQuery, validateBody } = require('../middleware/validation');
 const { getCache, setCache, getSheetsKey, DEFAULT_TTL } = require('../services/redis');
 const { createLogger } = require('../utils/logger');
 const {
-  SHEET_NAMES, HEADERS, USER_COL,
+  SHEET_NAMES, HEADERS, USER_COL, SHEET_RANGES,
   MAX_QUESTIONS, REQUIRED_ATTEMPTS,
-  ensureSheetId, validateHeader, fetchSheet, fetchSheetWithValidation,
-  findUserRow, toBool, nowTimestamp,
-  getSheetsClient, SPREADSHEET_ID,
+  findUserRow, toBool, headerIndexMap,
 } = require('../utils/sheets');
+const ds = require('../dataSources');
 
 const log = createLogger('game');
 
@@ -28,7 +27,7 @@ router.get('/part',
   async (req, res) => {
   const route = 'GET /part';
   try {
-    ensureSheetId();
+    ds.ensureReady();
     const { grade, part, subpart } = req.query;
 
     // Redisキャッシュ
@@ -36,8 +35,8 @@ router.get('/part',
     const cachedData = await getCache(cacheKey);
     if (cachedData) return res.json(cachedData);
 
-    const rows = await fetchSheetWithValidation(
-      SHEET_NAMES.PARTS, 'A1:E', HEADERS.PARTS,
+    const rows = await ds.fetchSheetWithValidation(
+      SHEET_NAMES.PARTS, SHEET_RANGES.PARTS, HEADERS.PARTS,
       { valueRenderOption: 'UNFORMATTED_VALUE' }
     );
 
@@ -70,7 +69,7 @@ router.get('/questions',
   async (req, res) => {
   const route = 'GET /questions';
   try {
-    ensureSheetId();
+    ds.ensureReady();
     const { part_id } = req.query;
 
     const cacheKey = getSheetsKey(SHEET_NAMES.QUESTIONS, part_id);
@@ -78,8 +77,8 @@ router.get('/questions',
     if (cachedData) return res.json(cachedData);
 
     // 問題
-    const qRows = await fetchSheetWithValidation(
-      SHEET_NAMES.QUESTIONS, 'A1:F', HEADERS.QUESTIONS,
+    const qRows = await ds.fetchSheetWithValidation(
+      SHEET_NAMES.QUESTIONS, SHEET_RANGES.QUESTIONS, HEADERS.QUESTIONS,
       { valueRenderOption: 'UNFORMATTED_VALUE' }
     );
 
@@ -100,8 +99,8 @@ router.get('/questions',
     }
 
     // 解答
-    const aRows = await fetchSheetWithValidation(
-      SHEET_NAMES.ANSWERS, 'A1:C', HEADERS.ANSWERS,
+    const aRows = await ds.fetchSheetWithValidation(
+      SHEET_NAMES.ANSWERS, SHEET_RANGES.ANSWERS, HEADERS.ANSWERS,
       { valueRenderOption: 'UNFORMATTED_VALUE' }
     );
 
@@ -141,7 +140,7 @@ router.post('/score',
   async (req, res) => {
   const route = 'POST /score';
   try {
-    ensureSheetId();
+    ds.ensureReady();
     const { userId, part_id, scores, clear } = req.body || {};
 
     if (req.user.userId !== userId) {
@@ -151,30 +150,17 @@ router.post('/score',
     const scoreValue = Number(scores);
     const clearValue = toBool(clear);
 
-    const sRows = await fetchSheetWithValidation(
-      SHEET_NAMES.SCORES, 'A1:F', HEADERS.SCORES
-    );
-
-    let nextId = 1;
-    if (sRows.length >= 2) {
-      const ids = sRows.slice(1).map(r => Number(r[0] || 0)).filter(n => Number.isFinite(n));
-      if (ids.length) nextId = Math.max(...ids) + 1;
-    }
-
-    const row = [String(nextId), String(userId), String(part_id), scoreValue, clearValue, nowTimestamp()];
-
-    const sheets = await getSheetsClient(false);
-    await sheets.spreadsheets.values.append({
-      spreadsheetId: SPREADSHEET_ID,
-      range: `${SHEET_NAMES.SCORES}!A:F`,
-      valueInputOption: 'USER_ENTERED',
-      requestBody: { values: [row] },
+    const saved = await ds.appendScore({
+      user_id: userId,
+      part_id,
+      scores: scoreValue,
+      clear: clearValue,
     });
 
     res.json({
       ok: true,
-      score_id: nextId,
-      saved: { userId, part_id, scores: scoreValue, clear: clearValue, play_date: row[5] }
+      score_id: saved.score_id,
+      saved: { userId, part_id, scores: scoreValue, clear: clearValue, play_date: saved.play_date }
     });
   } catch (e) {
     log.error(route, 'Error', { message: e.message });
@@ -196,7 +182,7 @@ router.post('/advance',
   async (req, res) => {
   const route = 'POST /advance';
   try {
-    ensureSheetId();
+    ds.ensureReady();
     const { userId, current, part_id, clear } = req.body || {};
 
     if (req.user.userId !== userId) {
@@ -208,10 +194,10 @@ router.post('/advance',
     }
 
     // 1) attempts をカウント
-    const sRows = await fetchSheet(SHEET_NAMES.SCORES, 'A1:F');
-    const sHeader = (sRows[0] || []).map(v => String(v ?? '').trim().toLowerCase());
-    const idxUser = sHeader.indexOf('user_id');
-    const idxPart = sHeader.indexOf('part_id');
+    const sRows = await ds.fetchSheet(SHEET_NAMES.SCORES, SHEET_RANGES.SCORES);
+    const sHeader = headerIndexMap(sRows[0] || []);
+    const idxUser = sHeader.get('user_id') ?? -1;
+    const idxPart = sHeader.get('part_id') ?? -1;
     if (idxUser < 0 || idxPart < 0) {
       return res.status(500).json({ ok: false, message: 'scores ヘッダ不一致' });
     }
@@ -232,15 +218,15 @@ router.post('/advance',
     }
 
     // 2) users 読み込み
-    const uRows = await fetchSheetWithValidation(
-      SHEET_NAMES.USERS, 'A1:K', HEADERS.USERS
+    const uRows = await ds.fetchSheetWithValidation(
+      SHEET_NAMES.USERS, SHEET_RANGES.USERS, HEADERS.USERS
     );
 
     const found = findUserRow(uRows.slice(1), userId);
     if (!found) {
       return res.status(404).json({ ok: false, message: 'ユーザーが見つかりません' });
     }
-    const { row, absRow } = found;
+    const { row } = found;
     const cg = String(row[USER_COL.current_grade] ?? '');
     const cp = String(row[USER_COL.current_part] ?? '');
     const cs = String(row[USER_COL.current_subpart] ?? '');
@@ -257,8 +243,8 @@ router.post('/advance',
     }
 
     // 3) parts から次を決定
-    const pRows = await fetchSheetWithValidation(
-      SHEET_NAMES.PARTS, 'A1:E', HEADERS.PARTS,
+    const pRows = await ds.fetchSheetWithValidation(
+      SHEET_NAMES.PARTS, SHEET_RANGES.PARTS, HEADERS.PARTS,
       { valueRenderOption: 'UNFORMATTED_VALUE' }
     );
 
@@ -287,18 +273,10 @@ router.post('/advance',
     const next = parts[curIdx + 1];
 
     // 4) users を更新
-    const sheetsWrite = await getSheetsClient(false);
-    await sheetsWrite.spreadsheets.values.update({
-      spreadsheetId: SPREADSHEET_ID,
-      range: `${SHEET_NAMES.USERS}!F${absRow}:H${absRow}`,
-      valueInputOption: 'USER_ENTERED',
-      requestBody: { values: [[next.grade_id, next.part_no, next.subpart_no]] },
-    });
-    await sheetsWrite.spreadsheets.values.update({
-      spreadsheetId: SPREADSHEET_ID,
-      range: `${SHEET_NAMES.USERS}!K${absRow}:K${absRow}`,
-      valueInputOption: 'RAW',
-      requestBody: { values: [[nowTimestamp()]] },
+    await ds.updateUserProgress(userId, {
+      current_grade: next.grade_id,
+      current_part: next.part_no,
+      current_subpart: next.subpart_no,
     });
 
     res.json({

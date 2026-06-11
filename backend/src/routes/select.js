@@ -5,9 +5,9 @@ const { authenticateToken } = require('../middleware/auth');
 const { validateQuery } = require('../middleware/validation');
 const { createLogger } = require('../utils/logger');
 const {
-  SHEET_NAMES, HEADERS, USER_COL,
-  ensureSheetId, fetchSheet, fetchSheetWithValidation,
+  SHEET_NAMES, HEADERS, USER_COL, SHEET_RANGES,
 } = require('../utils/sheets');
+const ds = require('../dataSources');
 
 const log = createLogger('select');
 
@@ -20,7 +20,7 @@ router.get('/options',
   async (req, res) => {
   const route = 'GET /options';
   try {
-    ensureSheetId();
+    ds.ensureReady();
     const { user_id } = req.query;
 
     if (req.user.userId !== user_id) {
@@ -28,7 +28,7 @@ router.get('/options',
     }
 
     // 1. usersシートからユーザーの進捗を取得
-    const userRows = await fetchSheet(SHEET_NAMES.USERS, 'A:K');
+    const userRows = await ds.fetchSheet(SHEET_NAMES.USERS, SHEET_RANGES.USERS);
     const userData = userRows.slice(1).find(row => String(row[USER_COL.user_id]) === String(user_id));
 
     if (!userData) {
@@ -40,8 +40,8 @@ router.get('/options',
     const currentSubpart = Number(userData[USER_COL.current_subpart] ?? 0);
 
     // 2. partsシートからデータを取得
-    const rows = await fetchSheetWithValidation(
-      SHEET_NAMES.PARTS, 'A1:E', HEADERS.PARTS,
+    const rows = await ds.fetchSheetWithValidation(
+      SHEET_NAMES.PARTS, SHEET_RANGES.PARTS, HEADERS.PARTS,
       { valueRenderOption: 'UNFORMATTED_VALUE' }
     );
 
@@ -108,10 +108,10 @@ router.get('/validate',
   async (req, res) => {
   const route = 'GET /validate';
   try {
-    ensureSheetId();
+    ds.ensureReady();
     const { grade, part, subpart } = req.query;
 
-    const rows = await fetchSheet(SHEET_NAMES.PARTS, 'A1:E', { valueRenderOption: 'UNFORMATTED_VALUE' });
+    const rows = await ds.fetchSheet(SHEET_NAMES.PARTS, SHEET_RANGES.PARTS, { valueRenderOption: 'UNFORMATTED_VALUE' });
 
     const exists = rows.slice(1).some(row =>
       String(row[1]) === String(grade) &&

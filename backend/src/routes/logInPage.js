@@ -7,10 +7,10 @@ const { validateBody } = require('../middleware/validation');
 const { getCache, setCache, getSheetsKey } = require('../services/redis');
 const { createLogger } = require('../utils/logger');
 const {
-  SHEET_NAMES, HEADERS, USER_COL,
-  ensureSheetId, validateHeader, fetchSheet,
-  findUserRow, toBool,
+  SHEET_NAMES, HEADERS, USER_COL, SHEET_RANGES,
+  validateHeader, findUserRow, toBool,
 } = require('../utils/sheets');
+const ds = require('../dataSources');
 
 const log = createLogger('auth');
 
@@ -33,14 +33,14 @@ router.post('/login',
     log.info(route, 'request received', { userId: maskUser(userId) });
 
     try {
-      ensureSheetId();
+      ds.ensureReady();
 
       // Redisキャッシュを確認
-      const cacheKey = getSheetsKey(SHEET_NAMES.USERS, 'A1:K');
+      const cacheKey = getSheetsKey(SHEET_NAMES.USERS, SHEET_RANGES.USERS);
       let rows = await getCache(cacheKey);
 
       if (!rows) {
-        rows = await fetchSheet(SHEET_NAMES.USERS, 'A1:K');
+        rows = await ds.fetchSheet(SHEET_NAMES.USERS, SHEET_RANGES.USERS);
         if (rows.length > 0) {
           await setCache(cacheKey, rows, 60);
         }

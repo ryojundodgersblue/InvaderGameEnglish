@@ -16,7 +16,21 @@ const HEADERS = {
   PARTS: ['part_id', 'grade_id', 'part_no', 'subpart_no', 'requirement'],
   QUESTIONS: ['question_id', 'part_id', 'display_order', 'is_demo', 'question_text', 'image_url'],
   ANSWERS: ['id', 'question_id', 'expected_text'],
-  SCORES: ['score_id', 'user_id', 'part_id', 'scores', 'clear', 'play_date'],
+  SCORES: ['score_id', 'user_id', 'part_id', 'scores', 'clear', 'play_date', 'avg_answer_time'],
+};
+
+// avg_answer_time 列が未追加の既存scoresシートとも互換を保つ(末尾欠落を許容)
+const OPTIONAL_TAIL_COLUMNS = {
+  SCORES: ['avg_answer_time'],
+};
+
+// ===== シート範囲定数 =====
+const SHEET_RANGES = {
+  USERS: 'A1:K',
+  PARTS: 'A1:E',
+  QUESTIONS: 'A1:F',
+  ANSWERS: 'A1:C',
+  SCORES: 'A1:G',
 };
 
 // ===== usersシートの列インデックス =====
@@ -59,17 +73,36 @@ function ensureSheetId() {
  * @param {Array} rows - シートの行データ
  * @param {Array} expectedHeader - 期待するヘッダー配列
  * @param {string} sheetName - シート名（エラーメッセージ用）
+ * @param {Object} [opts]
+ * @param {Array} [opts.allowMissingTail] - 末尾に限り欠落を許容する列名(後方互換用)
  */
-function validateHeader(rows, expectedHeader, sheetName) {
+function validateHeader(rows, expectedHeader, sheetName, opts = {}) {
   const header = (rows[0] || []).map(v => String(v ?? '').trim());
-  const ok = header.length === expectedHeader.length &&
+  const allowMissingTail = opts.allowMissingTail || [];
+  let ok = header.length === expectedHeader.length &&
     expectedHeader.every((h, i) => h === header[i]);
+  if (!ok && allowMissingTail.length > 0 && header.length < expectedHeader.length) {
+    const missing = expectedHeader.slice(header.length);
+    ok = missing.every(h => allowMissingTail.includes(h)) &&
+      header.every((h, i) => h === expectedHeader[i]);
+  }
   if (!ok) {
     const err = new Error(`${sheetName} ヘッダ不一致`);
     err.statusCode = 500;
     err.details = { expected: expectedHeader, actual: header };
     throw err;
   }
+}
+
+/**
+ * ヘッダー行から { 列名(小文字) → index } のマップを作る
+ */
+function headerIndexMap(headerRow) {
+  const map = new Map();
+  (headerRow || []).forEach((v, i) => {
+    map.set(String(v ?? '').trim().toLowerCase(), i);
+  });
+  return map;
 }
 
 /**
@@ -143,7 +176,10 @@ function nowTimestamp() {
 module.exports = {
   SHEET_NAMES,
   HEADERS,
+  OPTIONAL_TAIL_COLUMNS,
+  SHEET_RANGES,
   USER_COL,
+  headerIndexMap,
   MAX_QUESTIONS,
   REQUIRED_ATTEMPTS,
   RANKING_TOP_N,

@@ -4,9 +4,9 @@ const router = express.Router();
 const { optionalAuth } = require('../middleware/auth');
 const { getCache, setCache, getRankingKey, getSheetsKey, DEFAULT_TTL } = require('../services/redis');
 const {
-  SHEET_NAMES, RANKING_TOP_N,
-  ensureSheetId, fetchSheet,
+  SHEET_NAMES, RANKING_TOP_N, SHEET_RANGES,
 } = require('../utils/sheets');
+const ds = require('../dataSources');
 
 const nowMonthKey = () => {
   const d = new Date();
@@ -30,7 +30,7 @@ function idxOf(header, name) {
 
 router.get('/', optionalAuth, async (_req, res) => {
   try {
-    ensureSheetId();
+    ds.ensureReady();
     const mk = nowMonthKey();
 
     // Redisキャッシュ
@@ -43,7 +43,7 @@ router.get('/', optionalAuth, async (_req, res) => {
     let usersMap = await getCache(usersCacheKey);
 
     if (!usersMap) {
-      const uRows = await fetchSheet(SHEET_NAMES.USERS, 'A1:K');
+      const uRows = await ds.fetchSheet(SHEET_NAMES.USERS, SHEET_RANGES.USERS);
       if (uRows.length < 2) {
         return res.json({ month: mk, items: { challenge: [], accuracy: [] } });
       }
@@ -69,7 +69,7 @@ router.get('/', optionalAuth, async (_req, res) => {
     }
 
     // ===== scores =====
-    const sRows = await fetchSheet(SHEET_NAMES.SCORES, 'A1:F');
+    const sRows = await ds.fetchSheet(SHEET_NAMES.SCORES, SHEET_RANGES.SCORES);
     if (sRows.length < 2) {
       return res.json({ month: mk, items: { challenge: [], accuracy: [] } });
     }

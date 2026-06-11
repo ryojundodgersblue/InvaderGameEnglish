@@ -6,6 +6,8 @@
   "scripts": {
     "start": "node index.js",
     "dev": "node --watch index.js",
+    "start:local": "DATA_SOURCE=local node index.js",
+    "dev:local": "DATA_SOURCE=local node --watch index.js",
     "test": "echo \"No tests configured yet. Add tests using a framework like Jest or Mocha.\" && exit 0"
   },
   "keywords": ["api", "express", "education", "english"],
