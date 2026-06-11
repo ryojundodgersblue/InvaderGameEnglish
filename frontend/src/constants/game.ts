@@ -22,3 +22,11 @@ export const DLY = {
 export const SOUND_EFFECT_VOLUME = 0.2;
 export const TTS_VOLUME = 1.0;
 export const TTS_PLAYBACK_TIMEOUT = 15000;
+export const TTS_FETCH_TIMEOUT_MS = 10000;   // TTS合成APIのタイムアウト
+export const TTS_PRIME_TIMEOUT_MS = 1500;    // 再生前の読み込み待ち上限（頭切れ対策）
+export const SPEECH_CACHE_MAX = 50;          // セッション内TTS音声キャッシュの上限件数
+
+// フリーズ検知: この時間アクティビティが無ければ回復ダイアログを表示
+// (No134/No137: スキップ表示まで30秒〜1分かかる報告を受け30秒→20秒に短縮)
+export const FREEZE_TIMEOUT_MS = 20000;
+export const FREEZE_CHECK_INTERVAL_MS = 5000;

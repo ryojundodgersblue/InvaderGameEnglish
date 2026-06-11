@@ -6,14 +6,16 @@ import '../App.css';
 import './PlayPage.css';
 
 import type { Q, PartInfo, IntermissionSnapshot, GamePhase } from '../types/game';
-import type { SpeechRecognition, SpeechRecognitionEvent, SpeechRecognitionErrorEvent } from '../types/speechRecognition';
-import { CORRECT_TO_CLEAR, MAX_QUESTIONS, TIME_LIMIT, DLY, TTS_VOLUME, FUZZY_MATCH_THRESHOLD } from '../constants/game';
+import { CORRECT_TO_CLEAR, MAX_QUESTIONS, DLY, TTS_VOLUME, FUZZY_MATCH_THRESHOLD } from '../constants/game';
 import { useAuth } from '../hooks/useAuth';
 import { normalize, simLevenshtein, jaccard } from '../utils/textMatch';
 import { playSound, playSoundAwait } from '../utils/sound';
 import { delay } from '../utils/delay';
-import { speakText } from '../utils/ttsAudio';
 import { gameStateReducer, initialGameState } from '../hooks/gameReducer';
+import { useGameTimer } from '../hooks/useGameTimer';
+import { useFreezeDetection } from '../hooks/useFreezeDetection';
+import { useTTSPlayer } from '../hooks/useTTSPlayer';
+import { useSpeechRecognition } from '../hooks/useSpeechRecognition';
 
 // ------------------------ Component --------------------------
 const PlayPage: React.FC = () => {
@@ -32,44 +34,24 @@ const PlayPage: React.FC = () => {
   const [showText, setShowText] = useState(false);
   const [realCorrect, setRealCorrect] = useState(0);
   const [error, setError] = useState<string | null>(null);
-  const [remainingTime, setRemainingTime] = useState(TIME_LIMIT);
 
   // State Machine
   const [gameState, dispatch] = React.useReducer(gameStateReducer, initialGameState);
   const { phase: status, enemyVariant, intermissionSnap } = gameState;
 
-  const [micActive, setMicActive] = useState(false);
-  const [lastRecognized, setLastRecognized] = useState<string>('');
-
-  const recognitionRef = useRef<SpeechRecognition | null>(null);
-  const capturedRef = useRef<string[]>([]);
-  const stoppingRef = useRef(false);
-  const micActiveRef = useRef(false);
-  useEffect(() => { micActiveRef.current = micActive; }, [micActive]);
-
   const [bannerText, setBannerText] = useState<string | null>(null);
 
   const abortControllerRef = useRef<AbortController | null>(null);
-  const currentAudioRef = useRef<HTMLAudioElement | null>(null);
-  const isSpeakingRef = useRef(false);
-  const originalVolumeRef = useRef<number>(TTS_VOLUME);
-
-  const freezeDetectionTimerRef = useRef<number | null>(null);
-  const lastActivityRef = useRef<number>(Date.now());
-
   const isProcessingRef = useRef(false);
   const questionsRef = useRef<Q[]>([]);
   const idxRef = useRef(0);
   const statusRef = useRef<GamePhase>('idle');
   const realCorrectRef = useRef(0);
-  const remainingTimeRef = useRef(TIME_LIMIT);
-  const timerIntervalRef = useRef<number | null>(null);
 
   useEffect(() => { questionsRef.current = questions; }, [questions]);
   useEffect(() => { idxRef.current = idx; }, [idx]);
   useEffect(() => { statusRef.current = status; }, [status]);
   useEffect(() => { realCorrectRef.current = realCorrect; }, [realCorrect]);
-  useEffect(() => { remainingTimeRef.current = remainingTime; }, [remainingTime]);
 
   const current = questions[idx];
   const questionNo = idx + 1;
@@ -82,7 +64,51 @@ const PlayPage: React.FC = () => {
 
   const isProcessingCancelled = useCallback(() => !isProcessingRef.current, []);
 
-  // ---------------------- Countdown Timer ----------------------
+  // ---------------------- Hooks: TTS / Timer / Freeze / ASR ----------------------
+  const tts = useTTSPlayer();
+  const {
+    originalVolumeRef,
+    muteCurrentAudio, unmuteCurrentAudio, stopCurrentAudio, waitForCurrentAudioToFinish,
+  } = tts;
+
+  const handleTimeUpRef = useRef<() => void>(() => {});
+  const { remainingTime, startTimer, stopTimer } = useGameTimer(() => handleTimeUpRef.current());
+
+  const isFreezeMonitored = useCallback(
+    () => statusRef.current !== 'finished' && statusRef.current !== 'idle',
+    []
+  );
+  const {
+    frozen, setFrozen, startFreezeDetection, stopFreezeDetection, updateActivity,
+  } = useFreezeDetection(isFreezeMonitored);
+
+  const asr = useSpeechRecognition({
+    onStartWhileSpeaking: () => {
+      stopCurrentAudio();
+      dispatchAndSync({ type: 'START_LISTENING' }, 'listening');
+      updateActivity();
+    },
+    onRecognition: () => dispatch({ type: 'RECOGNITION_DETECTED' }),
+    shouldAutoRestart: () => ['speaking', 'listening', 'wrong'].includes(statusRef.current),
+    isProcessing: () => isProcessingRef.current,
+    isSpeakingPhase: () => statusRef.current === 'speaking',
+  });
+  const {
+    micActive, micActiveRef, lastRecognized, capturedRef,
+    startRecognition, forceStopRecognition,
+  } = asr;
+
+  // ---------------------- Google TTS Speech ----------------------
+  const speakAwaitTTS = useCallback(async (text: string, isAnswer = false): Promise<boolean> => {
+    if (!isAnswer && isProcessingRef.current && !['reveal', 'beam', 'explosion'].includes(statusRef.current)) {
+      return false;
+    }
+
+    return tts.speak(text, { isAnswer, micActive: micActiveRef.current });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // ---------------------- Countdown Timer (time up) ----------------------
   const handleTimeUp = useCallback(async () => {
     if (isProcessingRef.current) return;
     isProcessingRef.current = true;
@@ -116,108 +142,9 @@ const PlayPage: React.FC = () => {
     } finally {
       updateActivity();
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
-
-  const startTimer = useCallback(() => {
-    if (timerIntervalRef.current) {
-      window.clearInterval(timerIntervalRef.current);
-    }
-
-    setRemainingTime(TIME_LIMIT);
-    remainingTimeRef.current = TIME_LIMIT;
-
-    timerIntervalRef.current = window.setInterval(() => {
-      remainingTimeRef.current -= 1;
-      setRemainingTime(remainingTimeRef.current);
-
-      if (remainingTimeRef.current <= 0) {
-        if (timerIntervalRef.current) {
-          window.clearInterval(timerIntervalRef.current);
-          timerIntervalRef.current = null;
-        }
-        handleTimeUp();
-      }
-    }, 1000);
-  }, [handleTimeUp]);
-
-  const stopTimer = useCallback(() => {
-    if (timerIntervalRef.current) {
-      window.clearInterval(timerIntervalRef.current);
-      timerIntervalRef.current = null;
-    }
-  }, []);
-
-  const [frozen, setFrozen] = useState(false);
-
-  // ---------------------- Freeze Detection ----------------------
-  const startFreezeDetection = useCallback(() => {
-    lastActivityRef.current = Date.now();
-    setFrozen(false);
-    if (freezeDetectionTimerRef.current) {
-      window.clearInterval(freezeDetectionTimerRef.current);
-    }
-    freezeDetectionTimerRef.current = window.setInterval(() => {
-      const timeSinceActivity = Date.now() - lastActivityRef.current;
-      if (timeSinceActivity > 30000 && statusRef.current !== 'finished' && statusRef.current !== 'idle') {
-        console.error('[Freeze] Game appears to be frozen - no activity for 30 seconds');
-        setFrozen(true);
-        if (freezeDetectionTimerRef.current) {
-          window.clearInterval(freezeDetectionTimerRef.current);
-          freezeDetectionTimerRef.current = null;
-        }
-      }
-    }, 5000);
-  }, []);
-
-  const updateActivity = useCallback(() => {
-    lastActivityRef.current = Date.now();
-  }, []);
-
-  const stopFreezeDetection = useCallback(() => {
-    if (freezeDetectionTimerRef.current) {
-      window.clearInterval(freezeDetectionTimerRef.current);
-      freezeDetectionTimerRef.current = null;
-    }
-  }, []);
-
-  // ---------------------- Stop Recognition ----------------------
-  const forceStopRecognition = useCallback(() => {
-    stoppingRef.current = true;
-    try {
-      if (recognitionRef.current) {
-        recognitionRef.current.onend = null;
-        recognitionRef.current.onerror = null;
-        recognitionRef.current.onresult = null;
-        recognitionRef.current.stop();
-        recognitionRef.current = null;
-      }
-    } catch (e) {
-      console.warn('[ASR] Error during force stop:', e);
-    }
-    setMicActive(false);
-    micActiveRef.current = false;
-  }, []);
-
-  // ★ 現在の音声が終了するまで待つ
-  const waitForCurrentAudioToFinish = useCallback(async () => {
-    if (!currentAudioRef.current || !isSpeakingRef.current) return;
-
-    return new Promise<void>((resolve) => {
-      const audio = currentAudioRef.current;
-      if (!audio) { resolve(); return; }
-
-      const onEnded = () => {
-        audio.removeEventListener('ended', onEnded);
-        audio.removeEventListener('error', onEnded);
-        resolve();
-      };
-
-      audio.addEventListener('ended', onEnded);
-      audio.addEventListener('error', onEnded);
-
-      if (audio.ended || audio.paused) onEnded();
-    });
-  }, []);
+  useEffect(() => { handleTimeUpRef.current = handleTimeUp; }, [handleTimeUp]);
 
   // ---------------------- Load ----------------------
   useEffect(() => {
@@ -273,53 +200,11 @@ const PlayPage: React.FC = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [grade, part, subpart, forceStopRecognition, stopTimer]);
 
-  // ---------------------- Audio Control ----------------------
-  const muteCurrentAudio = useCallback(() => {
-    if (currentAudioRef.current) {
-      originalVolumeRef.current = currentAudioRef.current.volume;
-      currentAudioRef.current.volume = 0;
-    }
-  }, []);
-
-  const unmuteCurrentAudio = useCallback(() => {
-    if (currentAudioRef.current) {
-      currentAudioRef.current.volume = originalVolumeRef.current;
-    }
-  }, []);
-
-  const stopCurrentAudio = useCallback(() => {
-    if (currentAudioRef.current) {
-      const audio = currentAudioRef.current;
-      audio.pause();
-      audio.currentTime = 0;
-
-      if (audio.onended) {
-        audio.onended(new Event('ended'));
-      }
-
-      currentAudioRef.current = null;
-    }
-    isSpeakingRef.current = false;
-  }, []);
-
+  // マイクON中はTTS音声をミュート
   useEffect(() => {
     if (micActive) muteCurrentAudio();
     else unmuteCurrentAudio();
   }, [micActive, muteCurrentAudio, unmuteCurrentAudio]);
-
-  // ---------------------- Google TTS Speech ----------------------
-  const speakAwaitTTS = useCallback(async (text: string, isAnswer = false): Promise<void> => {
-    if (!isAnswer && isProcessingRef.current && !['reveal', 'beam', 'explosion'].includes(statusRef.current)) {
-      return;
-    }
-
-    await speakText(text, {
-      isAnswer,
-      micActive: micActiveRef.current,
-      currentAudioRef,
-      isSpeakingRef,
-    });
-  }, []);
 
   // ---------------------- Attack Sequence (共通化) ----------------------
   const playAttackSequence = useCallback(async (q: Q) => {
@@ -350,6 +235,7 @@ const PlayPage: React.FC = () => {
     if (isProcessingCancelled()) return;
 
     startIntermissionThenNext();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [speakAwaitTTS, dispatchAndSync, isProcessingCancelled]);
 
   // ---------------------- One Question ----------------------
@@ -366,8 +252,7 @@ const PlayPage: React.FC = () => {
     isProcessingRef.current = false;
     setShowText(false);
     dispatch({ type: 'RESET_TO_IDLE' });
-    setLastRecognized('');
-    capturedRef.current = [];
+    asr.resetCaptured();
 
     stopCurrentAudio();
     forceStopRecognition();
@@ -383,14 +268,16 @@ const PlayPage: React.FC = () => {
       dispatchAndSync({ type: 'START_SPEAKING' }, 'speaking');
 
       // 1回目の読み上げ
-      await speakAwaitTTS(q.question_text);
+      const firstOk = await speakAwaitTTS(q.question_text);
+      if (!firstOk) console.warn('[TTS] 1回目の読み上げに失敗(継続します)');
       if (isProcessingRef.current) return;
 
       await delay(DLY.betweenSpeaks, abortControllerRef.current.signal);
       if (isProcessingRef.current) return;
 
       // 2回目の読み上げ
-      await speakAwaitTTS(q.question_text);
+      const secondOk = await speakAwaitTTS(q.question_text);
+      if (!secondOk) console.warn('[TTS] 2回目の読み上げに失敗(継続します)');
       if (isProcessingRef.current) return;
 
       if (q.is_demo && questionIndex === 0) {
@@ -426,6 +313,13 @@ const PlayPage: React.FC = () => {
 
     dispatchAndSync({ type: 'START_INTERMISSION', snapshot }, 'intermission');
 
+    // 次の問題の音声・画像を先読み(インターミッション中の待ち時間を活用)
+    const next = questionsRef.current[idxRef.current + 1];
+    if (next) {
+      if (next.question_text) tts.prefetch(next.question_text);
+      if (next.image_url) { new Image().src = next.image_url; }
+    }
+
     try {
       await delay(DLY.intermission, abortControllerRef.current?.signal);
       moveToNextQuestion();
@@ -438,7 +332,7 @@ const PlayPage: React.FC = () => {
   const moveToNextQuestion = useCallback(async () => {
     updateActivity();
     isProcessingRef.current = false;
-    setMicActive(false);
+    asr.setMicActive(false);
     stopCurrentAudio();
     forceStopRecognition();
 
@@ -472,99 +366,8 @@ const PlayPage: React.FC = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [status, micActive]);
 
-  const startRecognition = useCallback(() => {
-    const SR = window.webkitSpeechRecognition || window.SpeechRecognition;
-    if (!SR) {
-      alert('このブラウザは音声認識に未対応です(Chrome 推奨)');
-      return;
-    }
-
-    if (statusRef.current === 'speaking') {
-      stopCurrentAudio();
-      dispatchAndSync({ type: 'START_LISTENING' }, 'listening');
-      updateActivity();
-    }
-
-    const rec = new SR();
-    recognitionRef.current = rec;
-    capturedRef.current = [];
-    setLastRecognized('');
-    stoppingRef.current = false;
-
-    rec.lang = 'en-US';
-    rec.continuous = true;
-    rec.interimResults = true;
-    rec.maxAlternatives = 3;
-
-    rec.onresult = (e: SpeechRecognitionEvent) => {
-      for (let i = e.resultIndex; i < e.results.length; i++) {
-        const result = e.results[i];
-        const alt = result[0];
-        const text = alt?.transcript ?? '';
-        if (text && text.trim()) {
-          const t = text.trim();
-          if (!capturedRef.current.includes(t)) {
-            capturedRef.current.push(t);
-            setLastRecognized(t);
-            dispatch({ type: 'RECOGNITION_DETECTED' });
-          }
-        }
-      }
-    };
-
-    rec.onerror = (e: SpeechRecognitionErrorEvent) => {
-      console.warn('[ASR] Error:', e.error);
-    };
-
-    rec.onend = () => {
-      if (stoppingRef.current || !micActiveRef.current || isProcessingRef.current) {
-        setMicActive(false);
-        micActiveRef.current = false;
-        return;
-      }
-
-      const shouldRestart = ['speaking', 'listening', 'wrong'].includes(statusRef.current);
-      if (shouldRestart) {
-        try {
-          rec.start();
-        } catch {
-          setMicActive(false);
-          micActiveRef.current = false;
-        }
-      } else {
-        setMicActive(false);
-        micActiveRef.current = false;
-      }
-    };
-
-    try {
-      rec.start();
-      setMicActive(true);
-    } catch (err) {
-      console.error('[ASR] Failed to start:', err);
-    }
-  }, []);
-
   const stopRecognitionAndEvaluate = useCallback(async () => {
-    stoppingRef.current = true;
-
-    try {
-      if (recognitionRef.current) {
-        recognitionRef.current.onend = null;
-        recognitionRef.current.stop();
-      }
-    } catch (err) {
-      console.warn('[ASR] Error during stop:', err);
-    }
-
-    setMicActive(false);
-    micActiveRef.current = false;
-
-    if (capturedRef.current.length === 0) {
-      stoppingRef.current = false;
-      return;
-    }
-
+    if (!asr.stopForEvaluate()) return;
     evaluateCaptured();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -635,17 +438,17 @@ const PlayPage: React.FC = () => {
       try {
         await delay(DLY.wrongAnswerDelay, abortControllerRef.current?.signal);
 
-        capturedRef.current = [];
-        setLastRecognized('');
+        asr.resetCaptured();
 
         isProcessingRef.current = false;
-        stoppingRef.current = false;
+        asr.resetStopping();
         dispatchAndSync({ type: 'START_LISTENING' }, 'listening');
       } catch (e) {
         if (!(e instanceof DOMException && e.name === 'AbortError')) throw e;
       }
     }
-  }, [waitForCurrentAudioToFinish, forceStopRecognition, speakAwaitTTS, startIntermissionThenNext, updateActivity, stopTimer, playAttackSequence, dispatchAndSync]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [waitForCurrentAudioToFinish, forceStopRecognition, updateActivity, stopTimer, playAttackSequence, dispatchAndSync]);
 
   // ---------------------- Finish Game ----------------------
   const finishGame = useCallback(async () => {
@@ -744,7 +547,17 @@ const PlayPage: React.FC = () => {
       dispatchAndSync({ type: 'RESET_TO_IDLE' }, 'idle');
       setTimeout(() => startQuestionForIndex(next), DLY.beforeNextQuestion);
     }
-  }, [stopCurrentAudio, forceStopRecognition, stopTimer, updateActivity, dispatchAndSync, startQuestionForIndex, finishGame]);
+  }, [setFrozen, stopCurrentAudio, forceStopRecognition, stopTimer, updateActivity, dispatchAndSync, startQuestionForIndex, finishGame]);
+
+  const handleFreezeRetry = useCallback(() => {
+    setFrozen(false);
+    if (abortControllerRef.current) abortControllerRef.current.abort();
+    stopCurrentAudio();
+    forceStopRecognition();
+    stopTimer();
+    isProcessingRef.current = false;
+    startQuestionForIndex(idxRef.current);
+  }, [setFrozen, stopCurrentAudio, forceStopRecognition, stopTimer, startQuestionForIndex]);
 
   // ---------------------- Quit Button ----------------------
   const handleQuit = useCallback(() => {
@@ -955,16 +768,7 @@ const PlayPage: React.FC = () => {
             <h3>画面が停止しました</h3>
             <p>問題の読み込み中にエラーが発生した可能性があります。</p>
             <div style={{ display: 'flex', gap: 12, justifyContent: 'center' }}>
-              <Button onClick={() => {
-                setFrozen(false);
-                // 現在の問題をリトライ
-                if (abortControllerRef.current) abortControllerRef.current.abort();
-                stopCurrentAudio();
-                forceStopRecognition();
-                stopTimer();
-                isProcessingRef.current = false;
-                startQuestionForIndex(idxRef.current);
-              }}>リトライ</Button>
+              <Button onClick={handleFreezeRetry}>リトライ</Button>
               <Button onClick={handleFreezeRecovery}>次の問題へ</Button>
               <Button onClick={handleQuit}>やめる</Button>
             </div>
