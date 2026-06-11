@@ -1,10 +1,10 @@
 // backend/src/routes/logInPage.js
 const express = require('express');
 const router = express.Router();
-const { verifyPassword, isPasswordHashed } = require('../utils/password');
+const { verifyPassword, isPasswordHashed, hashPassword } = require('../utils/password');
 const { generateToken } = require('../middleware/auth');
 const { validateBody } = require('../middleware/validation');
-const { getCache, setCache, getSheetsKey } = require('../services/redis');
+const { getCache, setCache, deleteCache, getSheetsKey } = require('../services/redis');
 const { createLogger } = require('../utils/logger');
 const { sendError } = require('../utils/errors');
 const {
@@ -74,6 +74,19 @@ router.post('/login',
       } else {
         passwordMatch = storedPassword === String(password);
         log.warn(route, 'plain-text password detected', { userId: maskUser(userId) });
+
+        // 平文パスワードの透過移行: 認証成功時にその場でbcryptハッシュ化して保存する。
+        // 移行失敗してもログイン自体は成功させる(次回ログインで再試行される)
+        if (passwordMatch) {
+          try {
+            const hashed = await hashPassword(String(password));
+            await ds.updateUserPassword(userId, hashed);
+            await deleteCache(cacheKey); // 平文が残る旧キャッシュを破棄
+            log.info(route, 'plain-text password migrated to bcrypt', { userId: maskUser(userId) });
+          } catch (err) {
+            log.warn(route, 'password migration failed', { message: err?.message });
+          }
+        }
       }
 
       if (!passwordMatch) {

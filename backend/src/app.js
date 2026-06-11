@@ -1,5 +1,7 @@
 const express = require('express');
 const cors = require('cors');
+const helmet = require('helmet');
+const { rateLimit } = require('express-rate-limit');
 const cookieParser = require('cookie-parser');
 
 const loginRouter   = require('./routes/logInPage');
@@ -11,6 +13,39 @@ const adminRouter = require('./routes/admin');
 const { sanitizeError } = require('./middleware/validation');
 
 const app = express();
+
+// Render等のリバースプロキシ配下でクライアントIPを正しく取得する
+// (レート制限のIP判定に必須。直接公開時も害はない)
+app.set('trust proxy', 1);
+
+// セキュリティヘッダ(JSON APIなのでhelmet既定値で問題なし)
+app.use(helmet());
+
+// レート制限の共通レスポンス({ok, code, message}形式に合わせる)
+const rateLimitResponse = {
+  ok: false,
+  code: 'SYS-429',
+  message: 'アクセスが集中しています。しばらく待ってからお試しください',
+};
+
+// ログイン: ブルートフォース対策(IPごとに15分で20回まで)
+const loginLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  limit: 20,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: rateLimitResponse,
+});
+
+// TTS: Google Cloud TTSのコスト悪用対策(IPごとに1分で120回まで。
+// 通常プレイは1問あたり3回程度なので余裕を持った上限)
+const ttsLimiter = rateLimit({
+  windowMs: 60 * 1000,
+  limit: 120,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: rateLimitResponse,
+});
 
 // CORS設定 - 特定のオリジンのみ許可し、credentialsを有効化
 const allowedOrigins = [
@@ -50,10 +85,10 @@ app.use(cors({
 }));
 
 app.use(cookieParser());
-// JSONボディのサイズ制限（DoS攻撃対策）
-app.use(express.json({ limit: '10mb' }));
+// JSONボディのサイズ制限（DoS攻撃対策。最大のリクエストはTTSテキスト1000字程度）
+app.use(express.json({ limit: '100kb' }));
 // URLエンコードされたボディのサイズ制限
-app.use(express.urlencoded({ extended: true, limit: '10mb' }));
+app.use(express.urlencoded({ extended: true, limit: '100kb' }));
 
 // リクエストログミドルウェア（デバッグ用）
 app.use((req, res, next) => {
@@ -67,11 +102,11 @@ app.use((req, res, next) => {
 app.get('/health', (req, res) => res.json({ ok: true }));
 
 // ルーターをマウント
-app.use('/auth',    loginRouter);   // 例: POST /auth/login
+app.use('/auth',    loginLimiter, loginRouter);   // 例: POST /auth/login
 app.use('/ranking', rankingRouter); // 例: GET  /ranking
 app.use('/game',    playGameRouter);
 app.use('/select',  selectRouter);
-app.use('/api/tts', ttsRouter);
+app.use('/api/tts', ttsLimiter, ttsRouter);
 app.use('/admin',   adminRouter);   // 例: GET  /admin/users, POST /admin/users
 
 // 404ハンドラー - 定義されていないルートへのアクセス
