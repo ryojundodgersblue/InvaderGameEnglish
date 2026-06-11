@@ -1,8 +1,9 @@
-import React, { useState } from 'react'
+import React, { useEffect, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import TextBox from '../components/TextBox'
 import { useAuth } from '../hooks/useAuth'
 import { API_URL } from '../config'
+import { LOGIN_SLOW_HINT_MS } from '../constants/game'
 import '../App.css'
 import '../components/Button.css'
 import './LoginPage.css'
@@ -24,13 +25,24 @@ const LoginPage: React.FC = () => {
   const [password, setPass] = useState('')
   const [error, setError] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
+  const [slowHint, setSlowHint] = useState(false)
+  const slowHintTimerRef = useRef<number | null>(null)
   const navigate = useNavigate()
   const { login } = useAuth()
+
+  // サーバーのウォームアップping。
+  // ホスティング側のコールドスタート(起動に数十秒かかる)を、ユーザーがID/PWを
+  // 入力している間に進めておくことでログイン体感を短縮する。
+  useEffect(() => {
+    fetch(`${API_URL}/health`).catch(() => { /* 失敗してもログイン時に再接続される */ })
+  }, [])
 
   const onLogin = async () => {
     if (loading) return
     setError(null)
     setLoading(true)
+    setSlowHint(false)
+    slowHintTimerRef.current = window.setTimeout(() => setSlowHint(true), LOGIN_SLOW_HINT_MS)
     try {
       const res = await fetch(`${API_URL}/auth/login`, {
         method: 'POST',
@@ -66,6 +78,11 @@ const LoginPage: React.FC = () => {
     } catch (err) {
       setError(err instanceof Error ? err.message : String(err))
     } finally {
+      if (slowHintTimerRef.current) {
+        window.clearTimeout(slowHintTimerRef.current)
+        slowHintTimerRef.current = null
+      }
+      setSlowHint(false)
       setLoading(false)
     }
   }
@@ -90,6 +107,12 @@ const LoginPage: React.FC = () => {
         >
           {loading ? 'Logging in...' : 'LOGIN'}
         </button>
+        {loading && slowHint && (
+          <div style={{ color: '#94a3b8', fontSize: 13, marginTop: 12, textAlign: 'center', lineHeight: 1.6 }}>
+            サーバーを起動しています…<br />
+            最大1分ほどかかる場合があります。そのままお待ちください。
+          </div>
+        )}
       </div>
     </div>
   )

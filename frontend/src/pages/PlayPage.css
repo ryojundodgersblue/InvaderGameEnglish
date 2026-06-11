@@ -279,7 +279,7 @@
   transform: translateX(-50%);
   width: 80%;
   max-width: 800px;
-  font-size: 75px;
+  font-size: clamp(40px, 6vw, 75px);
   font-weight: 600;
   color: #fff;
   text-align: center;
@@ -288,11 +288,20 @@
   min-height: 50px;
 }
 
+/* イラストあり問題: 問題文は左カラム・画像は右カラムに分離して重なりを防ぐ */
+.question-text.with-image {
+  left: 16px;
+  transform: none;
+  width: calc(100% - 300px - 80px - 32px); /* 100% - 画像幅 - 画像右余白 - 文字左右余白 */
+  max-width: none;
+  font-size: clamp(32px, 5vw, 68px);
+}
+
 /* 問題画像 */
 .question-image-container {
   position: absolute;
   top: 50%;
-  right: 100px;
+  right: 40px;
   transform: translateY(-50%);
   z-index: 90;
 }
@@ -484,6 +493,12 @@
     width: 90%;
   }
 
+  .question-text.with-image {
+    left: 8px;
+    width: calc(100% - 150px - 20px - 16px);
+    font-size: 22px;
+  }
+
   .enemy-img {
     width: 150px;
   }
@@ -621,6 +636,12 @@
     width: 70%;
     font-size: 28px;
     min-height: 0;
+  }
+
+  .question-text.with-image {
+    left: 64px;
+    width: calc(100% - 120px - 12px - 76px);
+    font-size: 24px;
   }
 
   .question-image-container {

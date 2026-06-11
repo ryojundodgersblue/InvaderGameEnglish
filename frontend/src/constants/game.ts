@@ -30,3 +30,6 @@ export const SPEECH_CACHE_MAX = 50;          // セッション内TTS音声キ�
 // (No134/No137: スキップ表示まで30秒〜1分かかる報告を受け30秒→20秒に短縮)
 export const FREEZE_TIMEOUT_MS = 20000;
 export const FREEZE_CHECK_INTERVAL_MS = 5000;
+
+// ログイン中、この時間を超えたら「サーバー起動中」の案内を表示
+export const LOGIN_SLOW_HINT_MS = 5000;
