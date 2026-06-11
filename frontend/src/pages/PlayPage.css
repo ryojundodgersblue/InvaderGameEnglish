@@ -41,6 +41,26 @@
   color: #333;
 }
 
+/* やめるボタン */
+.quit-button {
+  margin-top: 8px;
+  width: 100%;
+  padding: 6px 12px;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.9);
+  color: #666;
+  font-size: 13px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.quit-button:hover {
+  background: #ef4444;
+  color: #fff;
+  border-color: #ef4444;
+}
+
 /* マイク状態表示（右上） */
 .mic-status-container {
   position: absolute;
@@ -419,6 +439,42 @@
   font-size: 70px;
   font-weight: 600;
   color: #fff;
+}
+
+/* フリーズ回復ダイアログ */
+.freeze-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.7);
+  z-index: 500;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.freeze-dialog {
+  background: #fff;
+  border-radius: 16px;
+  padding: 32px;
+  max-width: 400px;
+  width: 90%;
+  text-align: center;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+}
+
+.freeze-dialog h3 {
+  font-size: 22px;
+  color: #333;
+  margin-bottom: 12px;
+}
+
+.freeze-dialog p {
+  font-size: 14px;
+  color: #666;
+  margin-bottom: 24px;
 }
 
 /* レスポンシブ対応 */

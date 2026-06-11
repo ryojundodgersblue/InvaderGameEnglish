@@ -746,6 +746,18 @@ const PlayPage: React.FC = () => {
     }
   }, [stopCurrentAudio, forceStopRecognition, stopTimer, updateActivity, dispatchAndSync, startQuestionForIndex, finishGame]);
 
+  // ---------------------- Quit Button ----------------------
+  const handleQuit = useCallback(() => {
+    // 全てのプロセスを停止
+    if (abortControllerRef.current) abortControllerRef.current.abort();
+    stopCurrentAudio();
+    forceStopRecognition();
+    stopFreezeDetection();
+    stopTimer();
+    isProcessingRef.current = false;
+    nav('/select');
+  }, [nav, stopCurrentAudio, forceStopRecognition, stopFreezeDetection, stopTimer]);
+
   // ---------------------- Start Button ----------------------
   const handleStartClick = useCallback(() => {
     setShowRequirement(false);
@@ -819,6 +831,11 @@ const PlayPage: React.FC = () => {
           <span className="selection-info-label">Subpart:</span>
           <span className="selection-info-value">{subpart || '1'}</span>
         </div>
+        {!showRequirement && (
+          <button className="quit-button" onClick={handleQuit}>
+            やめる
+          </button>
+        )}
       </div>
 
       {/* 右上: マイク状態 */}
@@ -895,7 +912,12 @@ const PlayPage: React.FC = () => {
 
           {current?.image_url && (
             <div className="question-image-container">
-              <img src={current.image_url} alt="" className="question-image" />
+              <img
+                src={current.image_url}
+                alt=""
+                className="question-image"
+                onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
+              />
             </div>
           )}
 
@@ -926,21 +948,27 @@ const PlayPage: React.FC = () => {
         </>
       )}
 
+      {/* フリーズ回復ダイアログ */}
       {frozen && (
-        <div style={{
-          position: 'fixed', bottom: 30, left: '50%', transform: 'translateX(-50%)', zIndex: 1000,
-        }}>
-          <button
-            onClick={handleFreezeRecovery}
-            style={{
-              padding: '12px 32px', fontSize: 18, fontWeight: 'bold',
-              color: '#fff', background: '#e74c3c', border: 'none', borderRadius: 8,
-              cursor: 'pointer', boxShadow: '0 4px 12px rgba(0,0,0,0.3)',
-              animation: 'pulse 1.5s infinite',
-            }}
-          >
-            SKIP to Next Question
-          </button>
+        <div className="freeze-overlay">
+          <div className="freeze-dialog">
+            <h3>画面が停止しました</h3>
+            <p>問題の読み込み中にエラーが発生した可能性があります。</p>
+            <div style={{ display: 'flex', gap: 12, justifyContent: 'center' }}>
+              <Button onClick={() => {
+                setFrozen(false);
+                // 現在の問題をリトライ
+                if (abortControllerRef.current) abortControllerRef.current.abort();
+                stopCurrentAudio();
+                forceStopRecognition();
+                stopTimer();
+                isProcessingRef.current = false;
+                startQuestionForIndex(idxRef.current);
+              }}>リトライ</Button>
+              <Button onClick={handleFreezeRecovery}>次の問題へ</Button>
+              <Button onClick={handleQuit}>やめる</Button>
+            </div>
+          </div>
         </div>
       )}
     </div>
