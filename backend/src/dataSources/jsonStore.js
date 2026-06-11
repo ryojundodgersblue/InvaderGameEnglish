@@ -5,6 +5,7 @@
 const fs = require('fs');
 const fsp = require('fs/promises');
 const path = require('path');
+const { AppError } = require('../utils/errors');
 
 const DATA_DIR = process.env.LOCAL_DATA_DIR || path.join(__dirname, '..', '..', 'data');
 
@@ -23,9 +24,8 @@ function ensureLoaded() {
   for (const name of FILES) {
     const file = path.join(DATA_DIR, `${name}.json`);
     if (!fs.existsSync(file)) {
-      const err = new Error(`ローカルデータファイルがありません: ${file}（scripts/build_dataset.py を実行してください）`);
-      err.statusCode = 500;
-      throw err;
+      throw new AppError('DATA-003', 500,
+        `ローカルデータファイルがありません: ${file}（scripts/build_dataset.py を実行してください）`);
     }
     cache[name] = JSON.parse(fs.readFileSync(file, 'utf8'));
   }

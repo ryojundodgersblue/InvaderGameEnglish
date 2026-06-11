@@ -4,6 +4,7 @@ const router = express.Router();
 const { authenticateToken } = require('../middleware/auth');
 const { validateQuery } = require('../middleware/validation');
 const { createLogger } = require('../utils/logger');
+const { sendError } = require('../utils/errors');
 const {
   SHEET_NAMES, HEADERS, USER_COL, SHEET_RANGES,
 } = require('../utils/sheets');
@@ -24,7 +25,7 @@ router.get('/options',
     const { user_id } = req.query;
 
     if (req.user.userId !== user_id) {
-      return res.status(403).json({ ok: false, message: '権限がありません' });
+      return res.status(403).json({ ok: false, code: 'AUTH-003', message: '権限がありません' });
     }
 
     // 1. usersシートからユーザーの進捗を取得
@@ -32,7 +33,7 @@ router.get('/options',
     const userData = userRows.slice(1).find(row => String(row[USER_COL.user_id]) === String(user_id));
 
     if (!userData) {
-      return res.status(404).json({ ok: false, message: 'ユーザーが見つかりません' });
+      return res.status(404).json({ ok: false, code: 'DATA-004', message: 'ユーザーが見つかりません' });
     }
 
     const currentGrade = Number(userData[USER_COL.current_grade] ?? 0);
@@ -92,8 +93,7 @@ router.get('/options',
     });
 
   } catch (error) {
-    log.error(route, 'Error', { message: error.message });
-    res.status(error.statusCode || 500).json({ ok: false, message: error.statusCode ? error.message : 'オプション取得中にエラーが発生しました' });
+    sendError(res, log, route, error, 'DATA-001');
   }
 });
 
@@ -125,8 +125,7 @@ router.get('/validate',
       message: exists ? '有効な組み合わせです' : '無効な組み合わせです'
     });
   } catch (error) {
-    log.error(route, 'Error', { message: error.message });
-    res.status(error.statusCode || 500).json({ ok: false, message: error.statusCode ? error.message : '検証中にエラーが発生しました' });
+    sendError(res, log, route, error, 'DATA-001');
   }
 });
 

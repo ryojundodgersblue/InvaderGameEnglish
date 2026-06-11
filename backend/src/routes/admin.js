@@ -5,6 +5,7 @@ const { hashPassword, generatePassword } = require('../utils/password');
 const { validateBody } = require('../middleware/validation');
 const { verifyToken } = require('../middleware/auth');
 const { createLogger } = require('../utils/logger');
+const { sendError } = require('../utils/errors');
 const {
   SHEET_NAMES, USER_COL, SHEET_RANGES,
   PASSWORD_LENGTH,
@@ -17,7 +18,7 @@ const log = createLogger('admin');
 /* ---------- ミドルウェア：管理者チェック ---------- */
 const requireAdmin = (req, res, next) => {
   if (!req.user || !req.user.is_admin) {
-    return res.status(403).json({ ok: false, message: '管理者権限が必要です' });
+    return res.status(403).json({ ok: false, code: 'AUTH-003', message: '管理者権限が必要です' });
   }
   next();
 };
@@ -47,7 +48,7 @@ router.get('/users', verifyToken, requireAdmin, async (req, res) => {
     return res.json({ ok: true, users });
   } catch (err) {
     log.error(route, 'exception', { message: err?.message });
-    return res.status(err.statusCode || 500).json({ ok: false, message: 'サーバーエラーが発生しました' });
+    return sendError(res, log, route, err, 'ADMIN-001');
   }
 });
 
@@ -75,7 +76,7 @@ router.post('/users',
     return res.json({ ok: true, user_id: created.user_id, password: plainPassword });
   } catch (err) {
     log.error(route, 'exception', { message: err?.message });
-    return res.status(err.statusCode || 500).json({ ok: false, message: 'サーバーエラーが発生しました' });
+    return sendError(res, log, route, err, 'ADMIN-001');
   }
 });
 
@@ -99,14 +100,14 @@ router.put('/users/:userId',
       current_grade, current_part, current_subpart,
     });
     if (!updated) {
-      return res.status(404).json({ ok: false, message: 'ユーザーが見つかりません' });
+      return res.status(404).json({ ok: false, code: 'DATA-004', message: 'ユーザーが見つかりません' });
     }
 
     log.info(route, 'user updated', { userId });
     return res.json({ ok: true });
   } catch (err) {
     log.error(route, 'exception', { message: err?.message });
-    return res.status(err.statusCode || 500).json({ ok: false, message: 'サーバーエラーが発生しました' });
+    return sendError(res, log, route, err, 'ADMIN-001');
   }
 });
 
@@ -128,14 +129,14 @@ router.post('/reset-password',
 
     const updated = await ds.updateUserPassword(user_id, hashedPassword);
     if (!updated) {
-      return res.status(404).json({ ok: false, message: 'ユーザーが見つかりません' });
+      return res.status(404).json({ ok: false, code: 'DATA-004', message: 'ユーザーが見つかりません' });
     }
 
     log.info(route, 'password reset', { user_id });
     return res.json({ ok: true, user_id, password: plainPassword });
   } catch (err) {
     log.error(route, 'exception', { message: err?.message });
-    return res.status(err.statusCode || 500).json({ ok: false, message: 'サーバーエラーが発生しました' });
+    return sendError(res, log, route, err, 'ADMIN-001');
   }
 });
 
@@ -190,7 +191,7 @@ router.get('/failure-stats', verifyToken, requireAdmin, async (req, res) => {
     });
   } catch (err) {
     log.error(route, 'exception', { message: err?.message });
-    return res.status(err.statusCode || 500).json({ ok: false, message: 'サーバーエラーが発生しました' });
+    return sendError(res, log, route, err, 'ADMIN-001');
   }
 });
 

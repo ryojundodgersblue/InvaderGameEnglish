@@ -1,5 +1,6 @@
 // Google Sheets操作の共通ユーティリティ
 const { getSheetsClient, SPREADSHEET_ID } = require('../services/google');
+const { AppError } = require('./errors');
 
 // ===== シート名定数 =====
 const SHEET_NAMES = {
@@ -62,9 +63,7 @@ const USER_ID_PAD_LENGTH = 5;
  */
 function ensureSheetId() {
   if (!SPREADSHEET_ID) {
-    const err = new Error('SHEET_ID が未設定です');
-    err.statusCode = 500;
-    throw err;
+    throw new AppError('SYS-002', 500, 'SHEET_ID が未設定です');
   }
 }
 
@@ -87,8 +86,7 @@ function validateHeader(rows, expectedHeader, sheetName, opts = {}) {
       header.every((h, i) => h === expectedHeader[i]);
   }
   if (!ok) {
-    const err = new Error(`${sheetName} ヘッダ不一致`);
-    err.statusCode = 500;
+    const err = new AppError('DATA-002', 500, `${sheetName} ヘッダ不一致`);
     err.details = { expected: expectedHeader, actual: header };
     throw err;
   }

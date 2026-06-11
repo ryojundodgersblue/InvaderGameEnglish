@@ -66,6 +66,7 @@ function createValidator(getSource) {
     if (errors.length > 0) {
       return res.status(400).json({
         ok: false,
+        code: 'VAL-001',
         message: '入力値が不正です',
         errors: process.env.NODE_ENV === 'production' ? undefined : errors
       });
@@ -78,23 +79,30 @@ const validateQuery = createValidator(req => req.query);
 const validateBody = createValidator(req => req.body || {});
 
 /**
- * エラーレスポンスのサニタイズ
+ * エラーレスポンスのサニタイズ（最終エラーハンドラ）
+ * AppError(code付き)はそのコードを、想定外エラーはSYS-001を返す。
  */
 function sanitizeError(err, req, res, _next) {
-  console.error('[Error]', {
+  const code = err.code && /^[A-Z]+-\d+$/.test(String(err.code)) ? err.code : 'SYS-001';
+
+  console.error(`[${code}]`, {
     message: err.message,
     path: req.path,
     method: req.method
   });
 
-  const response = { ok: false, message: 'サーバーエラーが発生しました' };
+  const response = {
+    ok: false,
+    code,
+    message: err.statusCode ? err.message : 'サーバーエラーが発生しました',
+  };
 
   if (process.env.NODE_ENV !== 'production') {
     response.error = err.message;
     response.stack = err.stack;
   }
 
-  res.status(500).json(response);
+  res.status(err.statusCode || 500).json(response);
 }
 
 module.exports = {

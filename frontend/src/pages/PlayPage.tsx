@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState, useCallback } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import Button from '../components/Button';
-import { API_URL } from '../config';
+import { apiFetch, formatApiError } from '../utils/apiClient';
 import '../App.css';
 import './PlayPage.css';
 
@@ -161,24 +161,12 @@ const PlayPage: React.FC = () => {
         const p = part ?? session?.currentPart ?? '1';
         const s = subpart ?? session?.currentSubpart ?? '1';
 
-        const r1 = await fetch(`${API_URL}/game/part?grade=${g}&part=${p}&subpart=${s}`, {
-          credentials: 'include'
-        });
-        if (!r1.ok) {
-          const errorData = await r1.json().catch(() => ({ message: 'part 取得失敗' }));
-          throw new Error(errorData.message || 'part 取得失敗');
-        }
-        const j1 = await r1.json();
+        const j1 = await apiFetch<{ part: PartInfo }>(`/game/part?grade=${g}&part=${p}&subpart=${s}`);
         setPartInfo(j1.part);
 
-        const r2 = await fetch(`${API_URL}/game/questions?part_id=${encodeURIComponent(j1.part.part_id)}`, {
-          credentials: 'include'
-        });
-        if (!r2.ok) {
-          const errorData = await r2.json().catch(() => ({ message: 'questions 取得失敗' }));
-          throw new Error(errorData.message || 'questions 取得失敗');
-        }
-        const j2 = await r2.json();
+        const j2 = await apiFetch<{ questions: Q[] }>(
+          `/game/questions?part_id=${encodeURIComponent(j1.part.part_id)}`
+        );
         const qs: Q[] = (j2.questions || []).slice(0, MAX_QUESTIONS);
 
         setQuestions(qs);
@@ -191,8 +179,7 @@ const PlayPage: React.FC = () => {
         listenStartRef.current = null;
         setShowRequirement(true);
       } catch (e) {
-        const err = e as Error;
-        setError(err.message || String(e));
+        setError(formatApiError(e, '問題データの取得に失敗しました'));
       } finally {
         setLoading(false);
       }
@@ -484,21 +471,14 @@ const PlayPage: React.FC = () => {
       if (!part_id) throw new Error('パートIDが見つかりません');
 
       // スコア送信
-      const scoreResponse = await fetch(`${API_URL}/game/score`, {
+      await apiFetch(`/game/score`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
         body: JSON.stringify({
           userId, part_id, scores: finalCorrect, clear,
           ...(avgAnswerTime !== undefined ? { avg_answer_time: avgAnswerTime } : {}),
         }),
       });
-
-      if (!scoreResponse.ok) {
-        throw new Error(`スコア送信失敗: ${scoreResponse.status}`);
-      }
-
-      await scoreResponse.json();
 
       // クリアした場合のみ進捗を更新
       if (clear) {
@@ -506,10 +486,12 @@ const PlayPage: React.FC = () => {
         const currentPart = part ?? session?.currentPart ?? '1';
         const currentSubpart = subpart ?? session?.currentSubpart ?? '1';
 
-        const advanceResponse = await fetch(`${API_URL}/game/advance`, {
+        const advanceData = await apiFetch<{
+          ok: boolean; advanced?: boolean;
+          next?: { grade_id: number; part_no: number; subpart_no: number };
+        }>(`/game/advance`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          credentials: 'include',
           body: JSON.stringify({
             userId,
             current: { grade: currentGrade, part: currentPart, subpart: currentSubpart },
@@ -518,29 +500,16 @@ const PlayPage: React.FC = () => {
           }),
         });
 
-        if (!advanceResponse.ok) {
-          throw new Error(`進捗更新失敗: ${advanceResponse.status}`);
-        }
-
-        const advanceData = await advanceResponse.json();
-
         if (advanceData.ok && advanceData.advanced && advanceData.next) {
           updateProgress(advanceData.next.grade_id, advanceData.next.part_no, advanceData.next.subpart_no);
         }
       }
     } catch (err) {
-      let errorMessage = 'スコアの保存中にエラーが発生しました。';
-      if (err instanceof Error) {
-        if (err.message.includes('Failed to fetch')) {
-          errorMessage = 'サーバーに接続できません。バックエンドが起動しているか確認してください。';
-        } else {
-          errorMessage += `\n\nエラー: ${err.message}`;
-        }
-      }
+      console.error('[GAME] スコア保存/進捗更新エラー:', err);
       alert(
-        errorMessage +
+        formatApiError(err, 'スコアの保存中にエラーが発生しました') +
         '\n\nスコアが保存されていない可能性があります。' +
-        '\n詳細はブラウザのコンソール（F12）を確認してください。'
+        '\nお手数ですが、表示されているエラーコードと一緒に状況をお知らせください。'
       );
     }
 

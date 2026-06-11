@@ -3,6 +3,7 @@ const express = require('express');
 const router = express.Router();
 const { optionalAuth } = require('../middleware/auth');
 const { getCache, setCache, getRankingKey, getSheetsKey, DEFAULT_TTL } = require('../services/redis');
+const { sendError } = require('../utils/errors');
 const {
   SHEET_NAMES, RANKING_TOP_N, SHEET_RANGES,
 } = require('../utils/sheets');
@@ -53,7 +54,7 @@ router.get('/', optionalAuth, async (_req, res) => {
       const idxNick = idxOf(uHeader, 'nickname');
 
       if (idxUserId < 0 || idxNick < 0) {
-        return res.status(500).json({ ok: false, message: 'users ヘッダ不一致' });
+        return res.status(500).json({ ok: false, code: 'DATA-002', message: 'users ヘッダ不一致' });
       }
 
       usersMap = new Map();
@@ -82,7 +83,7 @@ router.get('/', optionalAuth, async (_req, res) => {
     const idxAvgTime = idxOf(sHeader, 'avg_answer_time'); // 列未追加のシートでは -1
 
     if (idxUser < 0 || idxScore < 0 || idxDate < 0) {
-      return res.status(500).json({ ok: false, message: 'scores ヘッダ不一致' });
+      return res.status(500).json({ ok: false, code: 'DATA-002', message: 'scores ヘッダ不一致' });
     }
 
     const monthRows = sRows.slice(1).filter(r => toMonthKey(r[idxDate]) === mk);
@@ -149,8 +150,7 @@ router.get('/', optionalAuth, async (_req, res) => {
     await setCache(rankingCacheKey, payload, DEFAULT_TTL.RANKING_DATA);
     res.json(payload);
   } catch (e) {
-    console.error('[ranking] error:', e);
-    res.status(e.statusCode || 500).json({ ok: false, message: 'ランキング取得でエラーが発生しました' });
+    sendError(res, null, 'GET /ranking', e, 'DATA-001');
   }
 });
 

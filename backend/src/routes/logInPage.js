@@ -6,6 +6,7 @@ const { generateToken } = require('../middleware/auth');
 const { validateBody } = require('../middleware/validation');
 const { getCache, setCache, getSheetsKey } = require('../services/redis');
 const { createLogger } = require('../utils/logger');
+const { sendError } = require('../utils/errors');
 const {
   SHEET_NAMES, HEADERS, USER_COL, SHEET_RANGES,
   validateHeader, findUserRow, toBool,
@@ -47,7 +48,7 @@ router.post('/login',
       }
 
       if (rows.length < 2) {
-        return res.status(500).json({ ok: false, message: 'ユーザーデータが存在しません' });
+        return res.status(500).json({ ok: false, code: 'DATA-001', message: 'ユーザーデータが存在しません' });
       }
 
       validateHeader(rows, HEADERS.USERS, SHEET_NAMES.USERS);
@@ -55,7 +56,7 @@ router.post('/login',
       const found = findUserRow(rows.slice(1), userId);
       if (!found) {
         log.warn(route, 'user not found', { userId: maskUser(userId) });
-        return res.status(401).json({ ok: false, message: '認証に失敗しました' });
+        return res.status(401).json({ ok: false, code: 'AUTH-001', message: '認証に失敗しました' });
       }
       const { row } = found;
 
@@ -68,7 +69,7 @@ router.post('/login',
           passwordMatch = await verifyPassword(String(password), storedPassword);
         } catch (err) {
           log.error(route, 'password verification error', { message: err?.message });
-          return res.status(500).json({ ok: false, message: 'サーバーエラーが発生しました' });
+          return res.status(500).json({ ok: false, code: 'SYS-001', message: 'サーバーエラーが発生しました' });
         }
       } else {
         passwordMatch = storedPassword === String(password);
@@ -77,7 +78,7 @@ router.post('/login',
 
       if (!passwordMatch) {
         log.warn(route, 'password mismatch', { userId: maskUser(userId) });
-        return res.status(401).json({ ok: false, message: '認証に失敗しました' });
+        return res.status(401).json({ ok: false, code: 'AUTH-001', message: '認証に失敗しました' });
       }
 
       const name = String(row[USER_COL.nickname] || '');
@@ -112,11 +113,7 @@ router.post('/login',
         user: { userId: String(userId), name, current_grade, current_part, current_subpart, is_admin },
       });
     } catch (err) {
-      log.error(route, 'exception', { message: err?.message });
-      return res.status(err.statusCode || 500).json({
-        ok: false,
-        message: err.statusCode ? err.message : 'サーバーエラーが発生しました'
-      });
+      return sendError(res, log, route, err, 'SYS-001');
     }
   },
 );

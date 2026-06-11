@@ -3,6 +3,7 @@
 // 「ヘッダー行つき2次元配列」契約で fetchSheet を提供する。
 // Google認証情報・Redisなしで起動できる(動作確認・開発用)。
 const { SHEET_NAMES, HEADERS, validateHeader, nowTimestamp, USER_ID_PAD_LENGTH } = require('../utils/sheets');
+const { AppError } = require('../utils/errors');
 const store = require('./jsonStore');
 
 // シート名 → JSONファイル名/ヘッダー定義
@@ -17,9 +18,7 @@ const SHEET_DEF = {
 function def(sheetName) {
   const d = SHEET_DEF[sheetName];
   if (!d) {
-    const err = new Error(`未知のシート名: ${sheetName}`);
-    err.statusCode = 500;
-    throw err;
+    throw new AppError('DATA-001', 500, `未知のシート名: ${sheetName}`);
   }
   return d;
 }

@@ -8,6 +8,7 @@ const {
   findUserRow, nowTimestamp, headerIndexMap,
   getSheetsClient, SPREADSHEET_ID,
 } = require('../utils/sheets');
+const { AppError } = require('../utils/errors');
 
 function ensureReady() {
   ensureSheetId();
@@ -95,9 +96,7 @@ async function updateUserPassword(userId, hashedPassword) {
 async function createUser({ hashedPassword, nickname, real_name }) {
   const rows = await fetchSheet(SHEET_NAMES.USERS, 'A1:K');
   if (rows.length < 1) {
-    const err = new Error('usersシートにヘッダーがありません');
-    err.statusCode = 500;
-    throw err;
+    throw new AppError('DATA-002', 500, 'usersシートにヘッダーがありません');
   }
   let nextId = 1;
   for (const r of rows.slice(1)) {

@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import TextBox from '../components/TextBox'
 import { useAuth } from '../hooks/useAuth'
 import { API_URL } from '../config'
+import { apiFetch, formatApiError } from '../utils/apiClient'
 import { LOGIN_SLOW_HINT_MS } from '../constants/game'
 import '../App.css'
 import '../components/Button.css'
@@ -44,23 +45,16 @@ const LoginPage: React.FC = () => {
     setSlowHint(false)
     slowHintTimerRef.current = window.setTimeout(() => setSlowHint(true), LOGIN_SLOW_HINT_MS)
     try {
-      const res = await fetch(`${API_URL}/auth/login`, {
+      const data = await apiFetch<LoginResponse>('/auth/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        credentials: 'include', // クッキーを送受信
         body: JSON.stringify({ userId, password }),
       })
 
-      // ★ まず JSON を一度だけパース
-      const data = await res.json().catch((): LoginResponse => ({ ok: false }))
-
-      // ★ ステータス or API の ok を確認
-      if (!res.ok || !data?.ok) {
-        throw new Error(data?.message || `Login failed (${res.status})`)
-      }
-
       // ★ ユーザー情報をContextに保存
-      const user = data.user || {}
+      const user: NonNullable<LoginResponse['user']> = data.user ?? {
+        userId: '', name: '', current_grade: 1, current_part: 1, is_admin: false,
+      }
       login({
         userId: user.userId ?? '',
         name: user.name ?? '',
@@ -76,7 +70,7 @@ const LoginPage: React.FC = () => {
         navigate('/select')
       }
     } catch (err) {
-      setError(err instanceof Error ? err.message : String(err))
+      setError(formatApiError(err, 'ログインに失敗しました'))
     } finally {
       if (slowHintTimerRef.current) {
         window.clearTimeout(slowHintTimerRef.current)

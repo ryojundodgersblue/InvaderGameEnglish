@@ -5,6 +5,7 @@ const { authenticateToken } = require('../middleware/auth');
 const { validateQuery, validateBody } = require('../middleware/validation');
 const { getCache, setCache, getSheetsKey, DEFAULT_TTL } = require('../services/redis');
 const { createLogger } = require('../utils/logger');
+const { sendError } = require('../utils/errors');
 const {
   SHEET_NAMES, HEADERS, USER_COL, SHEET_RANGES,
   MAX_QUESTIONS, REQUIRED_ATTEMPTS,
@@ -46,15 +47,14 @@ router.get('/part',
       String(r[3]) === String(subpart)
     );
     if (!hit) {
-      return res.status(404).json({ ok: false, message: '該当 part が見つかりません' });
+      return res.status(404).json({ ok: false, code: 'DATA-004', message: '該当 part が見つかりません' });
     }
 
     const result = { ok: true, part: { part_id: String(hit[0]), requirement: String(hit[4] ?? '') } };
     await setCache(cacheKey, result, DEFAULT_TTL.SHEETS_DATA);
     res.json(result);
   } catch (e) {
-    log.error(route, 'Error', { message: e.message });
-    res.status(e.statusCode || 500).json({ ok: false, message: e.statusCode ? e.message : 'part 取得に失敗' });
+    sendError(res, log, route, e, 'GAME-003');
   }
 });
 
@@ -121,8 +121,7 @@ router.get('/questions',
     await setCache(cacheKey, result, DEFAULT_TTL.SHEETS_DATA);
     res.json(result);
   } catch (e) {
-    log.error(route, 'Error', { message: e.message });
-    res.status(e.statusCode || 500).json({ ok: false, message: e.statusCode ? e.message : 'questions 取得に失敗' });
+    sendError(res, log, route, e, 'GAME-003');
   }
 });
 
@@ -145,7 +144,7 @@ router.post('/score',
     const { userId, part_id, scores, clear, avg_answer_time } = req.body || {};
 
     if (req.user.userId !== userId) {
-      return res.status(403).json({ ok: false, message: '権限がありません' });
+      return res.status(403).json({ ok: false, code: 'AUTH-003', message: '権限がありません' });
     }
 
     const scoreValue = Number(scores);
@@ -171,8 +170,7 @@ router.post('/score',
       }
     });
   } catch (e) {
-    log.error(route, 'Error', { message: e.message });
-    res.status(e.statusCode || 500).json({ ok: false, message: e.statusCode ? e.message : 'score 追加に失敗' });
+    sendError(res, log, route, e, 'GAME-001');
   }
 });
 
@@ -194,11 +192,11 @@ router.post('/advance',
     const { userId, current, part_id, clear } = req.body || {};
 
     if (req.user.userId !== userId) {
-      return res.status(403).json({ ok: false, message: '権限がありません' });
+      return res.status(403).json({ ok: false, code: 'AUTH-003', message: '権限がありません' });
     }
 
     if (!current.grade || !current.part || current.subpart === undefined) {
-      return res.status(400).json({ ok: false, message: 'current に grade/part/subpart が必要です' });
+      return res.status(400).json({ ok: false, code: 'VAL-001', message: 'current に grade/part/subpart が必要です' });
     }
 
     // 1) attempts をカウント
@@ -207,7 +205,7 @@ router.post('/advance',
     const idxUser = sHeader.get('user_id') ?? -1;
     const idxPart = sHeader.get('part_id') ?? -1;
     if (idxUser < 0 || idxPart < 0) {
-      return res.status(500).json({ ok: false, message: 'scores ヘッダ不一致' });
+      return res.status(500).json({ ok: false, code: 'DATA-002', message: 'scores ヘッダ不一致' });
     }
     const attempts = sRows.slice(1).filter(r =>
       String(r[idxUser] || '') === String(userId) &&
@@ -232,7 +230,7 @@ router.post('/advance',
 
     const found = findUserRow(uRows.slice(1), userId);
     if (!found) {
-      return res.status(404).json({ ok: false, message: 'ユーザーが見つかりません' });
+      return res.status(404).json({ ok: false, code: 'DATA-004', message: 'ユーザーが見つかりません' });
     }
     const { row } = found;
     const cg = String(row[USER_COL.current_grade] ?? '');
@@ -267,7 +265,7 @@ router.post('/advance',
 
     const curIdx = parts.findIndex(p => p.part_id === String(part_id));
     if (curIdx < 0) {
-      return res.status(404).json({ ok: false, message: '現在のpartが見つかりません' });
+      return res.status(404).json({ ok: false, code: 'DATA-004', message: '現在のpartが見つかりません' });
     }
 
     if (curIdx === parts.length - 1) {
@@ -296,8 +294,7 @@ router.post('/advance',
       next: { grade_id: next.grade_id, part_no: next.part_no, subpart_no: next.subpart_no }
     });
   } catch (e) {
-    log.error(route, 'Error', { message: e.message });
-    res.status(e.statusCode || 500).json({ ok: false, message: e.statusCode ? e.message : '進捗更新に失敗' });
+    sendError(res, log, route, e, 'GAME-002');
   }
 });
 

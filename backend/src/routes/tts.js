@@ -66,13 +66,13 @@ router.post('/synthesize',
     // speakingRateの範囲チェック（Google TTS APIの有効範囲: 0.25 - 4.0）
     const rate = Number(speakingRate);
     if (!Number.isFinite(rate) || rate < 0.25 || rate > 4.0) {
-      return res.status(400).json({ ok: false, message: 'Invalid speakingRate (0.25 - 4.0)' });
+      return res.status(400).json({ ok: false, code: 'VAL-001', message: 'Invalid speakingRate (0.25 - 4.0)' });
     }
 
     // pitchの範囲チェック（Google TTS APIの有効範囲: -20.0 - 20.0）
     const p = Number(pitch);
     if (!Number.isFinite(p) || p < -20.0 || p > 20.0) {
-      return res.status(400).json({ ok: false, message: 'Invalid pitch (-20.0 - 20.0)' });
+      return res.status(400).json({ ok: false, code: 'VAL-001', message: 'Invalid pitch (-20.0 - 20.0)' });
     }
 
     // Redisキャッシュ(版数つき: 合成ロジック変更時に旧音声を引き当てない)
@@ -95,8 +95,8 @@ router.post('/synthesize',
 
     res.json({ audioContent: response.audioContent, contentType: 'audio/mp3', cached: false });
   } catch (error) {
-    console.error('[TTS] Error:', error.message);
-    res.status(500).json({ ok: false, message: 'Text-to-Speech synthesis failed' });
+    console.error('[TTS-001] synthesize error:', error.message);
+    res.status(500).json({ ok: false, code: 'TTS-001', message: '音声の合成に失敗しました' });
   }
 });
 
@@ -108,8 +108,8 @@ router.get('/voices', authenticateToken, async (req, res) => {
     const [response] = await tts.listVoices({ languageCode });
     res.json({ ok: true, voices: response.voices });
   } catch (error) {
-    console.error('[TTS] Get Voices Error:', error.message);
-    res.status(500).json({ ok: false, message: 'Failed to fetch voices' });
+    console.error('[TTS-001] voices error:', error.message);
+    res.status(500).json({ ok: false, code: 'TTS-001', message: '音声リストの取得に失敗しました' });
   }
 });
 

@@ -42,7 +42,8 @@ function authenticateToken(req, res, next) {
     console.log('[AUTH] No token found in cookies');
     return res.status(401).json({
       ok: false,
-      message: '認証が必要です'
+      code: 'AUTH-002',
+      message: '認証が必要です。再度ログインしてください'
     });
   }
 
@@ -59,12 +60,14 @@ function authenticateToken(req, res, next) {
     if (err.name === 'TokenExpiredError') {
       return res.status(401).json({
         ok: false,
-        message: 'トークンの有効期限が切れています'
+        code: 'AUTH-004',
+        message: 'ログインの有効期限が切れています。再度ログインしてください'
       });
     }
     return res.status(403).json({
       ok: false,
-      message: '無効なトークンです'
+      code: 'AUTH-002',
+      message: '無効なトークンです。再度ログインしてください'
     });
   }
 }

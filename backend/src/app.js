@@ -76,9 +76,10 @@ app.use('/admin',   adminRouter);   // 例: GET  /admin/users, POST /admin/users
 
 // 404ハンドラー - 定義されていないルートへのアクセス
 app.use((req, res, next) => {
-  console.log(`[404] ${req.method} ${req.path} - Route not found`);
+  console.log(`[SYS-404] ${req.method} ${req.path} - Route not found`);
   res.status(404).json({
     ok: false,
+    code: 'SYS-404',
     message: `Cannot ${req.method} ${req.path}`
   });
 });
