@@ -60,11 +60,23 @@ const PlayPage: React.FC = () => {
   const current = questions[idx];
   const questionNo = idx + 1;
 
+  // ---------------------- Freeze Detection ----------------------
+  const isFreezeMonitored = useCallback(
+    () => statusRef.current !== 'finished' && statusRef.current !== 'idle',
+    []
+  );
+  const {
+    frozen, setFrozen, startFreezeDetection, stopFreezeDetection, updateActivity,
+  } = useFreezeDetection(isFreezeMonitored);
+
   // ---------------------- Helpers ----------------------
   const dispatchAndSync = useCallback((action: Parameters<typeof dispatch>[0], phase: GamePhase) => {
     dispatch(action);
     statusRef.current = phase;
-  }, []);
+    // フェーズが遷移している=ゲームは正常進行中(デモ問題の自動進行や
+    // 演出シーケンス中をフリーズと誤検知しないための生存通知)
+    updateActivity();
+  }, [updateActivity]);
 
   const isProcessingCancelled = useCallback(() => !isProcessingRef.current, []);
 
@@ -74,14 +86,6 @@ const PlayPage: React.FC = () => {
     originalVolumeRef,
     muteCurrentAudio, unmuteCurrentAudio, stopCurrentAudio, waitForCurrentAudioToFinish,
   } = tts;
-
-  const isFreezeMonitored = useCallback(
-    () => statusRef.current !== 'finished' && statusRef.current !== 'idle',
-    []
-  );
-  const {
-    frozen, setFrozen, startFreezeDetection, stopFreezeDetection, updateActivity,
-  } = useFreezeDetection(isFreezeMonitored);
 
   const handleTimeUpRef = useRef<() => void>(() => {});
   // onTick=updateActivity: タイマー動作中(=生徒の回答待ち)はフリーズではない
@@ -113,7 +117,10 @@ const PlayPage: React.FC = () => {
       return false;
     }
 
-    return tts.speak(text, { isAnswer, micActive: micActiveRef.current });
+    const ok = await tts.speak(text, { isAnswer, micActive: micActiveRef.current });
+    // 読み上げ完了(成否問わず)=処理は進行している(連続読み上げ中の誤検知防止)
+    updateActivity();
+    return ok;
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 

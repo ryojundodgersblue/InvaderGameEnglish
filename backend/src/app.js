@@ -28,20 +28,24 @@ const rateLimitResponse = {
   message: 'アクセスが集中しています。しばらく待ってからお試しください',
 };
 
-// ログイン: ブルートフォース対策(IPごとに15分で20回まで)
+// ログイン: ブルートフォース対策。
+// 教室では学校Wi-Fi等の同一グローバルIPからクラス全員が一斉ログインするため、
+// 成功はカウントせず(skipSuccessfulRequests)、失敗のみIPごとに15分100回まで。
 const loginLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
-  limit: 20,
+  limit: 100,
+  skipSuccessfulRequests: true,
   standardHeaders: true,
   legacyHeaders: false,
   message: rateLimitResponse,
 });
 
-// TTS: Google Cloud TTSのコスト悪用対策(IPごとに1分で120回まで。
-// 通常プレイは1問あたり3回程度なので余裕を持った上限)
+// TTS: Google Cloud TTSのコスト悪用対策。
+// 同一IPで教室30人が同時プレイ(1問あたり最大3回合成)しても収まる上限にする
+// (30人 × 6回/分 = 180 + リトライ余裕)
 const ttsLimiter = rateLimit({
   windowMs: 60 * 1000,
-  limit: 120,
+  limit: 300,
   standardHeaders: true,
   legacyHeaders: false,
   message: rateLimitResponse,

@@ -4,7 +4,8 @@
 // 前提: DATA_SOURCE=local でAPIサーバーが起動していること
 //   cd backend && npm run start:local
 // 実行:
-//   node scripts/verify_api.mjs [--base http://localhost:4000] [--user 10001] [--pass xxxx]
+//   node scripts/verify_api.mjs --pass <ログインパスワード> [--base http://localhost:4000] [--user 10001]
+//   (パスワードは VERIFY_PASS 環境変数でも指定可。コードには埋め込まない)
 //
 // 検証内容:
 //   1. ログイン(Cookie認証)
@@ -27,7 +28,11 @@ const arg = (name, dflt) => {
 
 const BASE = arg('base', 'http://localhost:4000');
 const USER = arg('user', '10001');
-const PASS = arg('pass', 'vz9iByYp');
+const PASS = arg('pass', process.env.VERIFY_PASS || '');
+if (!PASS) {
+  console.error('ERROR: パスワードを --pass または VERIFY_PASS で指定してください(コードに埋め込まない)');
+  process.exit(1);
+}
 const IMG_DIR = path.join(__dirname, '..', '..', 'frontend', 'public', 'questions');
 const SCORES_JSON = path.join(__dirname, '..', 'data', 'scores.json');
 
