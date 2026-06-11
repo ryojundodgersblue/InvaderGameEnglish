@@ -135,13 +135,14 @@ router.post('/score',
     userId: { type: 'string', required: true, minLength: 1, maxLength: 100 },
     part_id: { type: 'string', required: true, minLength: 1, maxLength: 100 },
     scores: { type: 'number', required: true, min: 0, max: 1000 },
-    clear: { type: 'boolean', required: false }
+    clear: { type: 'boolean', required: false },
+    avg_answer_time: { type: 'number', required: false, min: 0, max: 600 }
   }),
   async (req, res) => {
   const route = 'POST /score';
   try {
     ds.ensureReady();
-    const { userId, part_id, scores, clear } = req.body || {};
+    const { userId, part_id, scores, clear, avg_answer_time } = req.body || {};
 
     if (req.user.userId !== userId) {
       return res.status(403).json({ ok: false, message: '権限がありません' });
@@ -149,18 +150,25 @@ router.post('/score',
 
     const scoreValue = Number(scores);
     const clearValue = toBool(clear);
+    const avgTimeValue = Number.isFinite(Number(avg_answer_time)) && avg_answer_time !== undefined
+      ? Number(avg_answer_time)
+      : undefined;
 
     const saved = await ds.appendScore({
       user_id: userId,
       part_id,
       scores: scoreValue,
       clear: clearValue,
+      avg_answer_time: avgTimeValue,
     });
 
     res.json({
       ok: true,
       score_id: saved.score_id,
-      saved: { userId, part_id, scores: scoreValue, clear: clearValue, play_date: saved.play_date }
+      saved: {
+        userId, part_id, scores: scoreValue, clear: clearValue,
+        play_date: saved.play_date, avg_answer_time: avgTimeValue ?? null
+      }
     });
   } catch (e) {
     log.error(route, 'Error', { message: e.message });

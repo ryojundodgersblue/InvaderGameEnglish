@@ -48,6 +48,10 @@ const PlayPage: React.FC = () => {
   const statusRef = useRef<GamePhase>('idle');
   const realCorrectRef = useRef(0);
 
+  // 速さランキング用: 回答受付開始→正解までの秒数を問題ごとに記録
+  const answerTimesRef = useRef<number[]>([]);
+  const listenStartRef = useRef<number | null>(null);
+
   useEffect(() => { questionsRef.current = questions; }, [questions]);
   useEffect(() => { idxRef.current = idx; }, [idx]);
   useEffect(() => { statusRef.current = status; }, [status]);
@@ -86,6 +90,7 @@ const PlayPage: React.FC = () => {
     onStartWhileSpeaking: () => {
       stopCurrentAudio();
       dispatchAndSync({ type: 'START_LISTENING' }, 'listening');
+      if (listenStartRef.current === null) listenStartRef.current = Date.now();
       updateActivity();
     },
     onRecognition: () => dispatch({ type: 'RECOGNITION_DETECTED' }),
@@ -182,6 +187,8 @@ const PlayPage: React.FC = () => {
         idxRef.current = 0;
         setRealCorrect(0);
         realCorrectRef.current = 0;
+        answerTimesRef.current = [];
+        listenStartRef.current = null;
         setShowRequirement(true);
       } catch (e) {
         const err = e as Error;
@@ -253,6 +260,7 @@ const PlayPage: React.FC = () => {
     setShowText(false);
     dispatch({ type: 'RESET_TO_IDLE' });
     asr.resetCaptured();
+    listenStartRef.current = null;
 
     stopCurrentAudio();
     forceStopRecognition();
@@ -289,6 +297,7 @@ const PlayPage: React.FC = () => {
         await playAttackSequence(q);
       } else {
         dispatchAndSync({ type: 'START_LISTENING' }, 'listening');
+        if (listenStartRef.current === null) listenStartRef.current = Date.now();
 
         if (!q.is_demo) {
           startTimer();
@@ -423,6 +432,11 @@ const PlayPage: React.FC = () => {
           realCorrectRef.current = newCount;
           return newCount;
         });
+
+        // 回答までの秒数を記録(回答受付開始からの経過時間)
+        if (listenStartRef.current !== null) {
+          answerTimesRef.current.push((Date.now() - listenStartRef.current) / 1000);
+        }
       }
 
       try {
@@ -459,6 +473,12 @@ const PlayPage: React.FC = () => {
     const userId = session?.userId || '';
     const part_id = questionsRef.current[0]?.part_id || partInfo?.part_id || '';
 
+    // 速さランキング用: 正解した問題の平均回答秒(正解なしの場合は送らない)
+    const times = answerTimesRef.current;
+    const avgAnswerTime = times.length > 0
+      ? Math.round((times.reduce((a, b) => a + b, 0) / times.length) * 10) / 10
+      : undefined;
+
     try {
       if (!userId) throw new Error('ユーザーIDが見つかりません');
       if (!part_id) throw new Error('パートIDが見つかりません');
@@ -468,7 +488,10 @@ const PlayPage: React.FC = () => {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
-        body: JSON.stringify({ userId, part_id, scores: finalCorrect, clear }),
+        body: JSON.stringify({
+          userId, part_id, scores: finalCorrect, clear,
+          ...(avgAnswerTime !== undefined ? { avg_answer_time: avgAnswerTime } : {}),
+        }),
       });
 
       if (!scoreResponse.ok) {

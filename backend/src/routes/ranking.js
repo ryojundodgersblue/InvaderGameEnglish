@@ -45,7 +45,7 @@ router.get('/', optionalAuth, async (_req, res) => {
     if (!usersMap) {
       const uRows = await ds.fetchSheet(SHEET_NAMES.USERS, SHEET_RANGES.USERS);
       if (uRows.length < 2) {
-        return res.json({ month: mk, items: { challenge: [], accuracy: [] } });
+        return res.json({ month: mk, items: { challenge: [], accuracy: [], speed: [] } });
       }
 
       const uHeader = uRows[0].map(v => String(v ?? ''));
@@ -71,7 +71,7 @@ router.get('/', optionalAuth, async (_req, res) => {
     // ===== scores =====
     const sRows = await ds.fetchSheet(SHEET_NAMES.SCORES, SHEET_RANGES.SCORES);
     if (sRows.length < 2) {
-      return res.json({ month: mk, items: { challenge: [], accuracy: [] } });
+      return res.json({ month: mk, items: { challenge: [], accuracy: [], speed: [] } });
     }
 
     const sHeader = sRows[0].map(v => String(v ?? ''));
@@ -79,6 +79,7 @@ router.get('/', optionalAuth, async (_req, res) => {
     const idxScore = idxOf(sHeader, 'scores');
     let idxDate = idxOf(sHeader, 'play_date');
     if (idxDate < 0) idxDate = idxOf(sHeader, 'play date');
+    const idxAvgTime = idxOf(sHeader, 'avg_answer_time'); // 列未追加のシートでは -1
 
     if (idxUser < 0 || idxScore < 0 || idxDate < 0) {
       return res.status(500).json({ ok: false, message: 'scores ヘッダ不一致' });
@@ -118,7 +119,33 @@ router.get('/', optionalAuth, async (_req, res) => {
       .slice(0, RANKING_TOP_N)
       .map(({ userId, name }) => ({ userId, name }));
 
-    const payload = { month: mk, items: { challenge, accuracy } };
+    // ③ 回答の速さ（avg_answer_timeが記録されたプレイの平均秒。短いほど上位）
+    const timeSum = new Map();
+    const timeCnt = new Map();
+    for (const r of monthRows) {
+      if (idxAvgTime < 0) break;
+      const uid = String(r[idxUser] ?? '').trim();
+      if (!uid) continue;
+      const t = Number(r[idxAvgTime]);
+      if (!Number.isFinite(t) || t <= 0) continue;
+      timeSum.set(uid, (timeSum.get(uid) || 0) + t);
+      timeCnt.set(uid, (timeCnt.get(uid) || 0) + 1);
+    }
+    const speed = [...timeSum.entries()]
+      .map(([uid, total]) => {
+        const plays = timeCnt.get(uid) || 1;
+        return {
+          userId: uid,
+          name: usersMap.get(uid) || uid,
+          avgSeconds: Math.round((total / plays) * 10) / 10,
+          _plays: plays,
+        };
+      })
+      .sort((a, b) => a.avgSeconds - b.avgSeconds || b._plays - a._plays || (a.name || '').localeCompare(b.name || ''))
+      .slice(0, RANKING_TOP_N)
+      .map(({ userId, name, avgSeconds }) => ({ userId, name, avgSeconds }));
+
+    const payload = { month: mk, items: { challenge, accuracy, speed } };
     await setCache(rankingCacheKey, payload, DEFAULT_TTL.RANKING_DATA);
     res.json(payload);
   } catch (e) {

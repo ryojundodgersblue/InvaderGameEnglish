@@ -6,11 +6,13 @@ import { API_URL } from '../config'
 import './Ranking.css'
 
 type RankItem = { userId: string; name: string; }
+type SpeedRankItem = RankItem & { avgSeconds?: number }
 
 const Ranking: React.FC = () => {
   const navigate = useNavigate()
   const [challenge, setChallenge] = useState<RankItem[] | null>(null)
   const [accuracy, setAccuracy] = useState<RankItem[] | null>(null)
+  const [speed, setSpeed] = useState<SpeedRankItem[] | null>(null)
   const [month, setMonth] = useState<string>('')
   const [error, setError] = useState<string | null>(null)
   const [loading, setLoading] = useState(true)
@@ -31,20 +33,19 @@ const Ranking: React.FC = () => {
         setMonth(json.month ?? '')
         setChallenge(json.items?.challenge ?? [])
         setAccuracy(json.items?.accuracy ?? [])
+        setSpeed(json.items?.speed ?? [])
       } catch {
         if (cancelled) return
         setError('ランキング取得に失敗しました')
         // フォールバック（任意）
-        setChallenge([
+        const empty = [
           { userId: '', name: '' },
           { userId: '', name: '' },
           { userId: '', name: '' },
-        ])
-        setAccuracy([
-          { userId: '', name: '' },
-          { userId: '', name: '' },
-          { userId: '', name: '' },
-        ])
+        ]
+        setChallenge(empty)
+        setAccuracy(empty)
+        setSpeed(empty)
       } finally {
         if (!cancelled) setLoading(false)
       }
@@ -87,6 +88,21 @@ const Ranking: React.FC = () => {
               <li key={`${it.userId || 'u'}-${i}`} className="rank-row">
                 <span className="rank-no">No.{i + 1}</span>
                 <span className="rank-name">{it.name}</span>
+              </li>
+            ))}
+          </ol>
+        </section>
+
+        <section className="panel">
+          <h2 className="rank-heading">Fastest Answers</h2>
+          <ol className="rank-list">
+            {(speed ?? []).slice(0, 3).map((it, i) => (
+              <li key={`${it.userId || 'u'}-${i}`} className="rank-row">
+                <span className="rank-no">No.{i + 1}</span>
+                <span className="rank-name">{it.name}</span>
+                {Number.isFinite(it.avgSeconds) && (
+                  <span className="rank-val">{it.avgSeconds}s</span>
+                )}
               </li>
             ))}
           </ol>
