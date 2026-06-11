@@ -1,0 +1,2972 @@
+[
+  {
+    "score_id": 1,
+    "user_id": "10004",
+    "part_id": 1011,
+    "scores": 0,
+    "clear": false,
+    "play_date": "2025/09/13 09:56:00",
+    "avg_answer_time": null
+  },
+  {
+    "score_id": 2,
+    "user_id": "10006",
+    "part_id": 1011,
+    "scores": 5,
+    "clear": true,
+    "play_date": "2026/02/17 02:38:01",
+    "avg_answer_time": null
+  },
+  {
+    "score_id": 3,
+    "user_id": "10006",
+    "part_id": 1012,
+    "scores": 7,
+    "clear": true,
+    "play_date": "2026/02/17 02:40:35",
+    "avg_answer_time": null
+  },
+  {
+    "score_id": 4,
+    "user_id": "10002",
+    "part_id": 2101,
+    "scores": 0,
+    "clear": false,
+    "play_date": "2026/02/17 03:15:43",
+    "avg_answer_time": null
+  },
+  {
+    "score_id": 5,
+    "user_id": "10006",
+    "part_id": 1021,
+    "scores": 7,
+    "clear": true,
+    "play_date": "2026/02/17 09:05:39",
+    "avg_answer_time": null
+  },
+  {
+    "score_id": 6,
+    "user_id": "10006",
+    "part_id": 1022,
+    "scores": 7,
+    "clear": true,
+    "play_date": "2026/02/17 12:46:51",
+    "avg_answer_time": null
+  },
+  {
+    "score_id": 7,
+    "user_id": "10006",
+    "part_id": 1022,
+    "scores": 7,
+    "clear": true,
+    "play_date": "2026/02/17 12:57:11",
+    "avg_answer_time": null
+  },
+  {
+    "score_id": 8,
+    "user_id": "10006",
+    "part_id": 1031,
+    "scores": 6,
+    "clear": true,
+    "play_date": "2026/02/24 10:24:31",
+    "avg_answer_time": null
+  },
+  {
+    "score_id": 9,
+    "user_id": "10006",
+    "part_id": 1032,
+    "scores": 7,
+    "clear": true,
+    "play_date": "2026/02/28 08:14:35",
+    "avg_answer_time": null
+  },
+  {
+    "score_id": 10,
+    "user_id": "10006",
+    "part_id": 1041,
+    "scores": 7,
+    "clear": true,
+    "play_date": "2026/02/28 08:17:10",
+    "avg_answer_time": null
+  },
+  {
+    "score_id": 11,
+    "user_id": "10006",
+    "part_id": 1042,
+    "scores": 7,
+    "clear": true,
+    "play_date": "2026/02/28 08:20:01",
+    "avg_answer_time": null
+  },
+  {
+    "score_id": 12,
+    "user_id": "10006",
+    "part_id": 1042,
+    "scores": 7,
+    "clear": true,
+    "play_date": "2026/02/28 08:23:50",
+    "avg_answer_time": null
+  },
+  {
+    "score_id": 13,
+    "user_id": "10006",
+    "part_id": 1051,
+    "scores": 7,
+    "clear": true,
+    "play_date": "2026/02/28 08:39:49",
+    "avg_answer_time": null
+  },
+  {
+    "score_id": 14,
+    "user_id": "10006",
+    "part_id": 1052,
+    "scores": 3,
+    "clear": false,
+    "play_date": "2026/02/28 08:44:36",
+    "avg_answer_time": null
+  },
+  {
+    "score_id": 15,
+    "user_id": "10006",
+    "part_id": 1052,
+    "scores": 7,
+    "clear": true,
+    "play_date": "2026/02/28 08:50:37",
+    "avg_answer_time": null
+  },
+  {
+    "score_id": 16,
+    "user_id": "10006",
+    "part_id": 1061,
+    "scores": 6,
+    "clear": true,
+    "play_date": "2026/02/28 08:55:07",
+    "avg_answer_time": null
+  },
+  {
+    "score_id": 17,
+    "user_id": "10006",
+    "part_id": 1062,
+    "scores": 7,
+    "clear": true,
+    "play_date": "2026/02/28 09:00:00",
+    "avg_answer_time": null
+  },
+  {
+    "score_id": 18,
+    "user_id": "10006",
+    "part_id": 1071,
+    "scores": 4,
+    "clear": false,
+    "play_date": "2026/02/28 09:05:13",
+    "avg_answer_time": null
+  },
+  {
+    "score_id": 19,
+    "user_id": "10006",
+    "part_id": 1011,
+    "scores": 7,
+    "clear": true,
+    "play_date": "2026/03/01 06:17:10",
+    "avg_answer_time": null
+  },
+  {
+    "score_id": 20,
+    "user_id": "10006",
+    "part_id": 1012,
+    "scores": 6,
+    "clear": true,
+    "play_date": "2026/03/01 06:20:36",
+    "avg_answer_time": null
+  },
+  {
+    "score_id": 21,
+    "user_id": "10006",
+    "part_id": 1012,
+    "scores": 7,
+    "clear": true,
+    "play_date": "2026/03/01 06:23:56",
+    "avg_answer_time": null
+  },
+  {
+    "score_id": 22,
+    "user_id": "10006",
+    "part_id": 1021,
+    "scores": 7,
+    "clear": true,
+    "play_date": "2026/03/01 06:32:01",
+    "avg_answer_time": null
+  },
+  {
+    "score_id": 23,
+    "user_id": "10006",
+    "part_id": 1022,
+    "scores": 7,
+    "clear": true,
+    "play_date": "2026/03/01 06:34:39",
+    "avg_answer_time": null
+  },
+  {
+    "score_id": 24,
+    "user_id": "10006",
+    "part_id": 1031,
+    "scores": 7,
+    "clear": true,
+    "play_date": "2026/03/01 06:37:54",
+    "avg_answer_time": null
+  },
+  {
+    "score_id": 25,
+    "user_id": "10006",
+    "part_id": 1032,
+    "scores": 7,
+    "clear": true,
+    "play_date": "2026/03/01 06:40:40",
+    "avg_answer_time": null
+  },
+  {
+    "score_id": 26,
+    "user_id": "10006",
+    "part_id": 1041,
+    "scores": 7,
+    "clear": true,
+    "play_date": "2026/03/01 06:43:19",
+    "avg_answer_time": null
+  },
+  {
+    "score_id": 27,
+    "user_id": "10006",
+    "part_id": 1042,
+    "scores": 7,
+    "clear": true,
+    "play_date": "2026/03/01 06:46:17",
+    "avg_answer_time": null
+  },
+  {
+    "score_id": 28,
+    "user_id": "10006",
+    "part_id": 1061,
+    "scores": 6,
+    "clear": true,
+    "play_date": "2026/03/01 07:03:08",
+    "avg_answer_time": null
+  },
+  {
+    "score_id": 29,
+    "user_id": "10006",
+    "part_id": 1071,
+    "scores": 6,
+    "clear": true,
+    "play_date": "2026/03/01 07:09:59",
+    "avg_answer_time": null
+  },
+  {
+    "score_id": 30,
+    "user_id": "10006",
+    "part_id": 1072,
+    "scores": 7,
+    "clear": true,
+    "play_date": "2026/03/01 07:28:31",
+    "avg_answer_time": null
+  },
+  {
+    "score_id": 31,
+    "user_id": "10006",
+    "part_id": 1081,
+    "scores": 7,
+    "clear": true,
+    "play_date": "2026/03/01 07:34:25",
+    "avg_answer_time": null
+  },
+  {
+    "score_id": 32,
+    "user_id": "10006",
+    "part_id": 1082,
+    "scores": 7,
+    "clear": true,
+    "play_date": "2026/03/01 07:36:58",
+    "avg_answer_time": null
+  },
+  {
+    "score_id": 33,
+    "user_id": "10006",
+    "part_id": 1091,
+    "scores": 7,
+    "clear": true,
+    "play_date": "2026/03/01 07:41:45",
+    "avg_answer_time": null
+  },
+  {
+    "score_id": 34,
+    "user_id": "10006",
+    "part_id": 1092,
+    "scores": 3,
+    "clear": false,
+    "play_date": "2026/03/01 07:46:53",
+    "avg_answer_time": null
+  },
+  {
+    "score_id": 35,
+    "user_id": "10006",
+    "part_id": 1092,
+    "scores": 7,
+    "clear": true,
+    "play_date": "2026/03/01 07:50:29",
+    "avg_answer_time": null
+  },
+  {
+    "score_id": 36,
+    "user_id": "10006",
+    "part_id": 1101,
+    "scores": 7,
+    "clear": true,
+    "play_date": "2026/03/01 07:53:20",
+    "avg_answer_time": null
+  },
+  {
+    "score_id": 37,
+    "user_id": "10006",
+    "part_id": 1102,
+    "scores": 6,
+    "clear": true,
+    "play_date": "2026/03/01 07:56:52",
+    "avg_answer_time": null
+  },
+  {
+    "score_id": 38,
+    "user_id": "10006",
+    "part_id": 1111,
+    "scores": 7,
+    "clear": true,
+    "play_date": "2026/03/01 08:06:34",
+    "avg_answer_time": null
+  },
+  {
+    "score_id": 39,
+    "user_id": "10006",
+    "part_id": 1112,
+    "scores": 7,
+    "clear": true,
+    "play_date": "2026/03/01 08:12:22",
+    "avg_answer_time": null
+  },
+  {
+    "score_id": 40,
+    "user_id": "10006",
+    "part_id": 1121,
+    "scores": 7,
+    "clear": true,
+    "play_date": "2026/03/01 08:22:27",
+    "avg_answer_time": null
+  },
+  {
+    "score_id": 41,
+    "user_id": "10006",
+    "part_id": 1122,
+    "scores": 7,
+    "clear": true,
+    "play_date": "2026/03/01 08:25:21",
+    "avg_answer_time": null
+  },
+  {
+    "score_id": 42,
+    "user_id": "10006",
+    "part_id": 1131,
+    "scores": 7,
+    "clear": true,
+    "play_date": "2026/03/01 08:39:47",
+    "avg_answer_time": null
+  },
+  {
+    "score_id": 43,
+    "user_id": "10006",
+    "part_id": 1132,
+    "scores": 7,
+    "clear": true,
+    "play_date": "2026/03/01 08:46:22",
+    "avg_answer_time": null
+  },
+  {
+    "score_id": 44,
+    "user_id": "10006",
+    "part_id": 1141,
+    "scores": 6,
+    "clear": true,
+    "play_date": "2026/03/01 09:31:56",
+    "avg_answer_time": null
+  },
+  {
+    "score_id": 45,
+    "user_id": "10006",
+    "part_id": 1142,
+    "scores": 6,
+    "clear": true,
+    "play_date": "2026/03/01 09:36:20",
+    "avg_answer_time": null
+  },
+  {
+    "score_id": 46,
+    "user_id": "10006",
+    "part_id": 1151,
+    "scores": 7,
+    "clear": true,
+    "play_date": "2026/03/01 09:39:50",
+    "avg_answer_time": null
+  },
+  {
+    "score_id": 47,
+    "user_id": "10006",
+    "part_id": 1151,
+    "scores": 7,
+    "clear": true,
+    "play_date": "2026/03/13 04:27:15",
+    "avg_answer_time": null
+  },
+  {
+    "score_id": 48,
+    "user_id": "10006",
+    "part_id": 1151,
+    "scores": 7,
+    "clear": true,
+    "play_date": "2026/03/13 04:32:01",
+    "avg_answer_time": null
+  },
+  {
+    "score_id": 49,
+    "user_id": "10006",
+    "part_id": 1152,
+    "scores": 7,
+    "clear": true,
+    "play_date": "2026/03/13 04:35:26",
+    "avg_answer_time": null
+  },
+  {
+    "score_id": 50,
+    "user_id": "10006",
+    "part_id": 1161,
+    "scores": 6,
+    "clear": true,
+    "play_date": "2026/03/13 04:39:01",
+    "avg_answer_time": null
+  },
+  {
+    "score_id": 51,
+    "user_id": "10006",
+    "part_id": 1162,
+    "scores": 8,
+    "clear": true,
+    "play_date": "2026/03/13 04:45:04",
+    "avg_answer_time": null
+  },
+  {
+    "score_id": 52,
+    "user_id": "10006",
+    "part_id": 1171,
+    "scores": 7,
+    "clear": true,
+    "play_date": "2026/03/13 04:48:03",
+    "avg_answer_time": null
+  },
+  {
+    "score_id": 53,
+    "user_id": "10006",
+    "part_id": 1172,
+    "scores": 7,
+    "clear": true,
+    "play_date": "2026/03/13 04:51:47",
+    "avg_answer_time": null
+  },
+  {
+    "score_id": 54,
+    "user_id": "10006",
+    "part_id": 1181,
+    "scores": 7,
+    "clear": true,
+    "play_date": "2026/03/13 04:55:08",
+    "avg_answer_time": null
+  },
+  {
+    "score_id": 55,
+    "user_id": "10006",
+    "part_id": 1182,
+    "scores": 7,
+    "clear": true,
+    "play_date": "2026/03/13 05:00:49",
+    "avg_answer_time": null
+  },
+  {
+    "score_id": 56,
+    "user_id": "10006",
+    "part_id": 1191,
+    "scores": 6,
+    "clear": true,
+    "play_date": "2026/03/13 05:08:24",
+    "avg_answer_time": null
+  },
+  {
+    "score_id": 57,
+    "user_id": "10006",
+    "part_id": 1191,
+    "scores": 7,
+    "clear": true,
+    "play_date": "2026/03/13 05:11:21",
+    "avg_answer_time": null
+  },
+  {
+    "score_id": 58,
+    "user_id": "10006",
+    "part_id": 1192,
+    "scores": 7,
+    "clear": true,
+    "play_date": "2026/03/13 05:14:05",
+    "avg_answer_time": null
+  },
+  {
+    "score_id": 59,
+    "user_id": "10006",
+    "part_id": 1201,
+    "scores": 7,
+    "clear": true,
+    "play_date": "2026/03/13 05:17:21",
+    "avg_answer_time": null
+  },
+  {
+    "score_id": 60,
+    "user_id": "10006",
+    "part_id": 1202,
+    "scores": 7,
+    "clear": true,
+    "play_date": "2026/03/13 05:20:36",
+    "avg_answer_time": null
+  },
+  {
+    "score_id": 61,
+    "user_id": "10006",
+    "part_id": 1211,
+    "scores": 6,
+    "clear": true,
+    "play_date": "2026/03/13 05:26:30",
+    "avg_answer_time": null
+  },
+  {
+    "score_id": 62,
+    "user_id": "10006",
+    "part_id": 1211,
+    "scores": 7,
+    "clear": true,
+    "play_date": "2026/03/13 05:30:24",
+    "avg_answer_time": null
+  },
+  {
+    "score_id": 63,
+    "user_id": "10006",
+    "part_id": 1212,
+    "scores": 7,
+    "clear": true,
+    "play_date": "2026/03/13 05:36:25",
+    "avg_answer_time": null
+  },
+  {
+    "score_id": 64,
+    "user_id": "10006",
+    "part_id": 1221,
+    "scores": 7,
+    "clear": true,
+    "play_date": "2026/03/13 05:40:53",
+    "avg_answer_time": null
+  },
+  {
+    "score_id": 65,
+    "user_id": "10006",
+    "part_id": 1222,
+    "scores": 7,
+    "clear": true,
+    "play_date": "2026/03/13 05:43:48",
+    "avg_answer_time": null
+  },
+  {
+    "score_id": 66,
+    "user_id": "10006",
+    "part_id": 1231,
+    "scores": 7,
+    "clear": true,
+    "play_date": "2026/03/13 05:47:19",
+    "avg_answer_time": null
+  },
+  {
+    "score_id": 67,
+    "user_id": "10006",
+    "part_id": 1232,
+    "scores": 6,
+    "clear": true,
+    "play_date": "2026/03/13 05:51:42",
+    "avg_answer_time": null
+  },
+  {
+    "score_id": 68,
+    "user_id": "10006",
+    "part_id": 1241,
+    "scores": 4,
+    "clear": false,
+    "play_date": "2026/03/13 21:16:45",
+    "avg_answer_time": null
+  },
+  {
+    "score_id": 69,
+    "user_id": "10006",
+    "part_id": 1241,
+    "scores": 7,
+    "clear": true,
+    "play_date": "2026/03/13 21:22:06",
+    "avg_answer_time": null
+  },
+  {
+    "score_id": 70,
+    "user_id": "10006",
+    "part_id": 1242,
+    "scores": 7,
+    "clear": true,
+    "play_date": "2026/03/13 21:24:55",
+    "avg_answer_time": null
+  },
+  {
+    "score_id": 71,
+    "user_id": "10006",
+    "part_id": 1041,
+    "scores": 7,
+    "clear": true,
+    "play_date": "2026/03/13 21:37:15",
+    "avg_answer_time": null
+  },
+  {
+    "score_id": 72,
+    "user_id": "10006",
+    "part_id": 1091,
+    "scores": 7,
+    "clear": true,
+    "play_date": "2026/03/13 21:40:40",
+    "avg_answer_time": null
+  },
+  {
+    "score_id": 73,
+    "user_id": "10006",
+    "part_id": 1092,
+    "scores": 7,
+    "clear": true,
+    "play_date": "2026/03/13 21:45:08",
+    "avg_answer_time": null
+  },
+  {
+    "score_id": 74,
+    "user_id": "10006",
+    "part_id": 1051,
+    "scores": 7,
+    "clear": true,
+    "play_date": "2026/03/13 22:09:51",
+    "avg_answer_time": null
+  },
+  {
+    "score_id": 75,
+    "user_id": "10006",
+    "part_id": 1112,
+    "scores": 6,
+    "clear": true,
+    "play_date": "2026/03/13 22:21:23",
+    "avg_answer_time": null
+  },
+  {
+    "score_id": 76,
+    "user_id": "10006",
+    "part_id": 1121,
+    "scores": 7,
+    "clear": true,
+    "play_date": "2026/03/13 22:36:06",
+    "avg_answer_time": null
+  },
+  {
+    "score_id": 77,
+    "user_id": "10006",
+    "part_id": 1122,
+    "scores": 7,
+    "clear": true,
+    "play_date": "2026/03/13 22:44:39",
+    "avg_answer_time": null
+  },
+  {
+    "score_id": 78,
+    "user_id": "10006",
+    "part_id": 1241,
+    "scores": 7,
+    "clear": true,
+    "play_date": "2026/03/14 21:36:33",
+    "avg_answer_time": null
+  },
+  {
+    "score_id": 79,
+    "user_id": "10006",
+    "part_id": 1071,
+    "scores": 3,
+    "clear": false,
+    "play_date": "2026/03/14 21:57:23",
+    "avg_answer_time": null
+  },
+  {
+    "score_id": 80,
+    "user_id": "10006",
+    "part_id": 1111,
+    "scores": 7,
+    "clear": true,
+    "play_date": "2026/03/14 22:29:02",
+    "avg_answer_time": null
+  },
+  {
+    "score_id": 81,
+    "user_id": "10006",
+    "part_id": 1181,
+    "scores": 7,
+    "clear": true,
+    "play_date": "2026/03/14 23:09:33",
+    "avg_answer_time": null
+  },
+  {
+    "score_id": 82,
+    "user_id": "10006",
+    "part_id": 1202,
+    "scores": 7,
+    "clear": true,
+    "play_date": "2026/03/14 23:12:10",
+    "avg_answer_time": null
+  },
+  {
+    "score_id": 83,
+    "user_id": "10006",
+    "part_id": 1211,
+    "scores": 4,
+    "clear": false,
+    "play_date": "2026/03/14 23:20:37",
+    "avg_answer_time": null
+  },
+  {
+    "score_id": 84,
+    "user_id": "10006",
+    "part_id": 1212,
+    "scores": 6,
+    "clear": true,
+    "play_date": "2026/03/14 23:26:55",
+    "avg_answer_time": null
+  },
+  {
+    "score_id": 85,
+    "user_id": "10006",
+    "part_id": 1232,
+    "scores": 7,
+    "clear": true,
+    "play_date": "2026/03/14 23:30:17",
+    "avg_answer_time": null
+  },
+  {
+    "score_id": 86,
+    "user_id": "10006",
+    "part_id": 1251,
+    "scores": 7,
+    "clear": true,
+    "play_date": "2026/04/14 21:55:53",
+    "avg_answer_time": null
+  },
+  {
+    "score_id": 87,
+    "user_id": "10006",
+    "part_id": 1251,
+    "scores": 5,
+    "clear": true,
+    "play_date": "2026/04/16 06:24:40",
+    "avg_answer_time": null
+  },
+  {
+    "score_id": 88,
+    "user_id": "10006",
+    "part_id": 1252,
+    "scores": 7,
+    "clear": true,
+    "play_date": "2026/04/16 06:28:34",
+    "avg_answer_time": null
+  },
+  {
+    "score_id": 89,
+    "user_id": "10006",
+    "part_id": 1261,
+    "scores": 7,
+    "clear": true,
+    "play_date": "2026/04/16 06:31:22",
+    "avg_answer_time": null
+  },
+  {
+    "score_id": 90,
+    "user_id": "10006",
+    "part_id": 1262,
+    "scores": 7,
+    "clear": true,
+    "play_date": "2026/04/16 06:34:23",
+    "avg_answer_time": null
+  },
+  {
+    "score_id": 91,
+    "user_id": "10006",
+    "part_id": 1271,
+    "scores": 7,
+    "clear": true,
+    "play_date": "2026/04/16 06:37:18",
+    "avg_answer_time": null
+  },
+  {
+    "score_id": 92,
+    "user_id": "10006",
+    "part_id": 1272,
+    "scores": 7,
+    "clear": true,
+    "play_date": "2026/04/16 06:40:10",
+    "avg_answer_time": null
+  },
+  {
+    "score_id": 93,
+    "user_id": "10006",
+    "part_id": 1281,
+    "scores": 7,
+    "clear": true,
+    "play_date": "2026/04/16 06:43:06",
+    "avg_answer_time": null
+  },
+  {
+    "score_id": 94,
+    "user_id": "10006",
+    "part_id": 1282,
+    "scores": 7,
+    "clear": true,
+    "play_date": "2026/04/16 06:53:25",
+    "avg_answer_time": null
+  },
+  {
+    "score_id": 95,
+    "user_id": "10006",
+    "part_id": 1291,
+    "scores": 7,
+    "clear": true,
+    "play_date": "2026/04/16 07:21:51",
+    "avg_answer_time": null
+  },
+  {
+    "score_id": 96,
+    "user_id": "10006",
+    "part_id": 1292,
+    "scores": 7,
+    "clear": true,
+    "play_date": "2026/04/16 07:25:09",
+    "avg_answer_time": null
+  },
+  {
+    "score_id": 97,
+    "user_id": "10006",
+    "part_id": 1301,
+    "scores": 7,
+    "clear": true,
+    "play_date": "2026/04/16 07:28:15",
+    "avg_answer_time": null
+  },
+  {
+    "score_id": 98,
+    "user_id": "10006",
+    "part_id": 1302,
+    "scores": 5,
+    "clear": true,
+    "play_date": "2026/04/16 07:40:10",
+    "avg_answer_time": null
+  },
+  {
+    "score_id": 99,
+    "user_id": "10006",
+    "part_id": 1311,
+    "scores": 6,
+    "clear": true,
+    "play_date": "2026/04/16 07:46:48",
+    "avg_answer_time": null
+  },
+  {
+    "score_id": 100,
+    "user_id": "10006",
+    "part_id": 1312,
+    "scores": 7,
+    "clear": true,
+    "play_date": "2026/04/16 08:01:34",
+    "avg_answer_time": null
+  },
+  {
+    "score_id": 101,
+    "user_id": "10006",
+    "part_id": 1321,
+    "scores": 7,
+    "clear": true,
+    "play_date": "2026/04/17 01:32:30",
+    "avg_answer_time": null
+  },
+  {
+    "score_id": 102,
+    "user_id": "10006",
+    "part_id": 1322,
+    "scores": 7,
+    "clear": true,
+    "play_date": "2026/04/17 01:35:23",
+    "avg_answer_time": null
+  },
+  {
+    "score_id": 103,
+    "user_id": "10006",
+    "part_id": 1331,
+    "scores": 7,
+    "clear": true,
+    "play_date": "2026/04/17 01:38:55",
+    "avg_answer_time": null
+  },
+  {
+    "score_id": 104,
+    "user_id": "10006",
+    "part_id": 1332,
+    "scores": 7,
+    "clear": true,
+    "play_date": "2026/04/17 01:42:47",
+    "avg_answer_time": null
+  },
+  {
+    "score_id": 105,
+    "user_id": "10006",
+    "part_id": 1333,
+    "scores": 6,
+    "clear": true,
+    "play_date": "2026/04/17 01:46:20",
+    "avg_answer_time": null
+  },
+  {
+    "score_id": 106,
+    "user_id": "10006",
+    "part_id": 1341,
+    "scores": 5,
+    "clear": true,
+    "play_date": "2026/04/18 07:39:21",
+    "avg_answer_time": null
+  },
+  {
+    "score_id": 107,
+    "user_id": "10006",
+    "part_id": 1342,
+    "scores": 7,
+    "clear": true,
+    "play_date": "2026/04/18 07:54:19",
+    "avg_answer_time": null
+  },
+  {
+    "score_id": 108,
+    "user_id": "10006",
+    "part_id": 1351,
+    "scores": 7,
+    "clear": true,
+    "play_date": "2026/04/18 07:57:12",
+    "avg_answer_time": null
+  },
+  {
+    "score_id": 109,
+    "user_id": "10006",
+    "part_id": 1352,
+    "scores": 5,
+    "clear": true,
+    "play_date": "2026/04/18 08:21:05",
+    "avg_answer_time": null
+  },
+  {
+    "score_id": 110,
+    "user_id": "10006",
+    "part_id": 1361,
+    "scores": 7,
+    "clear": true,
+    "play_date": "2026/04/18 08:31:02",
+    "avg_answer_time": null
+  },
+  {
+    "score_id": 111,
+    "user_id": "10006",
+    "part_id": 1362,
+    "scores": 5,
+    "clear": true,
+    "play_date": "2026/04/18 08:37:57",
+    "avg_answer_time": null
+  },
+  {
+    "score_id": 112,
+    "user_id": "10006",
+    "part_id": 1371,
+    "scores": 6,
+    "clear": true,
+    "play_date": "2026/04/18 08:55:31",
+    "avg_answer_time": null
+  },
+  {
+    "score_id": 113,
+    "user_id": "10006",
+    "part_id": 1372,
+    "scores": 7,
+    "clear": true,
+    "play_date": "2026/04/18 09:06:38",
+    "avg_answer_time": null
+  },
+  {
+    "score_id": 114,
+    "user_id": "10006",
+    "part_id": 1373,
+    "scores": 7,
+    "clear": true,
+    "play_date": "2026/04/18 09:12:34",
+    "avg_answer_time": null
+  },
+  {
+    "score_id": 115,
+    "user_id": "10006",
+    "part_id": 1374,
+    "scores": 7,
+    "clear": true,
+    "play_date": "2026/04/18 09:15:59",
+    "avg_answer_time": null
+  },
+  {
+    "score_id": 116,
+    "user_id": "10006",
+    "part_id": 1381,
+    "scores": 7,
+    "clear": true,
+    "play_date": "2026/04/18 09:36:16",
+    "avg_answer_time": null
+  },
+  {
+    "score_id": 117,
+    "user_id": "10006",
+    "part_id": 1382,
+    "scores": 7,
+    "clear": true,
+    "play_date": "2026/04/18 09:42:51",
+    "avg_answer_time": null
+  },
+  {
+    "score_id": 118,
+    "user_id": "10006",
+    "part_id": 1391,
+    "scores": 7,
+    "clear": true,
+    "play_date": "2026/04/18 09:45:40",
+    "avg_answer_time": null
+  },
+  {
+    "score_id": 119,
+    "user_id": "10006",
+    "part_id": 1392,
+    "scores": 7,
+    "clear": true,
+    "play_date": "2026/04/18 09:52:31",
+    "avg_answer_time": null
+  },
+  {
+    "score_id": 120,
+    "user_id": "10006",
+    "part_id": 1401,
+    "scores": 5,
+    "clear": true,
+    "play_date": "2026/04/20 21:29:26",
+    "avg_answer_time": null
+  },
+  {
+    "score_id": 121,
+    "user_id": "10006",
+    "part_id": 1402,
+    "scores": 7,
+    "clear": true,
+    "play_date": "2026/04/20 21:32:00",
+    "avg_answer_time": null
+  },
+  {
+    "score_id": 122,
+    "user_id": "10006",
+    "part_id": 1411,
+    "scores": 7,
+    "clear": true,
+    "play_date": "2026/04/20 21:34:53",
+    "avg_answer_time": null
+  },
+  {
+    "score_id": 123,
+    "user_id": "10006",
+    "part_id": 1412,
+    "scores": 7,
+    "clear": true,
+    "play_date": "2026/04/20 21:38:19",
+    "avg_answer_time": null
+  },
+  {
+    "score_id": 124,
+    "user_id": "10006",
+    "part_id": 1421,
+    "scores": 6,
+    "clear": true,
+    "play_date": "2026/04/20 21:47:37",
+    "avg_answer_time": null
+  },
+  {
+    "score_id": 125,
+    "user_id": "10006",
+    "part_id": 1422,
+    "scores": 6,
+    "clear": true,
+    "play_date": "2026/04/20 21:58:24",
+    "avg_answer_time": null
+  },
+  {
+    "score_id": 126,
+    "user_id": "10006",
+    "part_id": 1431,
+    "scores": 7,
+    "clear": true,
+    "play_date": "2026/04/21 21:39:08",
+    "avg_answer_time": null
+  },
+  {
+    "score_id": 127,
+    "user_id": "10006",
+    "part_id": 1432,
+    "scores": 7,
+    "clear": true,
+    "play_date": "2026/04/21 21:42:33",
+    "avg_answer_time": null
+  },
+  {
+    "score_id": 128,
+    "user_id": "10006",
+    "part_id": 1442,
+    "scores": 7,
+    "clear": true,
+    "play_date": "2026/04/21 21:45:28",
+    "avg_answer_time": null
+  },
+  {
+    "score_id": 129,
+    "user_id": "10006",
+    "part_id": 1451,
+    "scores": 6,
+    "clear": true,
+    "play_date": "2026/04/21 21:50:03",
+    "avg_answer_time": null
+  },
+  {
+    "score_id": 130,
+    "user_id": "10006",
+    "part_id": 1452,
+    "scores": 7,
+    "clear": true,
+    "play_date": "2026/04/22 21:49:02",
+    "avg_answer_time": null
+  },
+  {
+    "score_id": 131,
+    "user_id": "10006",
+    "part_id": 1461,
+    "scores": 7,
+    "clear": true,
+    "play_date": "2026/04/22 22:02:03",
+    "avg_answer_time": null
+  },
+  {
+    "score_id": 132,
+    "user_id": "10006",
+    "part_id": 1462,
+    "scores": 7,
+    "clear": true,
+    "play_date": "2026/04/27 04:39:41",
+    "avg_answer_time": null
+  },
+  {
+    "score_id": 133,
+    "user_id": "10006",
+    "part_id": 1471,
+    "scores": 7,
+    "clear": true,
+    "play_date": "2026/04/27 04:43:56",
+    "avg_answer_time": null
+  },
+  {
+    "score_id": 134,
+    "user_id": "10006",
+    "part_id": 1472,
+    "scores": 7,
+    "clear": true,
+    "play_date": "2026/04/27 04:50:35",
+    "avg_answer_time": null
+  },
+  {
+    "score_id": 135,
+    "user_id": "10006",
+    "part_id": 1481,
+    "scores": 7,
+    "clear": true,
+    "play_date": "2026/04/27 04:54:26",
+    "avg_answer_time": null
+  },
+  {
+    "score_id": 136,
+    "user_id": "10006",
+    "part_id": 1482,
+    "scores": 7,
+    "clear": true,
+    "play_date": "2026/04/27 05:03:08",
+    "avg_answer_time": null
+  },
+  {
+    "score_id": 137,
+    "user_id": "10006",
+    "part_id": 1491,
+    "scores": 7,
+    "clear": true,
+    "play_date": "2026/04/27 05:08:04",
+    "avg_answer_time": null
+  },
+  {
+    "score_id": 138,
+    "user_id": "10006",
+    "part_id": 1492,
+    "scores": 7,
+    "clear": true,
+    "play_date": "2026/04/27 05:11:18",
+    "avg_answer_time": null
+  },
+  {
+    "score_id": 139,
+    "user_id": "10006",
+    "part_id": 1493,
+    "scores": 7,
+    "clear": true,
+    "play_date": "2026/04/27 05:15:11",
+    "avg_answer_time": null
+  },
+  {
+    "score_id": 140,
+    "user_id": "10006",
+    "part_id": 1494,
+    "scores": 7,
+    "clear": true,
+    "play_date": "2026/04/27 05:36:52",
+    "avg_answer_time": null
+  },
+  {
+    "score_id": 141,
+    "user_id": "10006",
+    "part_id": 1501,
+    "scores": 7,
+    "clear": true,
+    "play_date": "2026/04/27 05:39:53",
+    "avg_answer_time": null
+  },
+  {
+    "score_id": 142,
+    "user_id": "10006",
+    "part_id": 1502,
+    "scores": 6,
+    "clear": true,
+    "play_date": "2026/04/27 05:43:56",
+    "avg_answer_time": null
+  },
+  {
+    "score_id": 143,
+    "user_id": "10006",
+    "part_id": 2011,
+    "scores": 7,
+    "clear": true,
+    "play_date": "2026/04/27 06:22:47",
+    "avg_answer_time": null
+  },
+  {
+    "score_id": 144,
+    "user_id": "10006",
+    "part_id": 2012,
+    "scores": 7,
+    "clear": true,
+    "play_date": "2026/04/27 06:25:17",
+    "avg_answer_time": null
+  },
+  {
+    "score_id": 145,
+    "user_id": "10006",
+    "part_id": 2021,
+    "scores": 7,
+    "clear": true,
+    "play_date": "2026/04/27 06:28:14",
+    "avg_answer_time": null
+  },
+  {
+    "score_id": 146,
+    "user_id": "10006",
+    "part_id": 2022,
+    "scores": 7,
+    "clear": true,
+    "play_date": "2026/04/27 06:30:38",
+    "avg_answer_time": null
+  },
+  {
+    "score_id": 147,
+    "user_id": "10006",
+    "part_id": 2031,
+    "scores": 7,
+    "clear": true,
+    "play_date": "2026/04/27 06:34:27",
+    "avg_answer_time": null
+  },
+  {
+    "score_id": 148,
+    "user_id": "10006",
+    "part_id": 2032,
+    "scores": 4,
+    "clear": false,
+    "play_date": "2026/04/27 06:39:24",
+    "avg_answer_time": null
+  },
+  {
+    "score_id": 149,
+    "user_id": "10006",
+    "part_id": 2032,
+    "scores": 7,
+    "clear": true,
+    "play_date": "2026/04/27 06:54:20",
+    "avg_answer_time": null
+  },
+  {
+    "score_id": 150,
+    "user_id": "10006",
+    "part_id": 2041,
+    "scores": 7,
+    "clear": true,
+    "play_date": "2026/04/27 07:09:14",
+    "avg_answer_time": null
+  },
+  {
+    "score_id": 151,
+    "user_id": "10006",
+    "part_id": 2042,
+    "scores": 7,
+    "clear": true,
+    "play_date": "2026/04/27 07:20:42",
+    "avg_answer_time": null
+  },
+  {
+    "score_id": 152,
+    "user_id": "10006",
+    "part_id": 2051,
+    "scores": 7,
+    "clear": true,
+    "play_date": "2026/04/27 07:31:03",
+    "avg_answer_time": null
+  },
+  {
+    "score_id": 153,
+    "user_id": "10006",
+    "part_id": 2052,
+    "scores": 6,
+    "clear": true,
+    "play_date": "2026/04/27 07:38:04",
+    "avg_answer_time": null
+  },
+  {
+    "score_id": 154,
+    "user_id": "10006",
+    "part_id": 2061,
+    "scores": 7,
+    "clear": true,
+    "play_date": "2026/04/27 07:41:50",
+    "avg_answer_time": null
+  },
+  {
+    "score_id": 155,
+    "user_id": "10006",
+    "part_id": 2062,
+    "scores": 7,
+    "clear": true,
+    "play_date": "2026/04/27 07:45:17",
+    "avg_answer_time": null
+  },
+  {
+    "score_id": 156,
+    "user_id": "10006",
+    "part_id": 2071,
+    "scores": 6,
+    "clear": true,
+    "play_date": "2026/04/27 07:49:01",
+    "avg_answer_time": null
+  },
+  {
+    "score_id": 157,
+    "user_id": "10006",
+    "part_id": 2072,
+    "scores": 7,
+    "clear": true,
+    "play_date": "2026/04/27 07:52:40",
+    "avg_answer_time": null
+  },
+  {
+    "score_id": 158,
+    "user_id": "10006",
+    "part_id": 2073,
+    "scores": 7,
+    "clear": true,
+    "play_date": "2026/04/27 07:56:15",
+    "avg_answer_time": null
+  },
+  {
+    "score_id": 159,
+    "user_id": "10006",
+    "part_id": 2081,
+    "scores": 5,
+    "clear": true,
+    "play_date": "2026/04/27 08:00:54",
+    "avg_answer_time": null
+  },
+  {
+    "score_id": 160,
+    "user_id": "10006",
+    "part_id": 2082,
+    "scores": 7,
+    "clear": true,
+    "play_date": "2026/04/27 08:06:33",
+    "avg_answer_time": null
+  },
+  {
+    "score_id": 161,
+    "user_id": "10006",
+    "part_id": 2091,
+    "scores": 7,
+    "clear": true,
+    "play_date": "2026/04/27 08:09:57",
+    "avg_answer_time": null
+  },
+  {
+    "score_id": 162,
+    "user_id": "10006",
+    "part_id": 2092,
+    "scores": 6,
+    "clear": true,
+    "play_date": "2026/04/27 08:21:19",
+    "avg_answer_time": null
+  },
+  {
+    "score_id": 163,
+    "user_id": "10006",
+    "part_id": 2101,
+    "scores": 7,
+    "clear": true,
+    "play_date": "2026/04/27 08:24:46",
+    "avg_answer_time": null
+  },
+  {
+    "score_id": 164,
+    "user_id": "10006",
+    "part_id": 2102,
+    "scores": 7,
+    "clear": true,
+    "play_date": "2026/04/27 08:28:08",
+    "avg_answer_time": null
+  },
+  {
+    "score_id": 165,
+    "user_id": "10006",
+    "part_id": 2111,
+    "scores": 7,
+    "clear": true,
+    "play_date": "2026/04/27 08:31:37",
+    "avg_answer_time": null
+  },
+  {
+    "score_id": 166,
+    "user_id": "10006",
+    "part_id": 2112,
+    "scores": 7,
+    "clear": true,
+    "play_date": "2026/04/27 08:37:44",
+    "avg_answer_time": null
+  },
+  {
+    "score_id": 167,
+    "user_id": "10006",
+    "part_id": 2121,
+    "scores": 7,
+    "clear": true,
+    "play_date": "2026/04/27 08:41:36",
+    "avg_answer_time": null
+  },
+  {
+    "score_id": 168,
+    "user_id": "10006",
+    "part_id": 2122,
+    "scores": 7,
+    "clear": true,
+    "play_date": "2026/04/27 08:44:45",
+    "avg_answer_time": null
+  },
+  {
+    "score_id": 169,
+    "user_id": "10006",
+    "part_id": 2123,
+    "scores": 7,
+    "clear": true,
+    "play_date": "2026/04/28 02:42:01",
+    "avg_answer_time": null
+  },
+  {
+    "score_id": 170,
+    "user_id": "10006",
+    "part_id": 2124,
+    "scores": 7,
+    "clear": true,
+    "play_date": "2026/04/28 02:47:10",
+    "avg_answer_time": null
+  },
+  {
+    "score_id": 171,
+    "user_id": "10006",
+    "part_id": 2131,
+    "scores": 7,
+    "clear": true,
+    "play_date": "2026/04/28 02:50:39",
+    "avg_answer_time": null
+  },
+  {
+    "score_id": 172,
+    "user_id": "10006",
+    "part_id": 2132,
+    "scores": 7,
+    "clear": true,
+    "play_date": "2026/04/28 02:54:20",
+    "avg_answer_time": null
+  },
+  {
+    "score_id": 173,
+    "user_id": "10006",
+    "part_id": 2141,
+    "scores": 6,
+    "clear": true,
+    "play_date": "2026/04/28 03:22:47",
+    "avg_answer_time": null
+  },
+  {
+    "score_id": 174,
+    "user_id": "10006",
+    "part_id": 2142,
+    "scores": 7,
+    "clear": true,
+    "play_date": "2026/04/28 03:30:29",
+    "avg_answer_time": null
+  },
+  {
+    "score_id": 175,
+    "user_id": "10006",
+    "part_id": 2151,
+    "scores": 5,
+    "clear": true,
+    "play_date": "2026/04/28 03:42:28",
+    "avg_answer_time": null
+  },
+  {
+    "score_id": 176,
+    "user_id": "10006",
+    "part_id": 2152,
+    "scores": 7,
+    "clear": true,
+    "play_date": "2026/04/28 05:16:14",
+    "avg_answer_time": null
+  },
+  {
+    "score_id": 177,
+    "user_id": "10006",
+    "part_id": 2161,
+    "scores": 5,
+    "clear": true,
+    "play_date": "2026/04/28 05:20:59",
+    "avg_answer_time": null
+  },
+  {
+    "score_id": 178,
+    "user_id": "10006",
+    "part_id": 2162,
+    "scores": 5,
+    "clear": true,
+    "play_date": "2026/04/28 05:29:45",
+    "avg_answer_time": null
+  },
+  {
+    "score_id": 179,
+    "user_id": "10006",
+    "part_id": 2171,
+    "scores": 6,
+    "clear": true,
+    "play_date": "2026/04/28 05:49:52",
+    "avg_answer_time": null
+  },
+  {
+    "score_id": 180,
+    "user_id": "10006",
+    "part_id": 2172,
+    "scores": 7,
+    "clear": true,
+    "play_date": "2026/04/28 05:57:34",
+    "avg_answer_time": null
+  },
+  {
+    "score_id": 181,
+    "user_id": "10006",
+    "part_id": 2172,
+    "scores": 6,
+    "clear": true,
+    "play_date": "2026/04/29 23:15:50",
+    "avg_answer_time": null
+  },
+  {
+    "score_id": 182,
+    "user_id": "10006",
+    "part_id": 2181,
+    "scores": 6,
+    "clear": true,
+    "play_date": "2026/04/29 23:20:57",
+    "avg_answer_time": null
+  },
+  {
+    "score_id": 183,
+    "user_id": "10006",
+    "part_id": 2182,
+    "scores": 7,
+    "clear": true,
+    "play_date": "2026/04/29 23:24:55",
+    "avg_answer_time": null
+  },
+  {
+    "score_id": 184,
+    "user_id": "10006",
+    "part_id": 2191,
+    "scores": 7,
+    "clear": true,
+    "play_date": "2026/04/29 23:37:05",
+    "avg_answer_time": null
+  },
+  {
+    "score_id": 185,
+    "user_id": "10006",
+    "part_id": 2192,
+    "scores": 7,
+    "clear": true,
+    "play_date": "2026/04/29 23:42:38",
+    "avg_answer_time": null
+  },
+  {
+    "score_id": 186,
+    "user_id": "10006",
+    "part_id": 2201,
+    "scores": 6,
+    "clear": true,
+    "play_date": "2026/04/30 04:28:09",
+    "avg_answer_time": null
+  },
+  {
+    "score_id": 187,
+    "user_id": "10006",
+    "part_id": 2202,
+    "scores": 7,
+    "clear": true,
+    "play_date": "2026/04/30 04:30:49",
+    "avg_answer_time": null
+  },
+  {
+    "score_id": 188,
+    "user_id": "10006",
+    "part_id": 2211,
+    "scores": 6,
+    "clear": true,
+    "play_date": "2026/04/30 04:34:12",
+    "avg_answer_time": null
+  },
+  {
+    "score_id": 189,
+    "user_id": "10006",
+    "part_id": 2212,
+    "scores": 7,
+    "clear": true,
+    "play_date": "2026/04/30 04:47:18",
+    "avg_answer_time": null
+  },
+  {
+    "score_id": 190,
+    "user_id": "10006",
+    "part_id": 2213,
+    "scores": 7,
+    "clear": true,
+    "play_date": "2026/04/30 05:02:38",
+    "avg_answer_time": null
+  },
+  {
+    "score_id": 191,
+    "user_id": "10006",
+    "part_id": 2221,
+    "scores": 7,
+    "clear": true,
+    "play_date": "2026/04/30 05:05:31",
+    "avg_answer_time": null
+  },
+  {
+    "score_id": 192,
+    "user_id": "10006",
+    "part_id": 2222,
+    "scores": 7,
+    "clear": true,
+    "play_date": "2026/04/30 05:10:16",
+    "avg_answer_time": null
+  },
+  {
+    "score_id": 193,
+    "user_id": "10006",
+    "part_id": 2231,
+    "scores": 7,
+    "clear": true,
+    "play_date": "2026/04/30 05:13:33",
+    "avg_answer_time": null
+  },
+  {
+    "score_id": 194,
+    "user_id": "10006",
+    "part_id": 2232,
+    "scores": 7,
+    "clear": true,
+    "play_date": "2026/04/30 05:19:18",
+    "avg_answer_time": null
+  },
+  {
+    "score_id": 195,
+    "user_id": "10006",
+    "part_id": 2241,
+    "scores": 6,
+    "clear": true,
+    "play_date": "2026/04/30 05:23:13",
+    "avg_answer_time": null
+  },
+  {
+    "score_id": 196,
+    "user_id": "10006",
+    "part_id": 2242,
+    "scores": 7,
+    "clear": true,
+    "play_date": "2026/04/30 05:35:50",
+    "avg_answer_time": null
+  },
+  {
+    "score_id": 197,
+    "user_id": "10006",
+    "part_id": 2251,
+    "scores": 7,
+    "clear": true,
+    "play_date": "2026/04/30 07:02:05",
+    "avg_answer_time": null
+  },
+  {
+    "score_id": 198,
+    "user_id": "10006",
+    "part_id": 2252,
+    "scores": 7,
+    "clear": true,
+    "play_date": "2026/04/30 07:04:59",
+    "avg_answer_time": null
+  },
+  {
+    "score_id": 199,
+    "user_id": "10006",
+    "part_id": 2261,
+    "scores": 7,
+    "clear": true,
+    "play_date": "2026/04/30 07:08:21",
+    "avg_answer_time": null
+  },
+  {
+    "score_id": 200,
+    "user_id": "10006",
+    "part_id": 2262,
+    "scores": 7,
+    "clear": true,
+    "play_date": "2026/04/30 07:14:03",
+    "avg_answer_time": null
+  },
+  {
+    "score_id": 201,
+    "user_id": "10006",
+    "part_id": 2271,
+    "scores": 6,
+    "clear": true,
+    "play_date": "2026/04/30 07:18:08",
+    "avg_answer_time": null
+  },
+  {
+    "score_id": 202,
+    "user_id": "10006",
+    "part_id": 2272,
+    "scores": 7,
+    "clear": true,
+    "play_date": "2026/04/30 07:21:24",
+    "avg_answer_time": null
+  },
+  {
+    "score_id": 203,
+    "user_id": "10006",
+    "part_id": 2281,
+    "scores": 6,
+    "clear": true,
+    "play_date": "2026/04/30 07:30:29",
+    "avg_answer_time": null
+  },
+  {
+    "score_id": 204,
+    "user_id": "10006",
+    "part_id": 2282,
+    "scores": 7,
+    "clear": true,
+    "play_date": "2026/04/30 07:34:55",
+    "avg_answer_time": null
+  },
+  {
+    "score_id": 205,
+    "user_id": "10006",
+    "part_id": 2291,
+    "scores": 7,
+    "clear": true,
+    "play_date": "2026/04/30 07:38:20",
+    "avg_answer_time": null
+  },
+  {
+    "score_id": 206,
+    "user_id": "10006",
+    "part_id": 2292,
+    "scores": 6,
+    "clear": true,
+    "play_date": "2026/04/30 07:42:26",
+    "avg_answer_time": null
+  },
+  {
+    "score_id": 207,
+    "user_id": "10006",
+    "part_id": 2301,
+    "scores": 7,
+    "clear": true,
+    "play_date": "2026/04/30 08:04:20",
+    "avg_answer_time": null
+  },
+  {
+    "score_id": 208,
+    "user_id": "10006",
+    "part_id": 2302,
+    "scores": 6,
+    "clear": true,
+    "play_date": "2026/04/30 08:08:35",
+    "avg_answer_time": null
+  },
+  {
+    "score_id": 209,
+    "user_id": "10006",
+    "part_id": 2303,
+    "scores": 7,
+    "clear": true,
+    "play_date": "2026/04/30 22:59:06",
+    "avg_answer_time": null
+  },
+  {
+    "score_id": 210,
+    "user_id": "10006",
+    "part_id": 2311,
+    "scores": 7,
+    "clear": true,
+    "play_date": "2026/04/30 23:02:30",
+    "avg_answer_time": null
+  },
+  {
+    "score_id": 211,
+    "user_id": "10006",
+    "part_id": 2312,
+    "scores": 7,
+    "clear": true,
+    "play_date": "2026/04/30 23:08:21",
+    "avg_answer_time": null
+  },
+  {
+    "score_id": 212,
+    "user_id": "10006",
+    "part_id": 2321,
+    "scores": 7,
+    "clear": true,
+    "play_date": "2026/04/30 23:12:22",
+    "avg_answer_time": null
+  },
+  {
+    "score_id": 213,
+    "user_id": "10006",
+    "part_id": 2322,
+    "scores": 6,
+    "clear": true,
+    "play_date": "2026/04/30 23:17:20",
+    "avg_answer_time": null
+  },
+  {
+    "score_id": 214,
+    "user_id": "10006",
+    "part_id": 2331,
+    "scores": 7,
+    "clear": true,
+    "play_date": "2026/04/30 23:21:23",
+    "avg_answer_time": null
+  },
+  {
+    "score_id": 215,
+    "user_id": "10006",
+    "part_id": 2332,
+    "scores": 6,
+    "clear": true,
+    "play_date": "2026/05/01 02:03:55",
+    "avg_answer_time": null
+  },
+  {
+    "score_id": 216,
+    "user_id": "10006",
+    "part_id": 2341,
+    "scores": 6,
+    "clear": true,
+    "play_date": "2026/05/01 02:16:45",
+    "avg_answer_time": null
+  },
+  {
+    "score_id": 217,
+    "user_id": "10006",
+    "part_id": 2342,
+    "scores": 7,
+    "clear": true,
+    "play_date": "2026/05/01 14:03:34",
+    "avg_answer_time": null
+  },
+  {
+    "score_id": 218,
+    "user_id": "10006",
+    "part_id": 2351,
+    "scores": 6,
+    "clear": true,
+    "play_date": "2026/05/01 14:08:22",
+    "avg_answer_time": null
+  },
+  {
+    "score_id": 219,
+    "user_id": "10006",
+    "part_id": 2352,
+    "scores": 7,
+    "clear": true,
+    "play_date": "2026/05/01 14:12:20",
+    "avg_answer_time": null
+  },
+  {
+    "score_id": 220,
+    "user_id": "10006",
+    "part_id": 2361,
+    "scores": 7,
+    "clear": true,
+    "play_date": "2026/05/01 14:16:23",
+    "avg_answer_time": null
+  },
+  {
+    "score_id": 221,
+    "user_id": "10006",
+    "part_id": 2362,
+    "scores": 7,
+    "clear": true,
+    "play_date": "2026/05/01 14:22:45",
+    "avg_answer_time": null
+  },
+  {
+    "score_id": 222,
+    "user_id": "10006",
+    "part_id": 2371,
+    "scores": 6,
+    "clear": true,
+    "play_date": "2026/05/01 14:28:10",
+    "avg_answer_time": null
+  },
+  {
+    "score_id": 223,
+    "user_id": "10006",
+    "part_id": 2372,
+    "scores": 6,
+    "clear": true,
+    "play_date": "2026/05/01 21:35:33",
+    "avg_answer_time": null
+  },
+  {
+    "score_id": 224,
+    "user_id": "10006",
+    "part_id": 2381,
+    "scores": 7,
+    "clear": true,
+    "play_date": "2026/05/01 21:40:06",
+    "avg_answer_time": null
+  },
+  {
+    "score_id": 225,
+    "user_id": "10006",
+    "part_id": 2382,
+    "scores": 5,
+    "clear": true,
+    "play_date": "2026/05/01 22:05:46",
+    "avg_answer_time": null
+  },
+  {
+    "score_id": 226,
+    "user_id": "10006",
+    "part_id": 2391,
+    "scores": 5,
+    "clear": true,
+    "play_date": "2026/05/02 10:02:57",
+    "avg_answer_time": null
+  },
+  {
+    "score_id": 227,
+    "user_id": "10006",
+    "part_id": 2392,
+    "scores": 5,
+    "clear": true,
+    "play_date": "2026/05/02 10:07:56",
+    "avg_answer_time": null
+  },
+  {
+    "score_id": 228,
+    "user_id": "10006",
+    "part_id": 2401,
+    "scores": 7,
+    "clear": true,
+    "play_date": "2026/05/02 10:15:41",
+    "avg_answer_time": null
+  },
+  {
+    "score_id": 229,
+    "user_id": "10006",
+    "part_id": 2402,
+    "scores": 7,
+    "clear": true,
+    "play_date": "2026/05/02 12:21:37",
+    "avg_answer_time": null
+  },
+  {
+    "score_id": 230,
+    "user_id": "10006",
+    "part_id": 2411,
+    "scores": 3,
+    "clear": false,
+    "play_date": "2026/05/03 22:49:20",
+    "avg_answer_time": null
+  },
+  {
+    "score_id": 231,
+    "user_id": "10006",
+    "part_id": 2411,
+    "scores": 6,
+    "clear": true,
+    "play_date": "2026/05/03 22:53:45",
+    "avg_answer_time": null
+  },
+  {
+    "score_id": 232,
+    "user_id": "10006",
+    "part_id": 2412,
+    "scores": 7,
+    "clear": true,
+    "play_date": "2026/05/03 23:06:20",
+    "avg_answer_time": null
+  },
+  {
+    "score_id": 233,
+    "user_id": "10006",
+    "part_id": 2421,
+    "scores": 7,
+    "clear": true,
+    "play_date": "2026/05/03 23:09:51",
+    "avg_answer_time": null
+  },
+  {
+    "score_id": 234,
+    "user_id": "10006",
+    "part_id": 2422,
+    "scores": 7,
+    "clear": true,
+    "play_date": "2026/05/03 23:12:55",
+    "avg_answer_time": null
+  },
+  {
+    "score_id": 235,
+    "user_id": "10006",
+    "part_id": 2431,
+    "scores": 7,
+    "clear": true,
+    "play_date": "2026/05/03 23:17:14",
+    "avg_answer_time": null
+  },
+  {
+    "score_id": 236,
+    "user_id": "10006",
+    "part_id": 2432,
+    "scores": 7,
+    "clear": true,
+    "play_date": "2026/05/03 23:32:52",
+    "avg_answer_time": null
+  },
+  {
+    "score_id": 237,
+    "user_id": "10006",
+    "part_id": 2441,
+    "scores": 7,
+    "clear": true,
+    "play_date": "2026/05/03 23:36:03",
+    "avg_answer_time": null
+  },
+  {
+    "score_id": 238,
+    "user_id": "10006",
+    "part_id": 2442,
+    "scores": 6,
+    "clear": true,
+    "play_date": "2026/05/03 23:44:54",
+    "avg_answer_time": null
+  },
+  {
+    "score_id": 239,
+    "user_id": "10006",
+    "part_id": 2443,
+    "scores": 7,
+    "clear": true,
+    "play_date": "2026/05/04 02:25:22",
+    "avg_answer_time": null
+  },
+  {
+    "score_id": 240,
+    "user_id": "10006",
+    "part_id": 2451,
+    "scores": 6,
+    "clear": true,
+    "play_date": "2026/05/04 02:31:34",
+    "avg_answer_time": null
+  },
+  {
+    "score_id": 241,
+    "user_id": "10006",
+    "part_id": 2452,
+    "scores": 7,
+    "clear": true,
+    "play_date": "2026/05/04 02:37:56",
+    "avg_answer_time": null
+  },
+  {
+    "score_id": 242,
+    "user_id": "10006",
+    "part_id": 2461,
+    "scores": 7,
+    "clear": true,
+    "play_date": "2026/05/04 02:44:04",
+    "avg_answer_time": null
+  },
+  {
+    "score_id": 243,
+    "user_id": "10006",
+    "part_id": 2462,
+    "scores": 7,
+    "clear": true,
+    "play_date": "2026/05/04 02:48:30",
+    "avg_answer_time": null
+  },
+  {
+    "score_id": 244,
+    "user_id": "10006",
+    "part_id": 2471,
+    "scores": 7,
+    "clear": true,
+    "play_date": "2026/05/04 02:53:22",
+    "avg_answer_time": null
+  },
+  {
+    "score_id": 245,
+    "user_id": "10006",
+    "part_id": 2472,
+    "scores": 7,
+    "clear": true,
+    "play_date": "2026/05/04 02:56:56",
+    "avg_answer_time": null
+  },
+  {
+    "score_id": 246,
+    "user_id": "10006",
+    "part_id": 3011,
+    "scores": 7,
+    "clear": true,
+    "play_date": "2026/05/04 23:24:41",
+    "avg_answer_time": null
+  },
+  {
+    "score_id": 247,
+    "user_id": "10006",
+    "part_id": 3012,
+    "scores": 7,
+    "clear": true,
+    "play_date": "2026/05/04 23:27:42",
+    "avg_answer_time": null
+  },
+  {
+    "score_id": 248,
+    "user_id": "10006",
+    "part_id": 3021,
+    "scores": 7,
+    "clear": true,
+    "play_date": "2026/05/04 23:30:17",
+    "avg_answer_time": null
+  },
+  {
+    "score_id": 249,
+    "user_id": "10006",
+    "part_id": 3022,
+    "scores": 7,
+    "clear": true,
+    "play_date": "2026/05/04 23:34:05",
+    "avg_answer_time": null
+  },
+  {
+    "score_id": 250,
+    "user_id": "10006",
+    "part_id": 3031,
+    "scores": 7,
+    "clear": true,
+    "play_date": "2026/05/05 00:17:34",
+    "avg_answer_time": null
+  },
+  {
+    "score_id": 251,
+    "user_id": "10006",
+    "part_id": 3032,
+    "scores": 7,
+    "clear": true,
+    "play_date": "2026/05/06 22:17:01",
+    "avg_answer_time": null
+  },
+  {
+    "score_id": 252,
+    "user_id": "10006",
+    "part_id": 3033,
+    "scores": 6,
+    "clear": true,
+    "play_date": "2026/05/06 23:12:22",
+    "avg_answer_time": null
+  },
+  {
+    "score_id": 253,
+    "user_id": "10006",
+    "part_id": 3041,
+    "scores": 7,
+    "clear": true,
+    "play_date": "2026/05/06 23:24:33",
+    "avg_answer_time": null
+  },
+  {
+    "score_id": 254,
+    "user_id": "10006",
+    "part_id": 3051,
+    "scores": 6,
+    "clear": true,
+    "play_date": "2026/05/08 04:26:03",
+    "avg_answer_time": null
+  },
+  {
+    "score_id": 255,
+    "user_id": "10006",
+    "part_id": 3061,
+    "scores": 6,
+    "clear": true,
+    "play_date": "2026/05/08 04:34:02",
+    "avg_answer_time": null
+  },
+  {
+    "score_id": 256,
+    "user_id": "10006",
+    "part_id": 3062,
+    "scores": 7,
+    "clear": true,
+    "play_date": "2026/05/08 04:39:33",
+    "avg_answer_time": null
+  },
+  {
+    "score_id": 257,
+    "user_id": "10006",
+    "part_id": 3071,
+    "scores": 7,
+    "clear": true,
+    "play_date": "2026/05/08 05:30:38",
+    "avg_answer_time": null
+  },
+  {
+    "score_id": 258,
+    "user_id": "10006",
+    "part_id": 3072,
+    "scores": 7,
+    "clear": true,
+    "play_date": "2026/05/08 05:53:48",
+    "avg_answer_time": null
+  },
+  {
+    "score_id": 259,
+    "user_id": "10006",
+    "part_id": 3081,
+    "scores": 6,
+    "clear": true,
+    "play_date": "2026/05/08 06:05:30",
+    "avg_answer_time": null
+  },
+  {
+    "score_id": 260,
+    "user_id": "10006",
+    "part_id": 3081,
+    "scores": 6,
+    "clear": true,
+    "play_date": "2026/05/08 06:45:57",
+    "avg_answer_time": null
+  },
+  {
+    "score_id": 261,
+    "user_id": "10006",
+    "part_id": 3091,
+    "scores": 7,
+    "clear": true,
+    "play_date": "2026/05/08 06:55:13",
+    "avg_answer_time": null
+  },
+  {
+    "score_id": 262,
+    "user_id": "10006",
+    "part_id": 3092,
+    "scores": 7,
+    "clear": true,
+    "play_date": "2026/05/08 07:20:24",
+    "avg_answer_time": null
+  },
+  {
+    "score_id": 263,
+    "user_id": "10006",
+    "part_id": 3093,
+    "scores": 7,
+    "clear": true,
+    "play_date": "2026/05/08 07:46:51",
+    "avg_answer_time": null
+  },
+  {
+    "score_id": 264,
+    "user_id": "10006",
+    "part_id": 3101,
+    "scores": 7,
+    "clear": true,
+    "play_date": "2026/05/08 08:01:25",
+    "avg_answer_time": null
+  },
+  {
+    "score_id": 265,
+    "user_id": "10006",
+    "part_id": 3102,
+    "scores": 7,
+    "clear": true,
+    "play_date": "2026/05/08 08:04:49",
+    "avg_answer_time": null
+  },
+  {
+    "score_id": 266,
+    "user_id": "10006",
+    "part_id": 3111,
+    "scores": 7,
+    "clear": true,
+    "play_date": "2026/05/08 08:07:50",
+    "avg_answer_time": null
+  },
+  {
+    "score_id": 267,
+    "user_id": "10006",
+    "part_id": 3112,
+    "scores": 7,
+    "clear": true,
+    "play_date": "2026/05/08 08:11:32",
+    "avg_answer_time": null
+  },
+  {
+    "score_id": 268,
+    "user_id": "10006",
+    "part_id": 3121,
+    "scores": 7,
+    "clear": true,
+    "play_date": "2026/05/08 08:15:47",
+    "avg_answer_time": null
+  },
+  {
+    "score_id": 269,
+    "user_id": "10006",
+    "part_id": 3122,
+    "scores": 7,
+    "clear": true,
+    "play_date": "2026/05/09 04:34:26",
+    "avg_answer_time": null
+  },
+  {
+    "score_id": 270,
+    "user_id": "10006",
+    "part_id": 3131,
+    "scores": 6,
+    "clear": true,
+    "play_date": "2026/05/09 04:47:05",
+    "avg_answer_time": null
+  },
+  {
+    "score_id": 271,
+    "user_id": "10006",
+    "part_id": 3132,
+    "scores": 6,
+    "clear": true,
+    "play_date": "2026/05/09 05:01:48",
+    "avg_answer_time": null
+  },
+  {
+    "score_id": 272,
+    "user_id": "10006",
+    "part_id": 3133,
+    "scores": 7,
+    "clear": true,
+    "play_date": "2026/05/09 05:25:53",
+    "avg_answer_time": null
+  },
+  {
+    "score_id": 273,
+    "user_id": "10006",
+    "part_id": 3141,
+    "scores": 7,
+    "clear": true,
+    "play_date": "2026/05/09 05:44:38",
+    "avg_answer_time": null
+  },
+  {
+    "score_id": 274,
+    "user_id": "10006",
+    "part_id": 3142,
+    "scores": 7,
+    "clear": true,
+    "play_date": "2026/05/09 05:57:14",
+    "avg_answer_time": null
+  },
+  {
+    "score_id": 275,
+    "user_id": "10006",
+    "part_id": 3151,
+    "scores": 7,
+    "clear": true,
+    "play_date": "2026/05/09 06:12:29",
+    "avg_answer_time": null
+  },
+  {
+    "score_id": 276,
+    "user_id": "10006",
+    "part_id": 3152,
+    "scores": 7,
+    "clear": true,
+    "play_date": "2026/05/09 06:50:26",
+    "avg_answer_time": null
+  },
+  {
+    "score_id": 277,
+    "user_id": "10006",
+    "part_id": 3161,
+    "scores": 7,
+    "clear": true,
+    "play_date": "2026/05/09 06:57:01",
+    "avg_answer_time": null
+  },
+  {
+    "score_id": 278,
+    "user_id": "10006",
+    "part_id": 3162,
+    "scores": 7,
+    "clear": true,
+    "play_date": "2026/05/09 07:08:01",
+    "avg_answer_time": null
+  },
+  {
+    "score_id": 279,
+    "user_id": "10006",
+    "part_id": 3171,
+    "scores": 7,
+    "clear": true,
+    "play_date": "2026/05/09 07:24:11",
+    "avg_answer_time": null
+  },
+  {
+    "score_id": 280,
+    "user_id": "10006",
+    "part_id": 3172,
+    "scores": 7,
+    "clear": true,
+    "play_date": "2026/05/09 07:35:17",
+    "avg_answer_time": null
+  },
+  {
+    "score_id": 281,
+    "user_id": "10006",
+    "part_id": 3181,
+    "scores": 7,
+    "clear": true,
+    "play_date": "2026/05/10 05:27:48",
+    "avg_answer_time": null
+  },
+  {
+    "score_id": 282,
+    "user_id": "10006",
+    "part_id": 3182,
+    "scores": 7,
+    "clear": true,
+    "play_date": "2026/05/10 05:31:19",
+    "avg_answer_time": null
+  },
+  {
+    "score_id": 283,
+    "user_id": "10006",
+    "part_id": 3191,
+    "scores": 6,
+    "clear": true,
+    "play_date": "2026/05/10 05:51:45",
+    "avg_answer_time": null
+  },
+  {
+    "score_id": 284,
+    "user_id": "10006",
+    "part_id": 3192,
+    "scores": 6,
+    "clear": true,
+    "play_date": "2026/05/10 08:23:47",
+    "avg_answer_time": null
+  },
+  {
+    "score_id": 285,
+    "user_id": "10006",
+    "part_id": 3201,
+    "scores": 7,
+    "clear": true,
+    "play_date": "2026/05/10 08:35:30",
+    "avg_answer_time": null
+  },
+  {
+    "score_id": 286,
+    "user_id": "10006",
+    "part_id": 3202,
+    "scores": 6,
+    "clear": true,
+    "play_date": "2026/05/10 08:45:40",
+    "avg_answer_time": null
+  },
+  {
+    "score_id": 287,
+    "user_id": "10006",
+    "part_id": 3211,
+    "scores": 6,
+    "clear": true,
+    "play_date": "2026/05/10 09:05:13",
+    "avg_answer_time": null
+  },
+  {
+    "score_id": 288,
+    "user_id": "10006",
+    "part_id": 3212,
+    "scores": 7,
+    "clear": true,
+    "play_date": "2026/05/10 10:05:44",
+    "avg_answer_time": null
+  },
+  {
+    "score_id": 289,
+    "user_id": "10006",
+    "part_id": 3221,
+    "scores": 7,
+    "clear": true,
+    "play_date": "2026/05/10 10:41:42",
+    "avg_answer_time": null
+  },
+  {
+    "score_id": 290,
+    "user_id": "10006",
+    "part_id": 3222,
+    "scores": 7,
+    "clear": true,
+    "play_date": "2026/05/10 10:59:35",
+    "avg_answer_time": null
+  },
+  {
+    "score_id": 291,
+    "user_id": "10006",
+    "part_id": 3231,
+    "scores": 7,
+    "clear": true,
+    "play_date": "2026/05/10 11:12:49",
+    "avg_answer_time": null
+  },
+  {
+    "score_id": 292,
+    "user_id": "10006",
+    "part_id": 3232,
+    "scores": 5,
+    "clear": true,
+    "play_date": "2026/05/11 01:42:51",
+    "avg_answer_time": null
+  },
+  {
+    "score_id": 293,
+    "user_id": "10006",
+    "part_id": 3241,
+    "scores": 7,
+    "clear": true,
+    "play_date": "2026/05/13 04:11:15",
+    "avg_answer_time": null
+  },
+  {
+    "score_id": 294,
+    "user_id": "10006",
+    "part_id": 3242,
+    "scores": 5,
+    "clear": true,
+    "play_date": "2026/05/13 04:19:29",
+    "avg_answer_time": null
+  },
+  {
+    "score_id": 295,
+    "user_id": "10006",
+    "part_id": 3251,
+    "scores": 7,
+    "clear": true,
+    "play_date": "2026/05/14 02:55:10",
+    "avg_answer_time": null
+  },
+  {
+    "score_id": 296,
+    "user_id": "10006",
+    "part_id": 3252,
+    "scores": 7,
+    "clear": true,
+    "play_date": "2026/05/14 03:12:36",
+    "avg_answer_time": null
+  },
+  {
+    "score_id": 297,
+    "user_id": "10006",
+    "part_id": 3261,
+    "scores": 7,
+    "clear": true,
+    "play_date": "2026/05/14 03:16:39",
+    "avg_answer_time": null
+  },
+  {
+    "score_id": 298,
+    "user_id": "10006",
+    "part_id": 3262,
+    "scores": 7,
+    "clear": true,
+    "play_date": "2026/05/14 06:47:16",
+    "avg_answer_time": null
+  },
+  {
+    "score_id": 299,
+    "user_id": "10006",
+    "part_id": 3271,
+    "scores": 7,
+    "clear": true,
+    "play_date": "2026/05/14 06:55:28",
+    "avg_answer_time": null
+  },
+  {
+    "score_id": 300,
+    "user_id": "10006",
+    "part_id": 3271,
+    "scores": 7,
+    "clear": true,
+    "play_date": "2026/05/14 07:07:07",
+    "avg_answer_time": null
+  },
+  {
+    "score_id": 301,
+    "user_id": "10006",
+    "part_id": 3272,
+    "scores": 7,
+    "clear": true,
+    "play_date": "2026/05/14 07:17:51",
+    "avg_answer_time": null
+  },
+  {
+    "score_id": 302,
+    "user_id": "10006",
+    "part_id": 3281,
+    "scores": 7,
+    "clear": true,
+    "play_date": "2026/05/14 07:23:28",
+    "avg_answer_time": null
+  },
+  {
+    "score_id": 303,
+    "user_id": "10006",
+    "part_id": 3282,
+    "scores": 7,
+    "clear": true,
+    "play_date": "2026/05/14 07:28:03",
+    "avg_answer_time": null
+  },
+  {
+    "score_id": 304,
+    "user_id": "10006",
+    "part_id": 3291,
+    "scores": 6,
+    "clear": true,
+    "play_date": "2026/05/14 07:44:57",
+    "avg_answer_time": null
+  },
+  {
+    "score_id": 305,
+    "user_id": "10006",
+    "part_id": 3292,
+    "scores": 7,
+    "clear": true,
+    "play_date": "2026/05/14 08:03:08",
+    "avg_answer_time": null
+  },
+  {
+    "score_id": 306,
+    "user_id": "10006",
+    "part_id": 3301,
+    "scores": 7,
+    "clear": true,
+    "play_date": "2026/05/14 08:13:02",
+    "avg_answer_time": null
+  },
+  {
+    "score_id": 307,
+    "user_id": "10006",
+    "part_id": 3302,
+    "scores": 7,
+    "clear": true,
+    "play_date": "2026/05/14 08:49:33",
+    "avg_answer_time": null
+  },
+  {
+    "score_id": 308,
+    "user_id": "10006",
+    "part_id": 3311,
+    "scores": 6,
+    "clear": true,
+    "play_date": "2026/05/14 08:56:50",
+    "avg_answer_time": null
+  },
+  {
+    "score_id": 309,
+    "user_id": "10006",
+    "part_id": 3312,
+    "scores": 7,
+    "clear": true,
+    "play_date": "2026/05/15 03:51:52",
+    "avg_answer_time": null
+  },
+  {
+    "score_id": 310,
+    "user_id": "10006",
+    "part_id": 3321,
+    "scores": 7,
+    "clear": true,
+    "play_date": "2026/05/15 03:54:50",
+    "avg_answer_time": null
+  },
+  {
+    "score_id": 311,
+    "user_id": "10006",
+    "part_id": 3322,
+    "scores": 5,
+    "clear": true,
+    "play_date": "2026/05/15 03:59:34",
+    "avg_answer_time": null
+  },
+  {
+    "score_id": 312,
+    "user_id": "10006",
+    "part_id": 3331,
+    "scores": 7,
+    "clear": true,
+    "play_date": "2026/05/15 04:05:16",
+    "avg_answer_time": null
+  },
+  {
+    "score_id": 313,
+    "user_id": "10006",
+    "part_id": 3332,
+    "scores": 7,
+    "clear": true,
+    "play_date": "2026/05/16 01:48:28",
+    "avg_answer_time": null
+  },
+  {
+    "score_id": 314,
+    "user_id": "10006",
+    "part_id": 3341,
+    "scores": 6,
+    "clear": true,
+    "play_date": "2026/05/16 01:53:17",
+    "avg_answer_time": null
+  },
+  {
+    "score_id": 315,
+    "user_id": "10006",
+    "part_id": 3342,
+    "scores": 2,
+    "clear": false,
+    "play_date": "2026/05/16 02:12:33",
+    "avg_answer_time": null
+  },
+  {
+    "score_id": 316,
+    "user_id": "10006",
+    "part_id": 3342,
+    "scores": 5,
+    "clear": true,
+    "play_date": "2026/05/16 02:21:22",
+    "avg_answer_time": null
+  },
+  {
+    "score_id": 317,
+    "user_id": "10006",
+    "part_id": 3351,
+    "scores": 7,
+    "clear": true,
+    "play_date": "2026/05/16 04:57:52",
+    "avg_answer_time": null
+  },
+  {
+    "score_id": 318,
+    "user_id": "10004",
+    "part_id": 3342,
+    "scores": 0,
+    "clear": false,
+    "play_date": "2026/05/25 05:09:30",
+    "avg_answer_time": null
+  },
+  {
+    "score_id": 319,
+    "user_id": "10004",
+    "part_id": 3342,
+    "scores": 4,
+    "clear": false,
+    "play_date": "2026/05/26 11:12:58",
+    "avg_answer_time": null
+  },
+  {
+    "score_id": 320,
+    "user_id": "10006",
+    "part_id": 3342,
+    "scores": 3,
+    "clear": false,
+    "play_date": "2026/05/28 14:14:04",
+    "avg_answer_time": null
+  },
+  {
+    "score_id": 321,
+    "user_id": "10006",
+    "part_id": 3342,
+    "scores": 6,
+    "clear": true,
+    "play_date": "2026/05/28 14:20:50",
+    "avg_answer_time": null
+  },
+  {
+    "score_id": 322,
+    "user_id": "10006",
+    "part_id": 3342,
+    "scores": 7,
+    "clear": true,
+    "play_date": "2026/05/28 14:33:22",
+    "avg_answer_time": null
+  },
+  {
+    "score_id": 323,
+    "user_id": "10006",
+    "part_id": 3342,
+    "scores": 6,
+    "clear": true,
+    "play_date": "2026/06/02 21:38:10",
+    "avg_answer_time": null
+  },
+  {
+    "score_id": 324,
+    "user_id": "10006",
+    "part_id": 1021,
+    "scores": 7,
+    "clear": true,
+    "play_date": "2026/06/03 02:31:05",
+    "avg_answer_time": null
+  },
+  {
+    "score_id": 325,
+    "user_id": "10006",
+    "part_id": 1011,
+    "scores": 6,
+    "clear": true,
+    "play_date": "2026/06/03 02:35:26",
+    "avg_answer_time": null
+  },
+  {
+    "score_id": 326,
+    "user_id": "10006",
+    "part_id": 1071,
+    "scores": 6,
+    "clear": true,
+    "play_date": "2026/06/03 02:41:49",
+    "avg_answer_time": null
+  },
+  {
+    "score_id": 327,
+    "user_id": "10006",
+    "part_id": 1161,
+    "scores": 7,
+    "clear": true,
+    "play_date": "2026/06/03 02:46:03",
+    "avg_answer_time": null
+  },
+  {
+    "score_id": 328,
+    "user_id": "10006",
+    "part_id": 1211,
+    "scores": 7,
+    "clear": true,
+    "play_date": "2026/06/03 02:53:42",
+    "avg_answer_time": null
+  },
+  {
+    "score_id": 329,
+    "user_id": "10006",
+    "part_id": 1251,
+    "scores": 7,
+    "clear": true,
+    "play_date": "2026/06/03 03:18:20",
+    "avg_answer_time": null
+  },
+  {
+    "score_id": 330,
+    "user_id": "10006",
+    "part_id": 3241,
+    "scores": 7,
+    "clear": true,
+    "play_date": "2026/06/04 06:31:01",
+    "avg_answer_time": null
+  }
+]
