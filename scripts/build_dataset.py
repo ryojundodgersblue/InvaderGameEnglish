@@ -114,6 +114,15 @@ def has_cjk(s):
     return bool(re.search(r'[぀-ヿ一-鿿]', s or ''))
 
 
+def token_similarity(a, b):
+    """単語集合のJaccard類似度(アポストロフィ・大文字小文字の揺れを無視)。"""
+    ta = set(re.findall(r"[a-z']+", text_key(a).lower()))
+    tb = set(re.findall(r"[a-z']+", text_key(b).lower()))
+    if not ta or not tb:
+        return 0.0
+    return len(ta & tb) / len(ta | tb)
+
+
 def clean_en(s):
     """修正内容セルの英文を整える(前後空白除去・全角空白→半角・カーリー統一)。
 
@@ -350,6 +359,18 @@ class Applier:
             self._set_answer_text(req, qid, answers, content,
                                   reason='内容が解答文に一致するため解答側へ適用')
             return
+
+        # 「新Q? 新A」の2文形式(区切りなし): 疑問文の後ろの文が現在の解答文と
+        # 類似している場合はQ/Aペアとして分割する(問題文に解答が混入するのを防ぐ)
+        m = re.match(r'^(.+?\?)\s+(\S.+)$', content)
+        if m and answers:
+            rest = m.group(2)
+            if any(token_similarity(rest, a['expected_text']) >= 0.5 for a in answers):
+                self._set_question_text(req, q, m.group(1))
+                self._set_answer_text(req, qid, answers, rest,
+                                      reason='2文形式(Q?+解答文)と判定して分割')
+                return
+
         self._set_question_text(req, q, content)
 
     def apply_answer_fix(self, req):

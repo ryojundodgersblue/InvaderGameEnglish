@@ -75,9 +75,6 @@ const PlayPage: React.FC = () => {
     muteCurrentAudio, unmuteCurrentAudio, stopCurrentAudio, waitForCurrentAudioToFinish,
   } = tts;
 
-  const handleTimeUpRef = useRef<() => void>(() => {});
-  const { remainingTime, startTimer, stopTimer } = useGameTimer(() => handleTimeUpRef.current());
-
   const isFreezeMonitored = useCallback(
     () => statusRef.current !== 'finished' && statusRef.current !== 'idle',
     []
@@ -85,6 +82,13 @@ const PlayPage: React.FC = () => {
   const {
     frozen, setFrozen, startFreezeDetection, stopFreezeDetection, updateActivity,
   } = useFreezeDetection(isFreezeMonitored);
+
+  const handleTimeUpRef = useRef<() => void>(() => {});
+  // onTick=updateActivity: タイマー動作中(=生徒の回答待ち)はフリーズではない
+  const { remainingTime, startTimer, stopTimer } = useGameTimer(
+    () => handleTimeUpRef.current(),
+    updateActivity
+  );
 
   const asr = useSpeechRecognition({
     onStartWhileSpeaking: () => {

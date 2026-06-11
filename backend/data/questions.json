@@ -3980,7 +3980,7 @@
     "part_id": 1321,
     "display_order": 2,
     "is_demo": false,
-    "question_text": "Do you like sports? What sports do you like?",
+    "question_text": "Do you like sports?",
     "image_url": ""
   },
   {
@@ -9204,7 +9204,7 @@
     "part_id": 2182,
     "display_order": 7,
     "is_demo": false,
-    "question_text": "What do you know about them? I know that they are popular.",
+    "question_text": "What do you know about them?",
     "image_url": "/questions/2_18_2_07.png"
   },
   {
@@ -11364,7 +11364,7 @@
     "part_id": 2342,
     "display_order": 5,
     "is_demo": false,
-    "question_text": "Which animal is the biggest in Ueno Zoo? The elephant is the biggest animal in Ueno Zoo.",
+    "question_text": "Which animal is the biggest in Ueno Zoo?",
     "image_url": "/questions/2_34_2_05.png"
   },
   {
@@ -11380,7 +11380,7 @@
     "part_id": 2342,
     "display_order": 7,
     "is_demo": false,
-    "question_text": "Which country is the biggest in Europe? Russia is the biggest country in Europe.",
+    "question_text": "Which country is the biggest in Europe?",
     "image_url": "/questions/2_34_2_07.png"
   },
   {
@@ -11740,7 +11740,7 @@
     "part_id": 2372,
     "display_order": 4,
     "is_demo": false,
-    "question_text": "Who is the most famous singer in Japan? Kenshi Yonezu is the most famous singer in Japan.",
+    "question_text": "Who is the most famous singer in Japan?",
     "image_url": "/questions/2_37_2_04.png"
   },
   {
@@ -14980,7 +14980,7 @@
     "part_id": 3151,
     "display_order": 1,
     "is_demo": true,
-    "question_text": "What is fun to do? It's fun to swim in the pool.",
+    "question_text": "What is fun to do?",
     "image_url": "/questions/3_15_1_01.png"
   },
   {
@@ -14988,7 +14988,7 @@
     "part_id": 3151,
     "display_order": 2,
     "is_demo": false,
-    "question_text": "What is important to do? It's important to eat breakfast every day.",
+    "question_text": "What is important to do?",
     "image_url": "/questions/3_15_1_02.png"
   },
   {
@@ -14996,7 +14996,7 @@
     "part_id": 3151,
     "display_order": 3,
     "is_demo": false,
-    "question_text": "What is exciting to do? It's exciting to visit a new country.",
+    "question_text": "What is exciting to do?",
     "image_url": "/questions/3_15_1_03.png"
   },
   {
@@ -15004,7 +15004,7 @@
     "part_id": 3151,
     "display_order": 4,
     "is_demo": false,
-    "question_text": "What is hard to do? It's hard to wake up early in winter.",
+    "question_text": "What is hard to do?",
     "image_url": "/questions/3_15_1_04.png"
   },
   {
@@ -15012,7 +15012,7 @@
     "part_id": 3151,
     "display_order": 5,
     "is_demo": false,
-    "question_text": "What is helpful to do? It's helpful to clean my room every day.",
+    "question_text": "What is helpful to do?",
     "image_url": "/questions/3_15_1_05.png"
   },
   {
@@ -15020,7 +15020,7 @@
     "part_id": 3151,
     "display_order": 6,
     "is_demo": false,
-    "question_text": "What is dangerous to do? It's dangerous to run on the road.",
+    "question_text": "What is dangerous to do?",
     "image_url": "/questions/3_15_1_06.png"
   },
   {
@@ -15028,7 +15028,7 @@
     "part_id": 3151,
     "display_order": 7,
     "is_demo": false,
-    "question_text": "What is nice to do? It's nice to listen to music after school.",
+    "question_text": "What is nice to do?",
     "image_url": "/questions/3_15_1_07.png"
   },
   {
@@ -15036,7 +15036,7 @@
     "part_id": 3151,
     "display_order": 8,
     "is_demo": false,
-    "question_text": "What is useful to do? It's useful to learn another language.",
+    "question_text": "What is useful to do?",
     "image_url": "/questions/3_15_1_08.png"
   },
   {
@@ -15044,7 +15044,7 @@
     "part_id": 3152,
     "display_order": 1,
     "is_demo": true,
-    "question_text": "What is easy for you to do? It's easy for me to cook pasta.",
+    "question_text": "What is easy for you to do?",
     "image_url": "/questions/3_15_2_01.png"
   },
   {
@@ -15052,7 +15052,7 @@
     "part_id": 3152,
     "display_order": 2,
     "is_demo": false,
-    "question_text": "What is difficult for him to do? It's difficult for him to finish the homework.",
+    "question_text": "What is difficult for him to do?",
     "image_url": "/questions/3_15_2_02.png"
   },
   {
@@ -15060,7 +15060,7 @@
     "part_id": 3152,
     "display_order": 3,
     "is_demo": false,
-    "question_text": "What is important for us to do? It's important for us to practice every day.",
+    "question_text": "What is important for us to do?",
     "image_url": "/questions/3_15_2_03.png"
   },
   {
@@ -15068,7 +15068,7 @@
     "part_id": 3152,
     "display_order": 4,
     "is_demo": false,
-    "question_text": "What is exciting for them to do? It's exciting for them to join the soccer team.",
+    "question_text": "What is exciting for them to do?",
     "image_url": "/questions/3_15_2_04.png"
   },
   {
@@ -15076,7 +15076,7 @@
     "part_id": 3152,
     "display_order": 5,
     "is_demo": false,
-    "question_text": "What is dangerous for you to do? It's dangerous for me to ride a skateboard.",
+    "question_text": "What is dangerous for you to do?",
     "image_url": "/questions/3_15_2_05.png"
   },
   {
@@ -15084,7 +15084,7 @@
     "part_id": 3152,
     "display_order": 6,
     "is_demo": false,
-    "question_text": "What is fun for your sister to do? It's fun for my sister to play the piano.",
+    "question_text": "What is fun for your sister to do?",
     "image_url": "/questions/3_15_2_06.png"
   },
   {
@@ -15092,7 +15092,7 @@
     "part_id": 3152,
     "display_order": 7,
     "is_demo": false,
-    "question_text": "What is hard for you to do? It's hard for me to wake up early on Sundays.",
+    "question_text": "What is hard for you to do?",
     "image_url": "/questions/3_15_2_07.png"
   },
   {
@@ -15100,7 +15100,7 @@
     "part_id": 3152,
     "display_order": 8,
     "is_demo": false,
-    "question_text": "What is helpful for your brother to do? It's helpful for my brother to study with friends.",
+    "question_text": "What is helpful for your brother to do?",
     "image_url": "/questions/3_15_2_08.png"
   },
   {
@@ -15292,7 +15292,7 @@
     "part_id": 3171,
     "display_order": 8,
     "is_demo": false,
-    "question_text": "Do you want that jacket? Would you like that jacket?",
+    "question_text": "Do you want that jacket?",
     "image_url": ""
   },
   {
@@ -15508,7 +15508,7 @@
     "part_id": 3191,
     "display_order": 3,
     "is_demo": false,
-    "question_text": "What did Mary tell Tom? She told him to come early tomorrow.",
+    "question_text": "What did Mary tell Tom?",
     "image_url": "/questions/3_19_1_03.png"
   },
   {
@@ -15900,7 +15900,7 @@
     "part_id": 3221,
     "display_order": 4,
     "is_demo": false,
-    "question_text": "What did she tell you? She told me that she had lost her wallet.",
+    "question_text": "What did she tell you?",
     "image_url": "/questions/3_22_1_04.png"
   },
   {

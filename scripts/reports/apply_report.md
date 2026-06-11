@@ -3,17 +3,17 @@
 ## サマリ
 
 - 修正依頼(未対応)件数: 673
-- 適用ログ件数: 928
-- applied: 834
-- already_ok: 88
+- 適用ログ件数: 952
+- applied: 853
+- already_ok: 93
 - superseded(別修正が優先): 4
 - skipped(要確認): 2
 - 新規サブパート作成: ['3-31-3 (part_id=3313)', '3-31-4 (part_id=3314)']
-- 全体アポストロフィ正規化での追加修正フィールド数: 24
+- 全体アポストロフィ正規化での追加修正フィールド数: 9
 - 3-8-2 image_url設定: 8
 - ベースデータ補正: ['1-16-2-1 (question_id=11621): is_demo false→true (全パート共通の1問目デモ構成に統一)']
 - データ件数: {'users': 6, 'grades': 3, 'parts': 278, 'questions': 2224, 'answer_patterns': 2224, 'scores': 330}
-- 種別内訳: {'Requirementの修正:applied': 73, 'Requirementの修正:skipped': 1, 'その他:already_ok': 1, 'その他:applied': 2, 'アポストロフィの統一:already_ok': 21, 'アポストロフィの統一:applied': 125, 'アポストロフィの統一:superseded': 4, 'イラスト差し替え:skipped': 1, '問題文の修正:already_ok': 65, '問題文の修正:applied': 536, '解答のみ修正:already_ok': 1, '解答のみ修正:applied': 98}
+- 種別内訳: {'Requirementの修正:applied': 73, 'Requirementの修正:skipped': 1, 'その他:already_ok': 1, 'その他:applied': 2, 'アポストロフィの統一:already_ok': 21, 'アポストロフィの統一:applied': 125, 'アポストロフィの統一:superseded': 4, 'イラスト差し替え:skipped': 1, '問題文の修正:already_ok': 70, '問題文の修正:applied': 555, '解答のみ修正:already_ok': 1, '解答のみ修正:applied': 98}
 
 ## クライアント(Mukaさん)要確認
 
@@ -133,6 +133,7 @@
 - question_id=13116: 問題文の修正(row146), 問題文の修正(row146)
 - question_id=13117: 問題文の修正(row147), 問題文の修正(row147)
 - question_id=13118: 問題文の修正(row148), 問題文の修正(row148), アポストロフィの統一(row713)
+- question_id=13212: 問題文の修正(row149), 問題文の修正(row149)
 - question_id=13223: 問題文の修正(row151), 問題文の修正(row151)
 - question_id=13337: 問題文の修正(row152), 問題文の修正(row152)
 - question_id=13338: 問題文の修正(row153), 問題文の修正(row153)
@@ -184,16 +185,20 @@
 - question_id=20215: 問題文の修正(row251), 問題文の修正(row251)
 - question_id=21514: 問題文の修正(row252), 問題文の修正(row252), 問題文の修正(row271), 問題文の修正(row271)
 - question_id=21723: 解答のみ修正(row283), アポストロフィの統一(row733)
+- question_id=21827: 問題文の修正(row285), 問題文の修正(row285)
 - question_id=22722: 問題文の修正(row289), 問題文の修正(row289)
 - question_id=23217: 問題文の修正(row298), 問題文の修正(row298)
 - question_id=23318: 問題文の修正(row300), 問題文の修正(row300)
 - question_id=23321: 問題文の修正(row302), 問題文の修正(row302), 問題文の修正(row304), 問題文の修正(row304)
 - question_id=23424: アポストロフィの統一(row752), アポストロフィの統一(row753)
+- question_id=23425: 問題文の修正(row310), 問題文の修正(row310)
+- question_id=23427: 問題文の修正(row311), 問題文の修正(row311)
 - question_id=23511: アポストロフィの統一(row754), アポストロフィの統一(row755)
 - question_id=23512: 問題文の修正(row314), 問題文の修正(row314)
 - question_id=23614: アポストロフィの統一(row756), アポストロフィの統一(row757)
 - question_id=23713: 問題文の修正(row323), 問題文の修正(row323)
 - question_id=23721: アポストロフィの統一(row758), アポストロフィの統一(row759)
+- question_id=23724: 問題文の修正(row327), 問題文の修正(row327)
 - question_id=23822: 問題文の修正(row331), 問題文の修正(row331)
 - question_id=23823: 問題文の修正(row332), 問題文の修正(row332)
 - question_id=23825: 問題文の修正(row333), 問題文の修正(row333)
@@ -230,6 +235,23 @@
 - question_id=31336: 問題文の修正(row420), 問題文の修正(row420)
 - question_id=31337: 問題文の修正(row421), 問題文の修正(row421)
 - question_id=31428: 問題文の修正(row426), 問題文の修正(row426)
+- question_id=31511: 問題文の修正(row428), 問題文の修正(row428)
+- question_id=31512: 問題文の修正(row429), 問題文の修正(row429)
+- question_id=31513: 問題文の修正(row430), 問題文の修正(row430)
+- question_id=31514: 問題文の修正(row431), 問題文の修正(row431)
+- question_id=31515: 問題文の修正(row432), 問題文の修正(row432)
+- question_id=31516: 問題文の修正(row433), 問題文の修正(row433)
+- question_id=31517: 問題文の修正(row434), 問題文の修正(row434)
+- question_id=31518: 問題文の修正(row435), 問題文の修正(row435)
+- question_id=31521: 問題文の修正(row437), 問題文の修正(row437)
+- question_id=31522: 問題文の修正(row438), 問題文の修正(row438)
+- question_id=31523: 問題文の修正(row439), 問題文の修正(row439)
+- question_id=31524: 問題文の修正(row440), 問題文の修正(row440)
+- question_id=31525: 問題文の修正(row441), 問題文の修正(row441)
+- question_id=31526: 問題文の修正(row442), 問題文の修正(row442)
+- question_id=31527: 問題文の修正(row443), 問題文の修正(row443)
+- question_id=31528: 問題文の修正(row444), 問題文の修正(row444)
+- question_id=31718: 問題文の修正(row464), 問題文の修正(row464)
 - question_id=31721: 問題文の修正(row466), 問題文の修正(row466)
 - question_id=31722: 問題文の修正(row467), 問題文の修正(row467)
 - question_id=31723: 問題文の修正(row468), 問題文の修正(row468)
@@ -241,6 +263,7 @@
 - question_id=31816: 問題文の修正(row475), 問題文の修正(row475)
 - question_id=31817: 問題文の修正(row476), 問題文の修正(row476)
 - question_id=31818: 問題文の修正(row477), 問題文の修正(row477)
+- question_id=31913: 問題文の修正(row480), 問題文の修正(row480)
 - question_id=31917: 問題文の修正(row481), 問題文の修正(row481)
 - question_id=32011: 問題文の修正(row483), 問題文の修正(row483)
 - question_id=32012: 問題文の修正(row484), 問題文の修正(row484)
@@ -262,6 +285,7 @@
 - question_id=32123: 問題文の修正(row507), 問題文の修正(row507)
 - question_id=32124: 問題文の修正(row509), 問題文の修正(row509)
 - question_id=32126: 問題文の修正(row511), 問題文の修正(row511)
+- question_id=32214: 問題文の修正(row514), 問題文の修正(row514)
 - question_id=32225: 問題文の修正(row519), 問題文の修正(row519)
 - question_id=32316: 問題文の修正(row521), 問題文の修正(row521)
 - question_id=32317: 問題文の修正(row522), 問題文の修正(row522)
@@ -485,7 +509,8 @@
 | 147 | 1-31-1-7 | 問題文の修正 | already_ok | expected_text | I go to bed at ten. | I go to bed at ten. |  |
 | 148 | 1-31-1-8 | 問題文の修正 | applied | question_text | What day do you have English class？ | What day do you have English class? |  |
 | 148 | 1-31-1-8 | 問題文の修正 | already_ok | expected_text | I have English class on Friday. | I have English class on Friday. |  |
-| 149 | 1-32-1-2 | 問題文の修正 | applied | question_text | Do you like subjects? | Do you like sports? What sports do you like? |  |
+| 149 | 1-32-1-2 | 問題文の修正 | applied | question_text | Do you like subjects? | Do you like sports? |  |
+| 149 | 1-32-1-2 | 問題文の修正 | applied | expected_text | What subjects do you like? | What sports do you like? | 2文形式(Q?+解答文)と判定して分割 |
 | 151 | 1-32-2-3 | 問題文の修正 | applied | question_text | Do you have fruits? | Do you have books? |  |
 | 151 | 1-32-2-3 | 問題文の修正 | applied | expected_text | What fruits do you have? | What books do you have? |  |
 | 152 | 1-33-3-7 | 問題文の修正 | applied | question_text | My favorite actor is Johnny Depp. | My hero is Taro. |  |
@@ -590,7 +615,8 @@
 | 270 | 2-14-2-7 | 問題文の修正 | applied | question_text | Paul's nervous before the test. | He's nervous before the test. |  |
 | 271 | 2-15-1-4 | 問題文の修正 | already_ok | question_text | What does your mother cook you? | What does your mother cook you? |  |
 | 271 | 2-15-1-4 | 問題文の修正 | already_ok | expected_text | She cooks me dinner. | She cooks me dinner. |  |
-| 285 | 2-18-2-7 | 問題文の修正 | applied | question_text | What do you know about that movie star? | What do you know about them? I know that they are popular. |  |
+| 285 | 2-18-2-7 | 問題文の修正 | applied | question_text | What do you know about that movie star? | What do you know about them? |  |
+| 285 | 2-18-2-7 | 問題文の修正 | applied | expected_text | I know that he is popular. | I know that they are popular. | 2文形式(Q?+解答文)と判定して分割 |
 | 289 | 2-27-2-2 | 問題文の修正 | applied | question_text | Why did I visit Nara? | Why did she visit Nara? |  |
 | 289 | 2-27-2-2 | 問題文の修正 | applied | expected_text | To see my aunt. | To see her aunt. |  |
 | 291 | 2-29-2-1 | 問題文の修正 | applied | question_text | What are there to see in the park? | What is there to see in the park? |  |
@@ -610,8 +636,10 @@
 | 307 | 2-34-1-1 | 問題文の修正 | applied | question_text | Is today busier than yesterday? | Is Russia larger than Canada? Yes, Russia is larger than Canada. |  |
 | 308 | 2-34-1-8 | 問題文の修正 | applied | question_text | Is Bob taller than Ben? | Is your cat fatter than my cat? Yes, my cat is fatter than your cat. |  |
 | 309 | 2-34-2-3 | 問題文の修正 | applied | question_text | What is the busiest day of the week for you? | Which day of the week is the busiest for you? |  |
-| 310 | 2-34-2-5 | 問題文の修正 | applied | question_text | What is the biggest animal in the zoo? | Which animal is the biggest in Ueno Zoo? The elephant is the biggest animal in Ueno Zoo. |  |
-| 311 | 2-34-2-7 | 問題文の修正 | applied | question_text | Which country is the biggest in the world? | Which country is the biggest in Europe? Russia is the biggest country in Europe. |  |
+| 310 | 2-34-2-5 | 問題文の修正 | applied | question_text | What is the biggest animal in the zoo? | Which animal is the biggest in Ueno Zoo? |  |
+| 310 | 2-34-2-5 | 問題文の修正 | applied | expected_text | The elephant is the biggest animal in the zoo. | The elephant is the biggest animal in Ueno Zoo. | 2文形式(Q?+解答文)と判定して分割 |
+| 311 | 2-34-2-7 | 問題文の修正 | applied | question_text | Which country is the biggest in the world? | Which country is the biggest in Europe? |  |
+| 311 | 2-34-2-7 | 問題文の修正 | applied | expected_text | Russia is the biggest country in the world. | Russia is the biggest country in Europe. | 2文形式(Q?+解答文)と判定して分割 |
 | 312 | 2-34-2-8 | 問題文の修正 | applied | question_text | What is the hottest season in your country? | Which month is hotter, August or September? August is hotter than September. |  |
 | 314 | 2-35-1-2 | 問題文の修正 | applied | question_text | Which day is more important, Christmas or New Year in Japan? | In Japan, which day is more important, Christmas or New Year's Day? |  |
 | 314 | 2-35-1-2 | 問題文の修正 | applied | expected_text | New Year is more important than Christmas in Japan. | New Year's Day is more important than Christmas in Japan. |  |
@@ -623,7 +651,8 @@
 | 323 | 2-37-1-3 | 問題文の修正 | applied | expected_text | Mt. Fuji is higher than Mt. Kiso Ontake. | Mt. Everest is higher than Mt. Fuji. |  |
 | 325 | 2-37-1-5 | 問題文の修正 | applied | question_text | Which book is better, Harry Potter or Doraemon? | Which is better, Harry Potter or Doraemon? |  |
 | 326 | 2-37-2-3 | 問題文の修正 | applied | question_text | What is the most difficult subject for Ken? | Which subject is the most difficult for Ken? |  |
-| 327 | 2-37-2-4 | 問題文の修正 | applied | question_text | Who is the most famous singer in Japan, Hikaru Utada or Kenshi Yonezu? | Who is the most famous singer in Japan? Kenshi Yonezu is the most famous singer in Japan. |  |
+| 327 | 2-37-2-4 | 問題文の修正 | applied | question_text | Who is the most famous singer in Japan, Hikaru Utada or Kenshi Yonezu? | Who is the most famous singer in Japan? |  |
+| 327 | 2-37-2-4 | 問題文の修正 | already_ok | expected_text | Kenshi Yonezu is the most famous singer in Japan. | Kenshi Yonezu is the most famous singer in Japan. | 2文形式(Q?+解答文)と判定して分割 |
 | 328 | 2-38-1-4 | 問題文の修正 | applied | question_text | My mother hit the ball. | He painted the wall. The wall was painted by him. |  |
 | 329 | 2-38-1-6 | 問題文の修正 | applied | question_text | The teacher cut the paper. | My mother cooked the dinner. The dinner was cooked by my mother. |  |
 | 330 | 2-38-1-7 | 問題文の修正 | applied | question_text | The chef set the table. | She invited her friends. Her friends were invited by her. |  |
@@ -728,23 +757,40 @@
 | 425 | 3-14-2-3 | 問題文の修正 | applied | question_text | My father wears this jacket. | My father wears this jacket. How long has he been wearing this jacket? |  |
 | 426 | 3-14-2-8 | 問題文の修正 | applied | question_text | My mother tastes the soup. | My mother makes soup. |  |
 | 426 | 3-14-2-8 | 問題文の修正 | applied | expected_text | How long has she been tasting the soup? | How long has she been making soup? |  |
-| 428 | 3-15-1-1 | 問題文の修正 | applied | question_text | What is fun? | What is fun to do? It's fun to swim in the pool. |  |
-| 429 | 3-15-1-2 | 問題文の修正 | applied | question_text | What is important? | What is important to do? It's important to eat breakfast every day. |  |
-| 430 | 3-15-1-3 | 問題文の修正 | applied | question_text | What is exciting? | What is exciting to do? It's exciting to visit a new country. |  |
-| 431 | 3-15-1-4 | 問題文の修正 | applied | question_text | What is hard? | What is hard to do? It's hard to wake up early in winter. |  |
-| 432 | 3-15-1-5 | 問題文の修正 | applied | question_text | What is helpful? | What is helpful to do? It's helpful to clean my room every day. |  |
-| 433 | 3-15-1-6 | 問題文の修正 | applied | question_text | What is dangerous? | What is dangerous to do? It's dangerous to run on the road. |  |
-| 434 | 3-15-1-7 | 問題文の修正 | applied | question_text | What is nice? | What is nice to do? It's nice to listen to music after school. |  |
-| 435 | 3-15-1-8 | 問題文の修正 | applied | question_text | What is useful? | What is useful to do? It's useful to learn another language. |  |
-| 437 | 3-15-2-1 | 問題文の修正 | applied | question_text | What is easy for you? | What is easy for you to do? It's easy for me to cook pasta. |  |
-| 438 | 3-15-2-2 | 問題文の修正 | applied | question_text | What is difficult for him? | What is difficult for him to do? It's difficult for him to finish the homework. |  |
-| 439 | 3-15-2-3 | 問題文の修正 | applied | question_text | What is important for us? | What is important for us to do? It's important for us to practice every day. |  |
-| 440 | 3-15-2-4 | 問題文の修正 | applied | question_text | What is exciting for them? | What is exciting for them to do? It's exciting for them to join the soccer team. |  |
-| 441 | 3-15-2-5 | 問題文の修正 | applied | question_text | What is dangerous for you? | What is dangerous for you to do? It's dangerous for me to ride a skateboard. |  |
-| 442 | 3-15-2-6 | 問題文の修正 | applied | question_text | What is fun for your sister? | What is fun for your sister to do? It's fun for my sister to play the piano. |  |
-| 443 | 3-15-2-7 | 問題文の修正 | applied | question_text | What is hard for you? | What is hard for you to do? It's hard for me to wake up early on Sundays. |  |
-| 444 | 3-15-2-8 | 問題文の修正 | applied | question_text | What is helpful for your brother? | What is helpful for your brother to do? It's helpful for my brother to study with friends. |  |
-| 464 | 3-17-1-8 | 問題文の修正 | applied | question_text | Do you want that jacket? | Do you want that jacket? Would you like that jacket? |  |
+| 428 | 3-15-1-1 | 問題文の修正 | applied | question_text | What is fun? | What is fun to do? |  |
+| 428 | 3-15-1-1 | 問題文の修正 | already_ok | expected_text | It's fun to swim in the pool. | It's fun to swim in the pool. | 2文形式(Q?+解答文)と判定して分割 |
+| 429 | 3-15-1-2 | 問題文の修正 | applied | question_text | What is important? | What is important to do? |  |
+| 429 | 3-15-1-2 | 問題文の修正 | applied | expected_text | It’s important to eat breakfast every day. | It's important to eat breakfast every day. | 2文形式(Q?+解答文)と判定して分割 |
+| 430 | 3-15-1-3 | 問題文の修正 | applied | question_text | What is exciting? | What is exciting to do? |  |
+| 430 | 3-15-1-3 | 問題文の修正 | applied | expected_text | It’s exciting to visit a new country. | It's exciting to visit a new country. | 2文形式(Q?+解答文)と判定して分割 |
+| 431 | 3-15-1-4 | 問題文の修正 | applied | question_text | What is hard? | What is hard to do? |  |
+| 431 | 3-15-1-4 | 問題文の修正 | applied | expected_text | It’s hard to wake up early in winter. | It's hard to wake up early in winter. | 2文形式(Q?+解答文)と判定して分割 |
+| 432 | 3-15-1-5 | 問題文の修正 | applied | question_text | What is helpful? | What is helpful to do? |  |
+| 432 | 3-15-1-5 | 問題文の修正 | applied | expected_text | It’s helpful to clean my room every day. | It's helpful to clean my room every day. | 2文形式(Q?+解答文)と判定して分割 |
+| 433 | 3-15-1-6 | 問題文の修正 | applied | question_text | What is dangerous? | What is dangerous to do? |  |
+| 433 | 3-15-1-6 | 問題文の修正 | applied | expected_text | It’s dangerous to run on the road. | It's dangerous to run on the road. | 2文形式(Q?+解答文)と判定して分割 |
+| 434 | 3-15-1-7 | 問題文の修正 | applied | question_text | What is nice? | What is nice to do? |  |
+| 434 | 3-15-1-7 | 問題文の修正 | applied | expected_text | It’s nice to listen to music after school. | It's nice to listen to music after school. | 2文形式(Q?+解答文)と判定して分割 |
+| 435 | 3-15-1-8 | 問題文の修正 | applied | question_text | What is useful? | What is useful to do? |  |
+| 435 | 3-15-1-8 | 問題文の修正 | applied | expected_text | It’s useful to learn another language. | It's useful to learn another language. | 2文形式(Q?+解答文)と判定して分割 |
+| 437 | 3-15-2-1 | 問題文の修正 | applied | question_text | What is easy for you? | What is easy for you to do? |  |
+| 437 | 3-15-2-1 | 問題文の修正 | applied | expected_text | It’s easy for me to cook pasta. | It's easy for me to cook pasta. | 2文形式(Q?+解答文)と判定して分割 |
+| 438 | 3-15-2-2 | 問題文の修正 | applied | question_text | What is difficult for him? | What is difficult for him to do? |  |
+| 438 | 3-15-2-2 | 問題文の修正 | applied | expected_text | It’s difficult for him to finish the homework. | It's difficult for him to finish the homework. | 2文形式(Q?+解答文)と判定して分割 |
+| 439 | 3-15-2-3 | 問題文の修正 | applied | question_text | What is important for us? | What is important for us to do? |  |
+| 439 | 3-15-2-3 | 問題文の修正 | applied | expected_text | It’s important for us to practice every day. | It's important for us to practice every day. | 2文形式(Q?+解答文)と判定して分割 |
+| 440 | 3-15-2-4 | 問題文の修正 | applied | question_text | What is exciting for them? | What is exciting for them to do? |  |
+| 440 | 3-15-2-4 | 問題文の修正 | applied | expected_text | It’s exciting for them to join the soccer team. | It's exciting for them to join the soccer team. | 2文形式(Q?+解答文)と判定して分割 |
+| 441 | 3-15-2-5 | 問題文の修正 | applied | question_text | What is dangerous for you? | What is dangerous for you to do? |  |
+| 441 | 3-15-2-5 | 問題文の修正 | applied | expected_text | It’s dangerous for me to skateboard. | It's dangerous for me to ride a skateboard. | 2文形式(Q?+解答文)と判定して分割 |
+| 442 | 3-15-2-6 | 問題文の修正 | applied | question_text | What is fun for your sister? | What is fun for your sister to do? |  |
+| 442 | 3-15-2-6 | 問題文の修正 | applied | expected_text | It’s fun for my sister to play the piano. | It's fun for my sister to play the piano. | 2文形式(Q?+解答文)と判定して分割 |
+| 443 | 3-15-2-7 | 問題文の修正 | applied | question_text | What is hard for you? | What is hard for you to do? |  |
+| 443 | 3-15-2-7 | 問題文の修正 | applied | expected_text | It’s hard for me to wake up early on Sundays. | It's hard for me to wake up early on Sundays. | 2文形式(Q?+解答文)と判定して分割 |
+| 444 | 3-15-2-8 | 問題文の修正 | applied | question_text | What is helpful for your brother? | What is helpful for your brother to do? |  |
+| 444 | 3-15-2-8 | 問題文の修正 | applied | expected_text | It’s helpful for my brother to study with friends. | It's helpful for my brother to study with friends. | 2文形式(Q?+解答文)と判定して分割 |
+| 464 | 3-17-1-8 | 問題文の修正 | already_ok | question_text | Do you want that jacket? | Do you want that jacket? |  |
+| 464 | 3-17-1-8 | 問題文の修正 | already_ok | expected_text | Would you like that jacket? | Would you like that jacket? | 2文形式(Q?+解答文)と判定して分割 |
 | 466 | 3-17-2-1 | 問題文の修正 | applied | question_text | Do you want to hear this song? | Do you want to look after my dog? |  |
 | 466 | 3-17-2-1 | 問題文の修正 | applied | expected_text | Would you like to hear this song? | Would you like to look after my dog? |  |
 | 467 | 3-17-2-2 | 問題文の修正 | applied | question_text | Do you want to get a new bag? | Do you want to take a walk in the park? |  |
@@ -767,7 +813,8 @@
 | 476 | 3-18-1-7 | 問題文の修正 | applied | expected_text | I want her to call me. | I want them to call me. |  |
 | 477 | 3-18-1-8 | 問題文の修正 | applied | question_text | What do you want my sister to do? | What do you want her to do? |  |
 | 477 | 3-18-1-8 | 問題文の修正 | already_ok | expected_text | I want her to go shopping with me. | I want her to go shopping with me. |  |
-| 480 | 3-19-1-3 | 問題文の修正 | applied | question_text | What did the teacher tell Tom? | What did Mary tell Tom? She told him to come early tomorrow. |  |
+| 480 | 3-19-1-3 | 問題文の修正 | applied | question_text | What did the teacher tell Tom? | What did Mary tell Tom? |  |
+| 480 | 3-19-1-3 | 問題文の修正 | applied | expected_text | He told him to come early tomorrow. | She told him to come early tomorrow. | 2文形式(Q?+解答文)と判定して分割 |
 | 481 | 3-19-1-7 | 問題文の修正 | applied | question_text | What did you ask Yuki? | What did you ask Yuka? |  |
 | 481 | 3-19-1-7 | 問題文の修正 | already_ok | expected_text | I asked her to bring her notebook. | I asked her to bring her notebook. |  |
 | 483 | 3-20-1-1 | 問題文の修正 | applied | question_text | I tell him. | I'll tell him the news. |  |
@@ -810,7 +857,8 @@
 | 509 | 3-21-2-4 | 問題文の修正 | applied | expected_text | He makes me laugh. | It makes me bored. |  |
 | 511 | 3-21-2-6 | 問題文の修正 | applied | question_text | How does she make you feel? | How does a horror story make you feel? |  |
 | 511 | 3-21-2-6 | 問題文の修正 | applied | expected_text | She makes me safe. | It makes me afraid. |  |
-| 514 | 3-22-1-4 | 問題文の修正 | applied | question_text | What did she tell you? | What did she tell you? She told me that she had lost her wallet. |  |
+| 514 | 3-22-1-4 | 問題文の修正 | already_ok | question_text | What did she tell you? | What did she tell you? |  |
+| 514 | 3-22-1-4 | 問題文の修正 | applied | expected_text | She told me that she lost her wallet. | She told me that she had lost her wallet. | 2文形式(Q?+解答文)と判定して分割 |
 | 517 | 3-22-2-2 | 問題文の修正 | applied | question_text | What did he show you? | What did he show you? He showed me that I was good at math. |  |
 | 519 | 3-22-2-5 | 問題文の修正 | already_ok | question_text | What did he show you? | What did he show you? |  |
 | 519 | 3-22-2-5 | 問題文の修正 | applied | expected_text | He showed me that it's important. | He showed me that the answer was correct. |  |

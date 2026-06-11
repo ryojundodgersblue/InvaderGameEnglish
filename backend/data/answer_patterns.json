@@ -2487,7 +2487,7 @@
   {
     "id": 498,
     "question_id": 13212,
-    "expected_text": "What subjects do you like?"
+    "expected_text": "What sports do you like?"
   },
   {
     "id": 499,
@@ -5752,7 +5752,7 @@
   {
     "id": 1151,
     "question_id": 21827,
-    "expected_text": "I know that he is popular."
+    "expected_text": "I know that they are popular."
   },
   {
     "id": 1152,
@@ -7102,7 +7102,7 @@
   {
     "id": 1421,
     "question_id": 23425,
-    "expected_text": "The elephant is the biggest animal in the zoo."
+    "expected_text": "The elephant is the biggest animal in Ueno Zoo."
   },
   {
     "id": 1422,
@@ -7112,7 +7112,7 @@
   {
     "id": 1423,
     "question_id": 23427,
-    "expected_text": "Russia is the biggest country in the world."
+    "expected_text": "Russia is the biggest country in Europe."
   },
   {
     "id": 1424,
@@ -9422,7 +9422,7 @@
   {
     "id": 1885,
     "question_id": 31525,
-    "expected_text": "It's dangerous for me to skateboard."
+    "expected_text": "It's dangerous for me to ride a skateboard."
   },
   {
     "id": 1886,
@@ -9692,7 +9692,7 @@
   {
     "id": 1939,
     "question_id": 31913,
-    "expected_text": "He told him to come early tomorrow."
+    "expected_text": "She told him to come early tomorrow."
   },
   {
     "id": 1940,
@@ -9937,7 +9937,7 @@
   {
     "id": 1988,
     "question_id": 32214,
-    "expected_text": "She told me that she lost her wallet."
+    "expected_text": "She told me that she had lost her wallet."
   },
   {
     "id": 1989,

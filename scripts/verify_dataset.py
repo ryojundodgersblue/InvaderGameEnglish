@@ -110,6 +110,22 @@ def main():
     if orphan_answers:
         errors.append(f'answers: 存在しない問題を参照: {sorted(orphan_answers)}')
 
+    # 問題文に解答文が混入していないか(「Q? A」形式の取り込み漏れ検出)
+    def norm_text(s):
+        s = str(s)
+        for k, v in {'‘': "'", '’': "'", '“': '"', '”': '"'}.items():
+            s = s.replace(k, v)
+        return re.sub(r'\s+', ' ', s).strip().lower()
+    for q in questions:
+        m = re.match(r'^(.+?\?)\s+(\S.+)$', str(q['question_text']))
+        if not m:
+            continue
+        rest = norm_text(m.group(2))
+        for ans in a_by_qid.get(q['question_id'], []):
+            if rest == norm_text(ans['expected_text']):
+                errors.append(f"questions: 問題文に解答が混入 {q['question_id']}: {q['question_text']!r}")
+                break
+
     # --- users / scores ---
     for u in users:
         if not re.fullmatch(r'\d{5}', str(u['user_id'])):
