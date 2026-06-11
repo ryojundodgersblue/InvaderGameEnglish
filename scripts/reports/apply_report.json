@@ -1,8 +1,8 @@
 {
   "summary": {
     "修正依頼(未対応)件数": 673,
-    "適用ログ件数": 927,
-    "applied": 833,
+    "適用ログ件数": 928,
+    "applied": 834,
     "already_ok": 88,
     "superseded(別修正が優先)": 4,
     "skipped(要確認)": 2,
@@ -33,7 +33,7 @@
       "アポストロフィの統一:superseded": 4,
       "イラスト差し替え:skipped": 1,
       "問題文の修正:already_ok": 65,
-      "問題文の修正:applied": 535,
+      "問題文の修正:applied": 536,
       "解答のみ修正:already_ok": 1,
       "解答のみ修正:applied": 98
     }
@@ -3226,7 +3226,18 @@
       "action": "applied",
       "field": "question_text",
       "before": "Which day is more important, Christmas or New Year in Japan?",
-      "after": "In Japan, which day is more important, Christmas or New Year's Day? A: New Year's Day is more important than Christmas in Japan.",
+      "after": "In Japan, which day is more important, Christmas or New Year's Day?",
+      "reason": ""
+    },
+    {
+      "row": 314,
+      "date": "2026/05/02",
+      "target": "2-35-1-2",
+      "type": "問題文の修正",
+      "action": "applied",
+      "field": "expected_text",
+      "before": "New Year is more important than Christmas in Japan.",
+      "after": "New Year's Day is more important than Christmas in Japan.",
       "reason": ""
     },
     {

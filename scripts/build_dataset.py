@@ -131,14 +131,18 @@ def split_pair(raw):
 
     対応形式(優先順):
       1. 「問題文：Q 解答：A」
-      2. 「問題文、解答ともに訂正 Q A」(2文に分割)
-      3. タブ区切り「Q\\tA」
-      4. 矢印区切り「Q → A」(言い換え問題: 左=出題文, 右=解答文)
-      5. スラッシュ区切り「Q/A」
+      2. 「Q?(改行)A: 解答」
+      3. 「問題文、解答ともに訂正 Q A」(2文に分割)
+      4. タブ区切り「Q\\tA」
+      5. 矢印区切り「Q → A」(言い換え問題: 左=出題文, 右=解答文)
+      6. スラッシュ区切り「Q/A」
     """
     text = str(raw)
     m = re.search(r'問題文[：:]\s*(.+?)\s*解答[：:]\s*(.+?)(?:\s*へ変更.*)?$',
                   text.replace('\n', ' '))
+    if m:
+        return clean_en(m.group(1)), clean_en(m.group(2))
+    m = re.match(r'^(.+?[?.!])\s*\n\s*A[：:]\s*(.+)$', text, re.S)
     if m:
         return clean_en(m.group(1)), clean_en(m.group(2))
     m = re.match(r'^\s*問題文?、?\s*解答ともに訂正[：:\s　]*(.+)$', text.replace('\n', ' '))

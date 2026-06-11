@@ -3,8 +3,8 @@
 ## サマリ
 
 - 修正依頼(未対応)件数: 673
-- 適用ログ件数: 927
-- applied: 833
+- 適用ログ件数: 928
+- applied: 834
 - already_ok: 88
 - superseded(別修正が優先): 4
 - skipped(要確認): 2
@@ -13,7 +13,7 @@
 - 3-8-2 image_url設定: 8
 - ベースデータ補正: ['1-16-2-1 (question_id=11621): is_demo false→true (全パート共通の1問目デモ構成に統一)']
 - データ件数: {'users': 6, 'grades': 3, 'parts': 278, 'questions': 2224, 'answer_patterns': 2224, 'scores': 330}
-- 種別内訳: {'Requirementの修正:applied': 73, 'Requirementの修正:skipped': 1, 'その他:already_ok': 1, 'その他:applied': 2, 'アポストロフィの統一:already_ok': 21, 'アポストロフィの統一:applied': 125, 'アポストロフィの統一:superseded': 4, 'イラスト差し替え:skipped': 1, '問題文の修正:already_ok': 65, '問題文の修正:applied': 535, '解答のみ修正:already_ok': 1, '解答のみ修正:applied': 98}
+- 種別内訳: {'Requirementの修正:applied': 73, 'Requirementの修正:skipped': 1, 'その他:already_ok': 1, 'その他:applied': 2, 'アポストロフィの統一:already_ok': 21, 'アポストロフィの統一:applied': 125, 'アポストロフィの統一:superseded': 4, 'イラスト差し替え:skipped': 1, '問題文の修正:already_ok': 65, '問題文の修正:applied': 536, '解答のみ修正:already_ok': 1, '解答のみ修正:applied': 98}
 
 ## クライアント(Mukaさん)要確認
 
@@ -190,6 +190,7 @@
 - question_id=23321: 問題文の修正(row302), 問題文の修正(row302), 問題文の修正(row304), 問題文の修正(row304)
 - question_id=23424: アポストロフィの統一(row752), アポストロフィの統一(row753)
 - question_id=23511: アポストロフィの統一(row754), アポストロフィの統一(row755)
+- question_id=23512: 問題文の修正(row314), 問題文の修正(row314)
 - question_id=23614: アポストロフィの統一(row756), アポストロフィの統一(row757)
 - question_id=23713: 問題文の修正(row323), 問題文の修正(row323)
 - question_id=23721: アポストロフィの統一(row758), アポストロフィの統一(row759)
@@ -612,7 +613,8 @@
 | 310 | 2-34-2-5 | 問題文の修正 | applied | question_text | What is the biggest animal in the zoo? | Which animal is the biggest in Ueno Zoo? The elephant is the biggest animal in Ueno Zoo. |  |
 | 311 | 2-34-2-7 | 問題文の修正 | applied | question_text | Which country is the biggest in the world? | Which country is the biggest in Europe? Russia is the biggest country in Europe. |  |
 | 312 | 2-34-2-8 | 問題文の修正 | applied | question_text | What is the hottest season in your country? | Which month is hotter, August or September? August is hotter than September. |  |
-| 314 | 2-35-1-2 | 問題文の修正 | applied | question_text | Which day is more important, Christmas or New Year in Japan? | In Japan, which day is more important, Christmas or New Year's Day? A: New Year's Day is more important than Christmas in Japan. |  |
+| 314 | 2-35-1-2 | 問題文の修正 | applied | question_text | Which day is more important, Christmas or New Year in Japan? | In Japan, which day is more important, Christmas or New Year's Day? |  |
+| 314 | 2-35-1-2 | 問題文の修正 | applied | expected_text | New Year is more important than Christmas in Japan. | New Year's Day is more important than Christmas in Japan. |  |
 | 318 | 2-35-2-2 | 問題文の修正 | applied | question_text | What is the most useful tool in the box? | Which tool is the most useful in the box? |  |
 | 319 | 2-35-2-4 | 問題文の修正 | applied | question_text | What is the most popular subject in your school? | Which subject is the most popular in your school? |  |
 | 320 | 2-35-2-5 | 問題文の修正 | applied | question_text | What is the most comfortable place in the house? | Which place is the most comfortable in the house? |  |
