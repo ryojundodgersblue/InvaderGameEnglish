@@ -1,0 +1,33 @@
+# Render Blueprint — 外注QA用テスト環境(1サービス完結)
+#
+# 目的: Mukaさん確認前の第三者テスト用に、修正済みデータ(backend/data/*.json)を
+#       そのまま配信する使い捨て環境を立てる。本番(invader-game-api / Vercel)とは
+#       完全に独立。Google認証もGoogle Sheetsも一切使わない(DATA_SOURCE=local)。
+#
+# 使い方: Renderダッシュボード → New → Blueprint → このリポジトリ/feature ブランチを選択。
+#        デプロイ後に表示されるURL 1つをテスターへ渡すだけ(フロント+APIが同一オリジン)。
+#
+# 注意: free プランは無操作15分でスリープ→初回アクセスに数十秒かかる(コールドスタート)。
+#       テスターに事前周知するか、テスト期間中だけ starter プラン($7/月)に上げると快適。
+
+services:
+  - type: web
+    name: invader-game-test
+    runtime: node
+    plan: free
+    branch: feature/data-pipeline-and-local-mode
+    # フロントをビルドし、バックエンドの依存を入れる
+    buildCommand: npm ci --prefix backend && npm ci --prefix frontend && npm run build --prefix frontend
+    startCommand: node backend/index.js
+    healthCheckPath: /health
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: DATA_SOURCE
+        value: local          # Google認証不要・修正済みJSONを配信
+      - key: SERVE_FRONTEND
+        value: "true"         # 同一オリジンでフロント静的配信 + /api リライト再現
+      - key: JWT_SECRET
+        generateValue: true   # Renderが安全なランダム値を自動生成
+      # REDIS は未設定でOK(キャッシュは自動でグレースフルに無効化される)
+      # FRONTEND_URL は同一オリジンのため不要

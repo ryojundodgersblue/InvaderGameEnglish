@@ -18,8 +18,21 @@ const app = express();
 // (レート制限のIP判定に必須。直接公開時も害はない)
 app.set('trust proxy', 1);
 
-// セキュリティヘッダ(JSON APIなのでhelmet既定値で問題なし)
-app.use(helmet());
+// セキュリティヘッダ。
+// JSON API専用時は helmet 既定の厳格CSPで問題ないが、テスト単体配信(SERVE_FRONTEND)では
+// 同一Expressからフロント(SPA)も配信するため、既定CSPだと動かない:
+//   - upgrade-insecure-requests が http のローカル確認でアセット取得を https に強制昇格させ失敗
+//   - media-src 'self' が TTS の blob: 音声再生をブロック
+// 本番では Vercel がフロントを配信しこのCSPは適用されないため、挙動を合わせる意味でも
+// SERVE_FRONTEND 時は CSP と、フロント資産取得を阻むクロスオリジン系ヘッダ
+// (Cross-Origin-Resource-Policy / Cross-Origin-Opener-Policy)を無効化する
+// (他のセキュリティヘッダは維持)。
+const serveFrontend = process.env.SERVE_FRONTEND === 'true';
+app.use(helmet({
+  contentSecurityPolicy: serveFrontend ? false : undefined,
+  crossOriginResourcePolicy: serveFrontend ? false : undefined,
+  crossOriginOpenerPolicy: serveFrontend ? false : undefined,
+}));
 
 // レート制限の共通レスポンス({ok, code, message}形式に合わせる)
 const rateLimitResponse = {
@@ -105,13 +118,44 @@ app.use((req, res, next) => {
 // 動作確認用
 app.get('/health', (req, res) => res.json({ ok: true }));
 
-// ルーターをマウント
-app.use('/auth',    loginLimiter, loginRouter);   // 例: POST /auth/login
-app.use('/ranking', rankingRouter); // 例: GET  /ranking
-app.use('/game',    playGameRouter);
-app.use('/select',  selectRouter);
-app.use('/api/tts', ttsLimiter, ttsRouter);
-app.use('/admin',   adminRouter);   // 例: GET  /admin/users, POST /admin/users
+// APIルーターのマウント。
+// 本番(Vercel)はフロントを別配信し、rewrite で /api を剥がしてからバックエンドへ渡すため
+// ルート直下にマウントする。テスト単体配信(SERVE_FRONTEND=true)では SPA のページパス
+// (/select 等)と衝突しないよう、API を /api 配下にまとめ、ルートは SPA 専用にする。
+function mountApiRoutes(target) {
+  target.use('/auth',    loginLimiter, loginRouter);   // 例: POST /auth/login
+  target.use('/ranking', rankingRouter);               // 例: GET  /ranking
+  target.use('/game',    playGameRouter);
+  target.use('/select',  selectRouter);
+  target.use('/api/tts', ttsLimiter, ttsRouter);       // フロントは /api/api/tts で呼ぶ
+  target.use('/admin',   adminRouter);                 // 例: GET  /admin/users
+}
+
+if (process.env.SERVE_FRONTEND === 'true') {
+  // ── テスト単体配信モード ──────────────────────────────────────────────
+  // 1サービスでフロント(静的)とAPIを同一オリジン配信する(本番Vercel構成には影響なし)。
+  // フロントは本番ビルドで API_URL='/api' を使うので、API を丸ごと /api 配下に置く:
+  //   /api/auth/login         → apiRouter /auth/login
+  //   /api/api/tts/synthesize → apiRouter /api/tts/synthesize (本番Vercel rewrite相当)
+  const path = require('path');
+  const apiRouter = express.Router();
+  mountApiRoutes(apiRouter);
+  app.use('/api', apiRouter);
+
+  // フロントのビルド成果物を配信。API以外のGETは index.html を返し React Router に委ねる。
+  const distDir = path.join(__dirname, '../../frontend/dist');
+  app.use(express.static(distDir));
+  app.use((req, res, next) => {
+    // /api/* の未マッチは SPA ではなく 404 JSON を返す(API呼び出しの誤りを握り潰さない)
+    if (req.method === 'GET' && !req.path.startsWith('/api/') && !res.headersSent) {
+      return res.sendFile(path.join(distDir, 'index.html'), (err) => err && next());
+    }
+    next();
+  });
+} else {
+  // 本番: Vercel が /api を剥がして渡すためルート直下にマウント
+  mountApiRoutes(app);
+}
 
 // 404ハンドラー - 定義されていないルートへのアクセス
 app.use((req, res, next) => {

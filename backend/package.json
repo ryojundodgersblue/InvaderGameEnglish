@@ -8,6 +8,7 @@
     "dev": "node --watch index.js",
     "start:local": "DATA_SOURCE=local node index.js",
     "dev:local": "DATA_SOURCE=local node --watch index.js",
+    "start:test": "DATA_SOURCE=local SERVE_FRONTEND=true node index.js",
     "test": "echo \"No tests configured yet. Add tests using a framework like Jest or Mocha.\" && exit 0"
   },
   "keywords": [
