@@ -77,7 +77,9 @@ export async function apiFetch<T = unknown>(path: string, init: RequestInit = {}
 
   const obj = (data ?? {}) as { ok?: boolean; code?: string; message?: string };
   if (!res.ok || obj.ok === false) {
-    const code = typeof obj.code === 'string' ? obj.code : 'SYS-001';
+    // ログインAPIの401はID/パスワード誤り(AUTH-002)として区別する
+    const fallbackCode = (res.status === 401 && path.startsWith('/auth/')) ? 'AUTH-002' : 'SYS-001';
+    const code = typeof obj.code === 'string' ? obj.code : fallbackCode;
     const message = typeof obj.message === 'string' && obj.message
       ? obj.message
       : `エラーが発生しました (HTTP ${res.status})`;

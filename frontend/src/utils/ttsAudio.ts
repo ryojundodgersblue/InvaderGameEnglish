@@ -212,6 +212,8 @@ async function fetchSpeechBlobOnce(text: string): Promise<Blob | null> {
  * 音声Blobを取得する(セッション内キャッシュ+1回リトライ)
  */
 export function getSpeechBlob(text: string): Promise<Blob | null> {
+  // 問題文なし(イラストのみ出題: 1-44-1等)は合成せずスキップ
+  if (!text || !text.trim()) return Promise.resolve(null);
   const cached = speechCache.get(text);
   if (cached) return cached;
 
@@ -257,6 +259,9 @@ export async function speakText(
   }
 ): Promise<boolean> {
   const { isAnswer = false, micActive, currentAudioRef, isSpeakingRef } = opts;
+
+  // 読み上げるテキストがない場合は何もしない(1-44-1のようなイラストのみ出題)
+  if (!text || !text.trim()) return false;
 
   if (isAnswer) {
     await new Promise(resolve => setTimeout(resolve, DLY.answerPreDelay));
