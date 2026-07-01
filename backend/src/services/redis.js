@@ -236,9 +236,11 @@ function getSheetsKey(sheetName, range) {
 
 /**
  * TTS音声データ用のキャッシュキー生成
+ * @param {string} version - 合成ロジックの版数。発音補正やSSML構造を変えたら
+ *                           呼び出し側で上げる(旧ロジックのキャッシュ音声を無効化するため)
  */
-function getTTSKey(text, languageCode, voiceName) {
-  const hash = generateHash({ text, languageCode, voiceName });
+function getTTSKey(text, languageCode, voiceName, version = '1') {
+  const hash = generateHash({ text, languageCode, voiceName, version });
   return `tts:${hash}`;
 }
 
