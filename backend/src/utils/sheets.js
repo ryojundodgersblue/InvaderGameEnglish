@@ -1,5 +1,5 @@
 // Google Sheets操作の共通ユーティリティ
-const { getSheetsClient, SPREADSHEET_ID } = require('../services/google');
+const { getSheetsClient, SPREADSHEET_ID, IS_LOCAL_MODE } = require('../services/google');
 
 // ===== シート名定数 =====
 const SHEET_NAMES = {
@@ -47,6 +47,7 @@ const USER_ID_PAD_LENGTH = 5;
  * SPREADSHEET_IDが設定されているか確認
  */
 function ensureSheetId() {
+  if (IS_LOCAL_MODE) return; // ローカルデータモードではSHEET_ID不要
   if (!SPREADSHEET_ID) {
     const err = new Error('SHEET_ID が未設定です');
     err.statusCode = 500;

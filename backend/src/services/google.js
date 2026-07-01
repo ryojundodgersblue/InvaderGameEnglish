@@ -19,6 +19,11 @@ if (process.env.GOOGLE_CREDENTIALS_JSON) {
 
 const SPREADSHEET_ID = process.env.SHEET_ID;
 
+// ローカルデータモード(DATA_SOURCE=local):
+// Google認証情報なしで backend/data/*.json を使って動作確認できるようにする。
+// 本番(Sheets)のコードパスは一切変えず、クライアント取得のみ差し替える。
+const IS_LOCAL_MODE = String(process.env.DATA_SOURCE || '').toLowerCase() === 'local';
+
 // 認証クライアントのキャッシュ
 let authClient = null;
 
@@ -36,6 +41,9 @@ let sheetsClientReadOnly = null;
 let sheetsClientReadWrite = null;
 
 async function getSheetsClient(readonly = true) {
+  if (IS_LOCAL_MODE) {
+    return require('../dataSources/localSheets').localSheetsClient;
+  }
   // 既にキャッシュされたクライアントがあればそれを返す
   if (readonly && sheetsClientReadOnly) {
     return sheetsClientReadOnly;
@@ -64,6 +72,9 @@ async function getSheetsClient(readonly = true) {
 // ✅ Text-to-Speech API クライアント(修正版)
 let ttsClient = null;
 async function getTTSClient() {
+  if (IS_LOCAL_MODE) {
+    return require('../dataSources/localSheets').localTTSClient;
+  }
   if (ttsClient) return ttsClient;
   
   const ttsOptions = credentials ? { credentials } : { keyFilename: KEYFILE };
@@ -76,4 +87,5 @@ module.exports = {
   getSheetsClient,
   getTTSClient,
   SPREADSHEET_ID,
+  IS_LOCAL_MODE,
 };
