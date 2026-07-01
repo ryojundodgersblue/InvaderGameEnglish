@@ -2,7 +2,7 @@
 import React, { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import Button from '../components/Button'
-import { API_URL } from '../config'
+import { apiFetch } from '../utils/apiClient'
 import './Ranking.css'
 
 type RankItem = { userId: string; name: string; }
@@ -21,11 +21,10 @@ const Ranking: React.FC = () => {
       try {
         setLoading(true)
         setError(null)
-        const res = await fetch(`${API_URL}/ranking`, {
-          credentials: 'include'
-        })
-        if (!res.ok) throw new Error('failed to fetch')
-        const json = await res.json()
+        const json = await apiFetch<{
+          month?: string
+          items?: { challenge?: RankItem[]; accuracy?: RankItem[] }
+        }>('/ranking')
 
         if (cancelled) return
         setMonth(json.month ?? '')

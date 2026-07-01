@@ -7,6 +7,7 @@ import {
   DLY,
 } from '../constants/game';
 import { API_URL } from '../config';
+import { notifyUnauthorized } from './apiClient';
 
 /**
  * 音声の読み込み完了を待ってから再生する(頭切れ対策)。
@@ -186,6 +187,11 @@ const speechCache = new Map<string, Promise<Blob | null>>();
 async function fetchSpeechBlobOnce(text: string): Promise<Blob | null> {
   try {
     const response = await synthesizeSpeech(text);
+    if (response.status === 401) {
+      // 認証切れ: ログイン画面へ誘導 (No139/No140)
+      notifyUnauthorized();
+      return null;
+    }
     if (!response.ok) {
       console.error(`[TTS] 合成APIエラー: HTTP ${response.status}`);
       return null;

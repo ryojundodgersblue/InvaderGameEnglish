@@ -4,7 +4,7 @@ import { useNavigate } from 'react-router-dom'
 import Button from '../components/Button'
 import Dropdown from '../components/Dropdown'
 import { useAuth } from '../hooks/useAuth'
-import { API_URL } from '../config'
+import { apiFetch, formatApiError, ApiError } from '../utils/apiClient'
 import '../App.css'
 
 // partsテーブルから取得したオプションの型
@@ -49,21 +49,13 @@ const SelectPage: React.FC = () => {
           return
         }
 
-        const res = await fetch(`${API_URL}/select/options?user_id=${session.userId}`, {
-          credentials: 'include' // クッキーを送信
-        })
+        const data = await apiFetch<{
+          ok: boolean
+          options: PartOptions
+          currentProgress?: { grade: number; part: number; subpart: number }
+        }>(`/select/options?user_id=${session.userId}`)
 
-        if (!res.ok) {
-          const errorData = await res.json().catch(() => ({}))
-          throw new Error(`Failed to fetch options: ${res.status} - ${errorData.message || res.statusText}`)
-        }
 
-        const data = await res.json()
-        
-        if (!data.ok) {
-          throw new Error(data.message || 'オプション取得エラー')
-        }
-        
         setAllOptions(data.options)
         
         // 利用可能な学年を設定
@@ -77,8 +69,7 @@ const SelectPage: React.FC = () => {
         
       } catch (e) {
         console.error('Failed to fetch options:', e)
-        const errorMessage = e instanceof Error ? e.message : String(e)
-        setError(errorMessage)
+        setError(formatApiError(e, 'ステージ一覧の取得に失敗しました'))
 
         // エラー時のフォールバック
         setGradeOptions(['1'])
@@ -202,20 +193,17 @@ const SelectPage: React.FC = () => {
 
     // 組み合わせの検証（オプション）
     try {
-      const validateRes = await fetch(
-        `${API_URL}/select/validate?grade=${grade}&part=${part}&subpart=${subpart}`,
-        { credentials: 'include' }
+      const validateData = await apiFetch<{ ok: boolean; valid: boolean; message?: string }>(
+        `/select/validate?grade=${grade}&part=${part}&subpart=${subpart}`
       )
-      
-      if (validateRes.ok) {
-        const validateData = await validateRes.json()
-        if (!validateData.valid) {
-          setError('選択された組み合わせは無効です')
-          console.error('Invalid combination:', validateData.message)
-          return
-        }
+      if (!validateData.valid) {
+        setError('選択された組み合わせは無効です')
+        console.error('Invalid combination:', validateData.message)
+        return
       }
     } catch (e) {
+      // 認証切れはAuthExpiryHandlerがログイン画面へ誘導する (No140)
+      if (e instanceof ApiError && e.code === 'AUTH-001') return
       console.warn('Validation check failed, proceeding anyway:', e)
     }
     
