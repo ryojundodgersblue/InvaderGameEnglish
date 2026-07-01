@@ -129,6 +129,9 @@ const PlayPage: React.FC = () => {
     timerIntervalRef.current = window.setInterval(() => {
       remainingTimeRef.current -= 1;
       setRemainingTime(remainingTimeRef.current);
+      // タイマーが進んでいる間はゲームが生きているのでフリーズ扱いにしない
+      // (回答待ちの無操作30秒で回復ダイアログが誤表示されるのを防ぐ)
+      updateActivity();
 
       if (remainingTimeRef.current <= 0) {
         if (timerIntervalRef.current) {
