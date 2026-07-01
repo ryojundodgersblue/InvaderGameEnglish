@@ -1,0 +1,1934 @@
+[
+  {
+    "part_id": 1011,
+    "grade_id": 1,
+    "part_no": 1,
+    "subpart_no": 1,
+    "requirement": "例にならい、　\n主語を見つけて答えましょう。"
+  },
+  {
+    "part_id": 1012,
+    "grade_id": 1,
+    "part_no": 1,
+    "subpart_no": 2,
+    "requirement": "例にならい、　動詞を\n見つけて答えましょう。"
+  },
+  {
+    "part_id": 1021,
+    "grade_id": 1,
+    "part_no": 2,
+    "subpart_no": 1,
+    "requirement": "例にならい、　「～は、うれしいです。」\nという文章を作りましょう。"
+  },
+  {
+    "part_id": 1022,
+    "grade_id": 1,
+    "part_no": 2,
+    "subpart_no": 2,
+    "requirement": "例にならい、　\n「～は、生徒です。」\nという文章を作りましょう。"
+  },
+  {
+    "part_id": 1031,
+    "grade_id": 1,
+    "part_no": 3,
+    "subpart_no": 1,
+    "requirement": "文章を\n「I'm〜」などの短縮形を使って言い直しましょう。"
+  },
+  {
+    "part_id": 1032,
+    "grade_id": 1,
+    "part_no": 3,
+    "subpart_no": 2,
+    "requirement": "文章を\n「I'm〜」などの短縮形を使って言い直しましょう。"
+  },
+  {
+    "part_id": 1041,
+    "grade_id": 1,
+    "part_no": 4,
+    "subpart_no": 1,
+    "requirement": "例にならい、　\n「～は背が高い」という文章を作りましょう。"
+  },
+  {
+    "part_id": 1042,
+    "grade_id": 1,
+    "part_no": 4,
+    "subpart_no": 2,
+    "requirement": "例にならい、　\n「～は強い」という文章を作りましょう。"
+  },
+  {
+    "part_id": 1051,
+    "grade_id": 1,
+    "part_no": 5,
+    "subpart_no": 1,
+    "requirement": "例にならい、【～は台所にいます。】\nという文章を作りましょう。"
+  },
+  {
+    "part_id": 1052,
+    "grade_id": 1,
+    "part_no": 5,
+    "subpart_no": 2,
+    "requirement": "例にならい、\n【～は東京の出身です。】\nという文章を作りましょう。\n　　ただし、主語は代名詞で答えること。"
+  },
+  {
+    "part_id": 1061,
+    "grade_id": 1,
+    "part_no": 6,
+    "subpart_no": 1,
+    "requirement": "例にならい、　\n「～はサッカーのファンです。」\nという文章を作りましょう。\n　ただし、主語は代名詞で答えること。"
+  },
+  {
+    "part_id": 1062,
+    "grade_id": 1,
+    "part_no": 6,
+    "subpart_no": 2,
+    "requirement": "例にならい、\n「～は忙しいです。」\nという文章を作りましょう。\n\nただし主語は短縮形を使うこと。"
+  },
+  {
+    "part_id": 1071,
+    "grade_id": 1,
+    "part_no": 7,
+    "subpart_no": 1,
+    "requirement": "絵を見て問いに答えましょう。"
+  },
+  {
+    "part_id": 1072,
+    "grade_id": 1,
+    "part_no": 7,
+    "subpart_no": 2,
+    "requirement": "絵を見て問いに答えましょう。"
+  },
+  {
+    "part_id": 1081,
+    "grade_id": 1,
+    "part_no": 8,
+    "subpart_no": 1,
+    "requirement": "例に習い３人称の文はYes.\nそれ以外は No.と答えましょう。"
+  },
+  {
+    "part_id": 1082,
+    "grade_id": 1,
+    "part_no": 8,
+    "subpart_no": 2,
+    "requirement": "例にならい３人称の文はYes.\nそれ以外は No.と答えましょう。"
+  },
+  {
+    "part_id": 1091,
+    "grade_id": 1,
+    "part_no": 9,
+    "subpart_no": 1,
+    "requirement": "例にならい、\n「～は英語を話します。」　\nという文章を完成させましょう。\nただし、主語は代名詞で答えること。"
+  },
+  {
+    "part_id": 1092,
+    "grade_id": 1,
+    "part_no": 9,
+    "subpart_no": 2,
+    "requirement": "例にならい　\n「～はテニスをします。」という文章を\n完成させましょう。\nただし、主語は代名詞で答えること。"
+  },
+  {
+    "part_id": 1101,
+    "grade_id": 1,
+    "part_no": 10,
+    "subpart_no": 1,
+    "requirement": "主語をSheに変えて文章を言いかえましょう。"
+  },
+  {
+    "part_id": 1102,
+    "grade_id": 1,
+    "part_no": 10,
+    "subpart_no": 2,
+    "requirement": "主語をHeに変えて文章を言いかえましょう。"
+  },
+  {
+    "part_id": 1111,
+    "grade_id": 1,
+    "part_no": 11,
+    "subpart_no": 1,
+    "requirement": "go shopping.　またはeat breakfast.を使い、主語に合う文章を考えましょう。\nまた、主語は（He She などの）代名詞で答えること。"
+  },
+  {
+    "part_id": 1112,
+    "grade_id": 1,
+    "part_no": 11,
+    "subpart_no": 2,
+    "requirement": "イラストを見て、主語に合う文章を考えましょう。"
+  },
+  {
+    "part_id": 1121,
+    "grade_id": 1,
+    "part_no": 12,
+    "subpart_no": 1,
+    "requirement": "イラストを見て、主語は（He Sheなどの）代名詞で答えること。イラストを見て、\n主語に合う文章を考えましょう②"
+  },
+  {
+    "part_id": 1122,
+    "grade_id": 1,
+    "part_no": 12,
+    "subpart_no": 2,
+    "requirement": "イラストを見て、主語は（He Sheなどの）代名詞で答えること。イラストを見て、\n主語に合う文章を考えましょう②"
+  },
+  {
+    "part_id": 1131,
+    "grade_id": 1,
+    "part_no": 13,
+    "subpart_no": 1,
+    "requirement": "主語を（He She などの）\n代名詞に変えて文章を考えましょう。"
+  },
+  {
+    "part_id": 1132,
+    "grade_id": 1,
+    "part_no": 13,
+    "subpart_no": 2,
+    "requirement": "主語を（He She などの）\n代名詞に変えて文章を考えましょう。"
+  },
+  {
+    "part_id": 1141,
+    "grade_id": 1,
+    "part_no": 14,
+    "subpart_no": 1,
+    "requirement": "だれの～ですか？の質問に　\nそれは（私の、彼女の..）～です。\nと答えましょう！"
+  },
+  {
+    "part_id": 1142,
+    "grade_id": 1,
+    "part_no": 14,
+    "subpart_no": 2,
+    "requirement": "だれの～ですか？の問に　\nそれは（私の、彼女の..）～です。\nと答えましょう！"
+  },
+  {
+    "part_id": 1151,
+    "grade_id": 1,
+    "part_no": 15,
+    "subpart_no": 1,
+    "requirement": "「だれの～ですか？」の問いに、 「それは（私の、彼女の…）～です。」と答えましょう。"
+  },
+  {
+    "part_id": 1152,
+    "grade_id": 1,
+    "part_no": 15,
+    "subpart_no": 2,
+    "requirement": "イラストを見て質問に答えましょう。"
+  },
+  {
+    "part_id": 1161,
+    "grade_id": 1,
+    "part_no": 16,
+    "subpart_no": 1,
+    "requirement": "（always, never などの）ひんどを表す情報を\n付け加えて英文を考えましょう。"
+  },
+  {
+    "part_id": 1162,
+    "grade_id": 1,
+    "part_no": 16,
+    "subpart_no": 2,
+    "requirement": "情報をプラスして文章を完成させましょう。"
+  },
+  {
+    "part_id": 1171,
+    "grade_id": 1,
+    "part_no": 17,
+    "subpart_no": 1,
+    "requirement": "情報をプラスして文章を完成させましょう。"
+  },
+  {
+    "part_id": 1172,
+    "grade_id": 1,
+    "part_no": 17,
+    "subpart_no": 2,
+    "requirement": "情報をプラスして文章を完成させましょう。"
+  },
+  {
+    "part_id": 1181,
+    "grade_id": 1,
+    "part_no": 18,
+    "subpart_no": 1,
+    "requirement": "肯定文を否定文に言いかえましょう。ただし主語はShe He などの代名詞に変えること。"
+  },
+  {
+    "part_id": 1182,
+    "grade_id": 1,
+    "part_no": 18,
+    "subpart_no": 2,
+    "requirement": "肯定文を否定文に言いかえましょう。"
+  },
+  {
+    "part_id": 1191,
+    "grade_id": 1,
+    "part_no": 19,
+    "subpart_no": 1,
+    "requirement": "肯定文を否定文に言いかえましょう。"
+  },
+  {
+    "part_id": 1192,
+    "grade_id": 1,
+    "part_no": 19,
+    "subpart_no": 2,
+    "requirement": "肯定文を否定文に言いかえましょう。"
+  },
+  {
+    "part_id": 1201,
+    "grade_id": 1,
+    "part_no": 20,
+    "subpart_no": 1,
+    "requirement": "肯定文を否定文に言いかえましょう。"
+  },
+  {
+    "part_id": 1202,
+    "grade_id": 1,
+    "part_no": 20,
+    "subpart_no": 2,
+    "requirement": "肯定文を否定文に言いかえましょう。主語はShe He などの代名詞で答えること。"
+  },
+  {
+    "part_id": 1211,
+    "grade_id": 1,
+    "part_no": 21,
+    "subpart_no": 1,
+    "requirement": "肯定文を否定文に言いかえましょう。"
+  },
+  {
+    "part_id": 1212,
+    "grade_id": 1,
+    "part_no": 21,
+    "subpart_no": 2,
+    "requirement": "肯定文を否定文に言いかえましょう。"
+  },
+  {
+    "part_id": 1221,
+    "grade_id": 1,
+    "part_no": 22,
+    "subpart_no": 1,
+    "requirement": "肯定文を疑問文に言いかえましょう。"
+  },
+  {
+    "part_id": 1222,
+    "grade_id": 1,
+    "part_no": 22,
+    "subpart_no": 2,
+    "requirement": "肯定文をに否定文に言いかえましょう。"
+  },
+  {
+    "part_id": 1231,
+    "grade_id": 1,
+    "part_no": 23,
+    "subpart_no": 1,
+    "requirement": "イラストの指示に従い、\nYes, またはNo,で質問に答えましょう。"
+  },
+  {
+    "part_id": 1232,
+    "grade_id": 1,
+    "part_no": 23,
+    "subpart_no": 2,
+    "requirement": "イラストの指示に従い、\nYes, またはNo,で質問に答えましょう。"
+  },
+  {
+    "part_id": 1241,
+    "grade_id": 1,
+    "part_no": 24,
+    "subpart_no": 1,
+    "requirement": "例にならい、肯定文を疑問文に言いかえましょう。"
+  },
+  {
+    "part_id": 1242,
+    "grade_id": 1,
+    "part_no": 24,
+    "subpart_no": 2,
+    "requirement": "例にならい、肯定文を否定文に言いかえましょう。"
+  },
+  {
+    "part_id": 1251,
+    "grade_id": 1,
+    "part_no": 25,
+    "subpart_no": 1,
+    "requirement": "例にならい、\n肯定文を疑問文に言いかえましょう。"
+  },
+  {
+    "part_id": 1252,
+    "grade_id": 1,
+    "part_no": 25,
+    "subpart_no": 2,
+    "requirement": "例にならい、肯定文を否定文に言いかましょう。"
+  },
+  {
+    "part_id": 1261,
+    "grade_id": 1,
+    "part_no": 26,
+    "subpart_no": 1,
+    "requirement": "例にならい、肯定文を疑問文に言いかえましょう。"
+  },
+  {
+    "part_id": 1262,
+    "grade_id": 1,
+    "part_no": 26,
+    "subpart_no": 2,
+    "requirement": "例にならい、肯定文を否定文に言いかえましょう。"
+  },
+  {
+    "part_id": 1271,
+    "grade_id": 1,
+    "part_no": 27,
+    "subpart_no": 1,
+    "requirement": "例にならい、肯定文を質問文に言いかえましょう。"
+  },
+  {
+    "part_id": 1272,
+    "grade_id": 1,
+    "part_no": 27,
+    "subpart_no": 2,
+    "requirement": "例にならい、肯定文を否定文に言いかえましょう。"
+  },
+  {
+    "part_id": 1281,
+    "grade_id": 1,
+    "part_no": 28,
+    "subpart_no": 1,
+    "requirement": "例にならい、\nYes, I can.  No, I can not.で答えましょう。"
+  },
+  {
+    "part_id": 1282,
+    "grade_id": 1,
+    "part_no": 28,
+    "subpart_no": 2,
+    "requirement": "例にならって、Can を使い出来ますか？という\n質問文にしましょう。"
+  },
+  {
+    "part_id": 1291,
+    "grade_id": 1,
+    "part_no": 29,
+    "subpart_no": 1,
+    "requirement": "例にならい、\n「〜してもいいですか？」の文に言いかえましょう。"
+  },
+  {
+    "part_id": 1292,
+    "grade_id": 1,
+    "part_no": 29,
+    "subpart_no": 2,
+    "requirement": "例にならい、　「～してくれる？」\nと相手にお願いする文に言いかえましょう。"
+  },
+  {
+    "part_id": 1301,
+    "grade_id": 1,
+    "part_no": 30,
+    "subpart_no": 1,
+    "requirement": "例にならい、\nイラストを見て問題に答えましょう。"
+  },
+  {
+    "part_id": 1302,
+    "grade_id": 1,
+    "part_no": 30,
+    "subpart_no": 2,
+    "requirement": "例にならい、\nイラストを見て問題に答えましょう。"
+  },
+  {
+    "part_id": 1311,
+    "grade_id": 1,
+    "part_no": 31,
+    "subpart_no": 1,
+    "requirement": "What の質問に対し\nイラストを見て答えましょう。"
+  },
+  {
+    "part_id": 1312,
+    "grade_id": 1,
+    "part_no": 31,
+    "subpart_no": 2,
+    "requirement": "What の質問に対し\nイラストを見て答えましょう。"
+  },
+  {
+    "part_id": 1321,
+    "grade_id": 1,
+    "part_no": 32,
+    "subpart_no": 1,
+    "requirement": "例にならい、Whatを使った\n疑問文を考えましょう。"
+  },
+  {
+    "part_id": 1322,
+    "grade_id": 1,
+    "part_no": 32,
+    "subpart_no": 2,
+    "requirement": "例にならい、Whatを使った\n疑問文を考えましょう。"
+  },
+  {
+    "part_id": 1331,
+    "grade_id": 1,
+    "part_no": 33,
+    "subpart_no": 1,
+    "requirement": "例にならい、Whenを使った\n疑問文を考えましょう。"
+  },
+  {
+    "part_id": 1332,
+    "grade_id": 1,
+    "part_no": 33,
+    "subpart_no": 2,
+    "requirement": "例にならい、Whereを使った\n疑問文を考えましょう。"
+  },
+  {
+    "part_id": 1333,
+    "grade_id": 1,
+    "part_no": 33,
+    "subpart_no": 3,
+    "requirement": "例にならい、Whoを使った\n疑問文を考えましょう。"
+  },
+  {
+    "part_id": 1341,
+    "grade_id": 1,
+    "part_no": 34,
+    "subpart_no": 1,
+    "requirement": "例にならい、Howを使って\n疑問文を考えましょう。"
+  },
+  {
+    "part_id": 1342,
+    "grade_id": 1,
+    "part_no": 34,
+    "subpart_no": 2,
+    "requirement": "例にならい、Howを使った\n疑問文を考えましょう。"
+  },
+  {
+    "part_id": 1351,
+    "grade_id": 1,
+    "part_no": 35,
+    "subpart_no": 1,
+    "requirement": "例にならい、単数は複数へ、\n複数は単数へいい直しましょう。"
+  },
+  {
+    "part_id": 1352,
+    "grade_id": 1,
+    "part_no": 35,
+    "subpart_no": 2,
+    "requirement": "例にならい、単数は複数へ、\n複数は単数へいい直しましょう。"
+  },
+  {
+    "part_id": 1361,
+    "grade_id": 1,
+    "part_no": 36,
+    "subpart_no": 1,
+    "requirement": "例にならい、複数形(plural)を答えましょう。"
+  },
+  {
+    "part_id": 1362,
+    "grade_id": 1,
+    "part_no": 36,
+    "subpart_no": 2,
+    "requirement": "例にならい、複数形(plural)を答えましょう。"
+  },
+  {
+    "part_id": 1371,
+    "grade_id": 1,
+    "part_no": 37,
+    "subpart_no": 1,
+    "requirement": "例にならい、How many + 名詞を使って、\n「どのくらいの～を～しますか？」\nとたずねましょう。"
+  },
+  {
+    "part_id": 1372,
+    "grade_id": 1,
+    "part_no": 37,
+    "subpart_no": 2,
+    "requirement": "例にならい、How long を使って、\nものの長さをたずねましょう。"
+  },
+  {
+    "part_id": 1373,
+    "grade_id": 1,
+    "part_no": 37,
+    "subpart_no": 3,
+    "requirement": "How old を使って、　\n人の年齢（ものの古さ）をたずねましょう。"
+  },
+  {
+    "part_id": 1374,
+    "grade_id": 1,
+    "part_no": 37,
+    "subpart_no": 4,
+    "requirement": "例にならい、\nHow much を使い、値段や量をたずねましょう。"
+  },
+  {
+    "part_id": 1381,
+    "grade_id": 1,
+    "part_no": 38,
+    "subpart_no": 1,
+    "requirement": "例にならい、「～しなさい」という\n命令文に言いかえましょう。"
+  },
+  {
+    "part_id": 1382,
+    "grade_id": 1,
+    "part_no": 38,
+    "subpart_no": 2,
+    "requirement": "例にならい、please を使って\n「どうぞ（～してください）」という\n文に言いかえましょう。"
+  },
+  {
+    "part_id": 1391,
+    "grade_id": 1,
+    "part_no": 39,
+    "subpart_no": 1,
+    "requirement": "例にならい「～しないで」という\n否定命令文に言いかえましょう。"
+  },
+  {
+    "part_id": 1392,
+    "grade_id": 1,
+    "part_no": 39,
+    "subpart_no": 2,
+    "requirement": "例にならい「～しましょう。」という\n文に言いかえましょう。"
+  },
+  {
+    "part_id": 1401,
+    "grade_id": 1,
+    "part_no": 40,
+    "subpart_no": 1,
+    "requirement": "例にならい、主語をme him\n などの目的格に変えましょう。"
+  },
+  {
+    "part_id": 1402,
+    "grade_id": 1,
+    "part_no": 40,
+    "subpart_no": 2,
+    "requirement": "例にならい、代名詞を目的格に変えて、\n文章を言いかえましょう。"
+  },
+  {
+    "part_id": 1411,
+    "grade_id": 1,
+    "part_no": 41,
+    "subpart_no": 1,
+    "requirement": "イラストを見て、現在進行形の\n質問に答えましょう。"
+  },
+  {
+    "part_id": 1412,
+    "grade_id": 1,
+    "part_no": 41,
+    "subpart_no": 2,
+    "requirement": "イラストを見て、現在進行形の\n質問に答えましょう。"
+  },
+  {
+    "part_id": 1421,
+    "grade_id": 1,
+    "part_no": 42,
+    "subpart_no": 1,
+    "requirement": "イラストを見て、現在進行形使い\n質問に答えましょう。"
+  },
+  {
+    "part_id": 1422,
+    "grade_id": 1,
+    "part_no": 42,
+    "subpart_no": 2,
+    "requirement": "イラストを見て、現在進行形使い\n質問に答えましょう。"
+  },
+  {
+    "part_id": 1431,
+    "grade_id": 1,
+    "part_no": 43,
+    "subpart_no": 1,
+    "requirement": "例にならい、現在形を現在進行形の\n疑問文に直しましょう。"
+  },
+  {
+    "part_id": 1432,
+    "grade_id": 1,
+    "part_no": 43,
+    "subpart_no": 2,
+    "requirement": "例にならい、現在形を現在進行形の否定文に直しましょう。"
+  },
+  {
+    "part_id": 1441,
+    "grade_id": 1,
+    "part_no": 44,
+    "subpart_no": 1,
+    "requirement": "例にならい、\n何をしているの？とたずねましょう。"
+  },
+  {
+    "part_id": 1442,
+    "grade_id": 1,
+    "part_no": 44,
+    "subpart_no": 2,
+    "requirement": "例にならい、だれが～しているのですか？\nの問いに私がしています。と答えましょう。"
+  },
+  {
+    "part_id": 1451,
+    "grade_id": 1,
+    "part_no": 45,
+    "subpart_no": 1,
+    "requirement": "例にならい、，\n文を過去形に言いかえましょう。"
+  },
+  {
+    "part_id": 1452,
+    "grade_id": 1,
+    "part_no": 45,
+    "subpart_no": 2,
+    "requirement": "例にならい、\n文を過去形に言いかえましょう。"
+  },
+  {
+    "part_id": 1461,
+    "grade_id": 1,
+    "part_no": 46,
+    "subpart_no": 1,
+    "requirement": "例にならい、\n文を過去形に言いかえましょう。"
+  },
+  {
+    "part_id": 1462,
+    "grade_id": 1,
+    "part_no": 46,
+    "subpart_no": 2,
+    "requirement": "例にならい、\n文を過去形に言いかえましょう。"
+  },
+  {
+    "part_id": 1471,
+    "grade_id": 1,
+    "part_no": 47,
+    "subpart_no": 1,
+    "requirement": "例にならい、\n過去形の文章を否定文に直しましょう！"
+  },
+  {
+    "part_id": 1472,
+    "grade_id": 1,
+    "part_no": 47,
+    "subpart_no": 2,
+    "requirement": "Do,Does,Did を使い、\n現在形と過去形が混ざった文章を\nすべて否定文に直しましょう！"
+  },
+  {
+    "part_id": 1481,
+    "grade_id": 1,
+    "part_no": 48,
+    "subpart_no": 1,
+    "requirement": "例にならい、\n過去形の文章を過去疑問文に直しましょう！"
+  },
+  {
+    "part_id": 1482,
+    "grade_id": 1,
+    "part_no": 48,
+    "subpart_no": 2,
+    "requirement": "例にならい、\n現在形と過去形が混在している文章を\nすべて疑問文に直しましょう。"
+  },
+  {
+    "part_id": 1491,
+    "grade_id": 1,
+    "part_no": 49,
+    "subpart_no": 1,
+    "requirement": "例にならい「What」を使って、\n「何を～したのですか？」\nという疑問文を考えましょう。"
+  },
+  {
+    "part_id": 1492,
+    "grade_id": 1,
+    "part_no": 49,
+    "subpart_no": 2,
+    "requirement": "例にならいWhenを使って、\n「いつ～したのですか？」\nという疑問文を考えましょう。"
+  },
+  {
+    "part_id": 1493,
+    "grade_id": 1,
+    "part_no": 49,
+    "subpart_no": 3,
+    "requirement": "例にならい、Whereを使って、\n「どこで～したのですか？」\nという疑問文を考えましょう。"
+  },
+  {
+    "part_id": 1494,
+    "grade_id": 1,
+    "part_no": 49,
+    "subpart_no": 4,
+    "requirement": "例にならいHowを使って\n「どうやって～したのですか？」\nという疑問文を考えましょう。"
+  },
+  {
+    "part_id": 1501,
+    "grade_id": 1,
+    "part_no": 50,
+    "subpart_no": 1,
+    "requirement": "例にならい、現在形の文を「～でした。」\nの過去形に直しましょう。"
+  },
+  {
+    "part_id": 1502,
+    "grade_id": 1,
+    "part_no": 50,
+    "subpart_no": 2,
+    "requirement": "否定文、疑問文、肯定文の現在形の文を\n（～でした）の過去形に直しましょう。"
+  },
+  {
+    "part_id": 2011,
+    "grade_id": 2,
+    "part_no": 1,
+    "subpart_no": 1,
+    "requirement": "例にならい、～は医者です。\nという文章をすべて代名詞で答えましょう。"
+  },
+  {
+    "part_id": 2012,
+    "grade_id": 2,
+    "part_no": 1,
+    "subpart_no": 2,
+    "requirement": "例にならい、～人気があります。\nという文章をすべて代名詞で答えましょう。"
+  },
+  {
+    "part_id": 2021,
+    "grade_id": 2,
+    "part_no": 2,
+    "subpart_no": 1,
+    "requirement": "例にならい「～は東京に住んでいます。」\nという文をすべて代名詞で答えましょう。"
+  },
+  {
+    "part_id": 2022,
+    "grade_id": 2,
+    "part_no": 2,
+    "subpart_no": 2,
+    "requirement": "例にならい「～はギターを弾きます」\nという文を作りましょう。"
+  },
+  {
+    "part_id": 2031,
+    "grade_id": 2,
+    "part_no": 3,
+    "subpart_no": 1,
+    "requirement": "例にならい、\n現在形の文章を過去形に直しましょう。"
+  },
+  {
+    "part_id": 2032,
+    "grade_id": 2,
+    "part_no": 3,
+    "subpart_no": 2,
+    "requirement": "例にならい、\n現在形の文章を過去形に直しましょう。"
+  },
+  {
+    "part_id": 2041,
+    "grade_id": 2,
+    "part_no": 4,
+    "subpart_no": 1,
+    "requirement": "例にならい、文章を否定文に直しましょう。"
+  },
+  {
+    "part_id": 2042,
+    "grade_id": 2,
+    "part_no": 4,
+    "subpart_no": 2,
+    "requirement": "例にならい、文章を否定文に直しましょう。"
+  },
+  {
+    "part_id": 2051,
+    "grade_id": 2,
+    "part_no": 5,
+    "subpart_no": 1,
+    "requirement": "例にならい、文章を疑問文に直しましょう。"
+  },
+  {
+    "part_id": 2052,
+    "grade_id": 2,
+    "part_no": 5,
+    "subpart_no": 2,
+    "requirement": "例にならい、文章を疑問文に直しましょう。"
+  },
+  {
+    "part_id": 2061,
+    "grade_id": 2,
+    "part_no": 6,
+    "subpart_no": 1,
+    "requirement": "例にならい、現在形の文を\n現在進行形に直しましょう。"
+  },
+  {
+    "part_id": 2062,
+    "grade_id": 2,
+    "part_no": 6,
+    "subpart_no": 2,
+    "requirement": "例にならい、現在形の文を\n過去進行形に直しましょう。"
+  },
+  {
+    "part_id": 2071,
+    "grade_id": 2,
+    "part_no": 7,
+    "subpart_no": 1,
+    "requirement": "例にならい、過去進行形の肯定文を、\n過去進行形の否定文に直しましょう。"
+  },
+  {
+    "part_id": 2072,
+    "grade_id": 2,
+    "part_no": 7,
+    "subpart_no": 2,
+    "requirement": "例にならい、過去進行形の肯定文を、\n過去進行形の疑問文に直しましょう。"
+  },
+  {
+    "part_id": 2073,
+    "grade_id": 2,
+    "part_no": 7,
+    "subpart_no": 3,
+    "requirement": "例に習い、\nイラストを見て質問に答えましょう。"
+  },
+  {
+    "part_id": 2081,
+    "grade_id": 2,
+    "part_no": 8,
+    "subpart_no": 1,
+    "requirement": "例にならい、\n「There is,There are ある、いる」を使い\nイラストを見て質問に答えましょう。"
+  },
+  {
+    "part_id": 2082,
+    "grade_id": 2,
+    "part_no": 8,
+    "subpart_no": 2,
+    "requirement": "例にならい、\n「There was,There were あった、いた」を使い\nイラストを見て質問に答えましょう。"
+  },
+  {
+    "part_id": 2091,
+    "grade_id": 2,
+    "part_no": 9,
+    "subpart_no": 1,
+    "requirement": "「There is There are　ある、いる」 の文を、\n疑問文に直しましょう。"
+  },
+  {
+    "part_id": 2092,
+    "grade_id": 2,
+    "part_no": 9,
+    "subpart_no": 2,
+    "requirement": "There was There were 「あった、いた」の文を、\n疑問文に直しましょう。"
+  },
+  {
+    "part_id": 2101,
+    "grade_id": 2,
+    "part_no": 10,
+    "subpart_no": 1,
+    "requirement": "【復習】　現在形を過去形に直しましょう。"
+  },
+  {
+    "part_id": 2102,
+    "grade_id": 2,
+    "part_no": 10,
+    "subpart_no": 2,
+    "requirement": "現在形を\nbe going to を使い未来形に直しましょう。"
+  },
+  {
+    "part_id": 2111,
+    "grade_id": 2,
+    "part_no": 11,
+    "subpart_no": 1,
+    "requirement": "未来形の肯定文を not を使い\n未来形の否定文にしましょう。"
+  },
+  {
+    "part_id": 2112,
+    "grade_id": 2,
+    "part_no": 11,
+    "subpart_no": 2,
+    "requirement": "未来形の肯定文を \n未来形の疑問文にしましょう。"
+  },
+  {
+    "part_id": 2121,
+    "grade_id": 2,
+    "part_no": 12,
+    "subpart_no": 1,
+    "requirement": "「What」 を使い\n何をするつもりなのか尋ねましょう。"
+  },
+  {
+    "part_id": 2122,
+    "grade_id": 2,
+    "part_no": 12,
+    "subpart_no": 2,
+    "requirement": "「Where」 を使い\nどこで何をするのか尋ねましょう。"
+  },
+  {
+    "part_id": 2123,
+    "grade_id": 2,
+    "part_no": 12,
+    "subpart_no": 3,
+    "requirement": "「When」 を使い\nいつ～するつもりなのか尋ねましょう。"
+  },
+  {
+    "part_id": 2124,
+    "grade_id": 2,
+    "part_no": 12,
+    "subpart_no": 4,
+    "requirement": "「How long」 を使い\nどのくらいの間～するつもりなのか尋ねましょう。"
+  },
+  {
+    "part_id": 2131,
+    "grade_id": 2,
+    "part_no": 13,
+    "subpart_no": 1,
+    "requirement": "現在形の文をwillを使って～します。\n～でしょう。などの未来を表す文にしましょう。"
+  },
+  {
+    "part_id": 2132,
+    "grade_id": 2,
+    "part_no": 13,
+    "subpart_no": 2,
+    "requirement": "現在形の文をwillを使って～します。\n～でしょう。などの未来を表す文にしましょう。"
+  },
+  {
+    "part_id": 2141,
+    "grade_id": 2,
+    "part_no": 14,
+    "subpart_no": 1,
+    "requirement": "現在形の文章を「won't（will not)」を使い\n～しないでしょうと言う未来否定文にしましょう。"
+  },
+  {
+    "part_id": 2142,
+    "grade_id": 2,
+    "part_no": 14,
+    "subpart_no": 2,
+    "requirement": "現在形の文章を～するでしょうか？と尋ねる\n未来を表す疑問文にしましょう。"
+  },
+  {
+    "part_id": 2151,
+    "grade_id": 2,
+    "part_no": 15,
+    "subpart_no": 1,
+    "requirement": "【だれが＋どうする＋だれに＋何を】の第4文型を\n使いヒントを見て質問に答えましょう。"
+  },
+  {
+    "part_id": 2152,
+    "grade_id": 2,
+    "part_no": 15,
+    "subpart_no": 2,
+    "requirement": "【だれが＋どうする＋だれに＋何を】の第4文型を\n使い、ヒントを見て質問に答えましょう。"
+  },
+  {
+    "part_id": 2161,
+    "grade_id": 2,
+    "part_no": 16,
+    "subpart_no": 1,
+    "requirement": "【AをＢと呼ぶ・ＡをＢと名付ける】\n　call やname を使った\n　質問文に答えましょう。"
+  },
+  {
+    "part_id": 2162,
+    "grade_id": 2,
+    "part_no": 16,
+    "subpart_no": 2,
+    "requirement": "【ＡをＢにする】\n　make を使った\n　質問文に答えましょう。"
+  },
+  {
+    "part_id": 2171,
+    "grade_id": 2,
+    "part_no": 17,
+    "subpart_no": 1,
+    "requirement": "例にならい「接続詞 ”When ～のとき」を使い、\n何をしていたのかをフルセンテンスで答えましょう。"
+  },
+  {
+    "part_id": 2172,
+    "grade_id": 2,
+    "part_no": 17,
+    "subpart_no": 2,
+    "requirement": "「接続詞 ”When ～のとき」を使い、ヒントを見て、\nそのとき、何をしていたのか説明しましょう。"
+  },
+  {
+    "part_id": 2181,
+    "grade_id": 2,
+    "part_no": 18,
+    "subpart_no": 1,
+    "requirement": "「I think that 」とヒントを使って質問に答えましょう。"
+  },
+  {
+    "part_id": 2182,
+    "grade_id": 2,
+    "part_no": 18,
+    "subpart_no": 2,
+    "requirement": "「I know that 」とヒントを使って質問に答えましょう。"
+  },
+  {
+    "part_id": 2191,
+    "grade_id": 2,
+    "part_no": 19,
+    "subpart_no": 1,
+    "requirement": "例にならい、　If を使い「もし～ならば、～するでしょう。」\nという文を考えましょう。"
+  },
+  {
+    "part_id": 2192,
+    "grade_id": 2,
+    "part_no": 19,
+    "subpart_no": 2,
+    "requirement": "例にならい【Why】なぜ～ですか？の問いに\n主語＋動詞＋because で答えましょう。"
+  },
+  {
+    "part_id": 2201,
+    "grade_id": 2,
+    "part_no": 20,
+    "subpart_no": 1,
+    "requirement": "例にならい、\n「～してくれますか？」Can you ～を使い、\nお願いする文を考えましょう。"
+  },
+  {
+    "part_id": 2202,
+    "grade_id": 2,
+    "part_no": 20,
+    "subpart_no": 2,
+    "requirement": "例にならい、次の文を\n「Could you ～？」を使った\nていねいなお願いの文に言いかえましょう。"
+  },
+  {
+    "part_id": 2211,
+    "grade_id": 2,
+    "part_no": 21,
+    "subpart_no": 1,
+    "requirement": "例にならい、「Will you～してくれますか？」\nを使い肯定文を\n疑問文に直しましょう。"
+  },
+  {
+    "part_id": 2212,
+    "grade_id": 2,
+    "part_no": 21,
+    "subpart_no": 2,
+    "requirement": "例にならい、「Would you～していただけますか？」\nを使い肯定文を控えめな依頼文に直しましょう。"
+  },
+  {
+    "part_id": 2213,
+    "grade_id": 2,
+    "part_no": 21,
+    "subpart_no": 3,
+    "requirement": "「You may ～あなたは～してもよいです。」\nという文を「May I ～~してもいいですか？」\nの文章に直しましょう。"
+  },
+  {
+    "part_id": 2221,
+    "grade_id": 2,
+    "part_no": 22,
+    "subpart_no": 1,
+    "requirement": "「have to」～しなければならない。\nという文に直しましょう。"
+  },
+  {
+    "part_id": 2222,
+    "grade_id": 2,
+    "part_no": 22,
+    "subpart_no": 2,
+    "requirement": "「have to, has to」～しなければならない。\nという文に直しましょう。"
+  },
+  {
+    "part_id": 2231,
+    "grade_id": 2,
+    "part_no": 23,
+    "subpart_no": 1,
+    "requirement": "don't have to ,doesn't have to を\n使い肯定文を否定文に直しましょう。"
+  },
+  {
+    "part_id": 2232,
+    "grade_id": 2,
+    "part_no": 23,
+    "subpart_no": 2,
+    "requirement": "「have to, has to 」を使った肯定文を\n　疑問文に直しましょう。"
+  },
+  {
+    "part_id": 2241,
+    "grade_id": 2,
+    "part_no": 24,
+    "subpart_no": 1,
+    "requirement": "「must を使い、～しなければならない。」\nという文に直しましょう。"
+  },
+  {
+    "part_id": 2242,
+    "grade_id": 2,
+    "part_no": 24,
+    "subpart_no": 2,
+    "requirement": "「must 」を使った肯定文を否定文に直しましょう。"
+  },
+  {
+    "part_id": 2251,
+    "grade_id": 2,
+    "part_no": 25,
+    "subpart_no": 1,
+    "requirement": "肯定文を「shall 」を使い、\n「～しましょうか？」\nという文に直しましょう。"
+  },
+  {
+    "part_id": 2252,
+    "grade_id": 2,
+    "part_no": 25,
+    "subpart_no": 2,
+    "requirement": "肯定文を「shall we」を使い、\n「（一緒に）～しましょうか？」\nという文に直しましょう。"
+  },
+  {
+    "part_id": 2261,
+    "grade_id": 2,
+    "part_no": 26,
+    "subpart_no": 1,
+    "requirement": "例にならい、【不定詞】「to を使い～するために」という文章を\n考えましょう。"
+  },
+  {
+    "part_id": 2262,
+    "grade_id": 2,
+    "part_no": 26,
+    "subpart_no": 2,
+    "requirement": "【不定詞】「to を使い～するために」という文章を\n考えましょう。"
+  },
+  {
+    "part_id": 2271,
+    "grade_id": 2,
+    "part_no": 27,
+    "subpart_no": 1,
+    "requirement": "【不定詞】「to を使い～するために」という文章を\n考えましょう。"
+  },
+  {
+    "part_id": 2272,
+    "grade_id": 2,
+    "part_no": 27,
+    "subpart_no": 2,
+    "requirement": "【不定詞】例にならい、\n質問に「To ＋動詞の原形」で答えよう。"
+  },
+  {
+    "part_id": 2281,
+    "grade_id": 2,
+    "part_no": 28,
+    "subpart_no": 1,
+    "requirement": "【不定詞】「to を使い～することが好き」\nという文章を考えましょう。"
+  },
+  {
+    "part_id": 2282,
+    "grade_id": 2,
+    "part_no": 28,
+    "subpart_no": 2,
+    "requirement": "【不定詞】「to を使い～することが～」\nという文章を考えましょう。"
+  },
+  {
+    "part_id": 2291,
+    "grade_id": 2,
+    "part_no": 29,
+    "subpart_no": 1,
+    "requirement": "【不定詞】\n\n「to を使い～するための」\n～が欲しい。～があります。\nという文章を考えましょう。"
+  },
+  {
+    "part_id": 2292,
+    "grade_id": 2,
+    "part_no": 29,
+    "subpart_no": 2,
+    "requirement": "【不定詞】\n「to を使い～するための」\nという文章を考えましょう。"
+  },
+  {
+    "part_id": 2301,
+    "grade_id": 2,
+    "part_no": 30,
+    "subpart_no": 1,
+    "requirement": "【不定詞】I like to ～の文を\nI like ～ing【動名詞】へ直しましょう。"
+  },
+  {
+    "part_id": 2302,
+    "grade_id": 2,
+    "part_no": 30,
+    "subpart_no": 2,
+    "requirement": "動名詞を使い質問に答えましょう。"
+  },
+  {
+    "part_id": 2303,
+    "grade_id": 2,
+    "part_no": 30,
+    "subpart_no": 3,
+    "requirement": "例にならい、動名詞を文の主語にして\n質問に答えましょう。"
+  },
+  {
+    "part_id": 2311,
+    "grade_id": 2,
+    "part_no": 31,
+    "subpart_no": 1,
+    "requirement": "【不定詞名詞的用法】\nDo you know how to make~を使い、\nどのようにしたらよいか尋ねる文を考えましょう。"
+  },
+  {
+    "part_id": 2312,
+    "grade_id": 2,
+    "part_no": 31,
+    "subpart_no": 2,
+    "requirement": "please tell me how to ~を使い、\nやり方を教えてもらう文章を考えましょう。"
+  },
+  {
+    "part_id": 2321,
+    "grade_id": 2,
+    "part_no": 32,
+    "subpart_no": 1,
+    "requirement": "【比較級の文】どちらがより~ですか？\nの問いに対し、er + than を使い\nこちらがより～です。の答えを考えましょう。"
+  },
+  {
+    "part_id": 2322,
+    "grade_id": 2,
+    "part_no": 32,
+    "subpart_no": 2,
+    "requirement": "【比較級の文】②どちらがより~ですか？\nの問いに対し、er + than を使い\nこちらがより～です。の答えを考えましょう。"
+  },
+  {
+    "part_id": 2331,
+    "grade_id": 2,
+    "part_no": 33,
+    "subpart_no": 1,
+    "requirement": "【最上級の文】the +est を使い、\n「～の中で一番～」という文を考えましょう。"
+  },
+  {
+    "part_id": 2332,
+    "grade_id": 2,
+    "part_no": 33,
+    "subpart_no": 2,
+    "requirement": "イラストを見て、【whatまたはWhichi】を使い、\n「誰（何）が一番～ですか？」\nという疑問文を考えましょう。"
+  },
+  {
+    "part_id": 2341,
+    "grade_id": 2,
+    "part_no": 34,
+    "subpart_no": 1,
+    "requirement": "比較と最上級を使用した疑問文に答えましょう。"
+  },
+  {
+    "part_id": 2342,
+    "grade_id": 2,
+    "part_no": 34,
+    "subpart_no": 2,
+    "requirement": "比較と最上級を使用した疑問文に答えましょう。"
+  },
+  {
+    "part_id": 2351,
+    "grade_id": 2,
+    "part_no": 35,
+    "subpart_no": 1,
+    "requirement": "【more】 を使って疑問文に答えましょう。"
+  },
+  {
+    "part_id": 2352,
+    "grade_id": 2,
+    "part_no": 35,
+    "subpart_no": 2,
+    "requirement": "【most】 を使って疑問文に答えましょう。"
+  },
+  {
+    "part_id": 2361,
+    "grade_id": 2,
+    "part_no": 36,
+    "subpart_no": 1,
+    "requirement": "【as ~as】を使い、～と同じくらい～です。\nという文章を考えましょう。"
+  },
+  {
+    "part_id": 2362,
+    "grade_id": 2,
+    "part_no": 36,
+    "subpart_no": 2,
+    "requirement": "【as ~as】の否定文を使い、～ほど～ではない。\nという文章を考えましょう。"
+  },
+  {
+    "part_id": 2371,
+    "grade_id": 2,
+    "part_no": 37,
+    "subpart_no": 1,
+    "requirement": "例にならって、\n比較を使った疑問文に答えましょう。"
+  },
+  {
+    "part_id": 2372,
+    "grade_id": 2,
+    "part_no": 37,
+    "subpart_no": 2,
+    "requirement": "例にならって、\n比較を使った疑問文に答えましょう。"
+  },
+  {
+    "part_id": 2381,
+    "grade_id": 2,
+    "part_no": 38,
+    "subpart_no": 1,
+    "requirement": "【受け身】\n「例にならって文を受け身にしましょう」"
+  },
+  {
+    "part_id": 2382,
+    "grade_id": 2,
+    "part_no": 38,
+    "subpart_no": 2,
+    "requirement": "【受け身】\n「例にならって文を受け身にしましょう」"
+  },
+  {
+    "part_id": 2391,
+    "grade_id": 2,
+    "part_no": 39,
+    "subpart_no": 1,
+    "requirement": "【受け身】②\n「例にならって文を受け身にしましょう」"
+  },
+  {
+    "part_id": 2392,
+    "grade_id": 2,
+    "part_no": 39,
+    "subpart_no": 2,
+    "requirement": "【受け身】②\n「例にならって文を受け身にしましょう」"
+  },
+  {
+    "part_id": 2401,
+    "grade_id": 2,
+    "part_no": 40,
+    "subpart_no": 1,
+    "requirement": "「受け身」③\n例にならって受け身を疑問文にしましょう。"
+  },
+  {
+    "part_id": 2402,
+    "grade_id": 2,
+    "part_no": 40,
+    "subpart_no": 2,
+    "requirement": "「受け身」➃\n例に習って受け身を否定文にしましょう。"
+  },
+  {
+    "part_id": 2411,
+    "grade_id": 2,
+    "part_no": 41,
+    "subpart_no": 1,
+    "requirement": "「受け身」\n例にならって、疑問文に対して受け身の文で答えましょう。"
+  },
+  {
+    "part_id": 2412,
+    "grade_id": 2,
+    "part_no": 41,
+    "subpart_no": 2,
+    "requirement": "「受け身」\n例にならって、疑問文に対して受け身の文で答えましょう。"
+  },
+  {
+    "part_id": 2421,
+    "grade_id": 2,
+    "part_no": 42,
+    "subpart_no": 1,
+    "requirement": "「現在完了形」\n現在形と現在完了形の疑問文に\nYesで答えましょう。"
+  },
+  {
+    "part_id": 2422,
+    "grade_id": 2,
+    "part_no": 42,
+    "subpart_no": 2,
+    "requirement": "「現在完了形」\n現在形と現在完了形の疑問文に\nNoで答えましょう。"
+  },
+  {
+    "part_id": 2431,
+    "grade_id": 2,
+    "part_no": 43,
+    "subpart_no": 1,
+    "requirement": "「How long have you~?どのくらいの期間\nあなたは～しているの？」の問いに対して、\n「I have ＋過去分詞」を使用し\nどのくらいの期間～しているのか答えましょう。"
+  },
+  {
+    "part_id": 2432,
+    "grade_id": 2,
+    "part_no": 43,
+    "subpart_no": 2,
+    "requirement": "「How long have you~?どのくらいの期間\nあなたは～しているの？」の問いに対して、\n「I have ＋過去分詞」を使用し\nどのくらいの期間～しているのか答えましょう。"
+  },
+  {
+    "part_id": 2441,
+    "grade_id": 2,
+    "part_no": 44,
+    "subpart_no": 1,
+    "requirement": "「現在完了形」の文を否定文に直しましょう。"
+  },
+  {
+    "part_id": 2442,
+    "grade_id": 2,
+    "part_no": 44,
+    "subpart_no": 2,
+    "requirement": "「現在完了形」の文を\n現在完了の疑問文に直しましょう。"
+  },
+  {
+    "part_id": 2443,
+    "grade_id": 2,
+    "part_no": 44,
+    "subpart_no": 3,
+    "requirement": "例にならい、現在形の文を\n「How long have / has ～？」\nを使った現在完了形の疑問文に書きかえましょう。"
+  },
+  {
+    "part_id": 2451,
+    "grade_id": 2,
+    "part_no": 45,
+    "subpart_no": 1,
+    "requirement": "「現在完了形」②　have + 過去分詞\n　\n例にならい、過去形の文章を\n「～をしたことがある」という経験を\n伝える文に直しましょう。"
+  },
+  {
+    "part_id": 2452,
+    "grade_id": 2,
+    "part_no": 45,
+    "subpart_no": 2,
+    "requirement": "「現在完了形」②　\n\n例にならい、\n過去形の文章を「～行ったことがある」という\n行った経験を伝える文章に直しましょう。"
+  },
+  {
+    "part_id": 2461,
+    "grade_id": 2,
+    "part_no": 46,
+    "subpart_no": 1,
+    "requirement": "Have you ever を使い\n「これまで～した経験がある」か\nどうかを尋ねましょう。"
+  },
+  {
+    "part_id": 2462,
+    "grade_id": 2,
+    "part_no": 46,
+    "subpart_no": 2,
+    "requirement": "Have you ever \n「～今までに一度でも～したことがありますか？」\nという疑問文に対し、「Never を使い\n一度も～したことがない」と答えましょう。"
+  },
+  {
+    "part_id": 2471,
+    "grade_id": 2,
+    "part_no": 47,
+    "subpart_no": 1,
+    "requirement": "Have you ～yet?もう～しましたか？\nの問いに対して、already(すでにしたよ）\njust （ちょうど今したよ）の答えを考えましょう。"
+  },
+  {
+    "part_id": 2472,
+    "grade_id": 2,
+    "part_no": 47,
+    "subpart_no": 2,
+    "requirement": "Have you ～yet?もう～しましたか？\nの問いに対して、yet を使い「まだしてないよ」\nという文を考えましょう。"
+  },
+  {
+    "part_id": 3011,
+    "grade_id": 3,
+    "part_no": 1,
+    "subpart_no": 1,
+    "requirement": "例にならい、\n主語をshe にして文を答えましょう。"
+  },
+  {
+    "part_id": 3012,
+    "grade_id": 3,
+    "part_no": 1,
+    "subpart_no": 2,
+    "requirement": "例にならい、　問題の主語を聞きとり\n　「～は日曜日に夕食を作ります。」\nという英文を考えましょう。"
+  },
+  {
+    "part_id": 3021,
+    "grade_id": 3,
+    "part_no": 2,
+    "subpart_no": 1,
+    "requirement": "例にならい、　肯定文を疑問文に　\n言いかえましょう。"
+  },
+  {
+    "part_id": 3022,
+    "grade_id": 3,
+    "part_no": 2,
+    "subpart_no": 2,
+    "requirement": "例にならって、文を疑問文にかえましょう。　　　　そのとき、主語は代名詞にしましょう。"
+  },
+  {
+    "part_id": 3031,
+    "grade_id": 3,
+    "part_no": 3,
+    "subpart_no": 1,
+    "requirement": "【不定詞】「to を使い～するために」\nという文章を考えましょう。"
+  },
+  {
+    "part_id": 3032,
+    "grade_id": 3,
+    "part_no": 3,
+    "subpart_no": 2,
+    "requirement": "【不定詞】　to を使い『～したい。』\nという文章を考えましょう。"
+  },
+  {
+    "part_id": 3033,
+    "grade_id": 3,
+    "part_no": 3,
+    "subpart_no": 3,
+    "requirement": "【不定詞】\n\n次の質問に、\nwant ＋ something to ～\nhave ＋ 名詞 to ～\nの形を使って答えなさい。"
+  },
+  {
+    "part_id": 3041,
+    "grade_id": 3,
+    "part_no": 4,
+    "subpart_no": 1,
+    "requirement": "「受け身」例にならい、　肯定文を\n　byを使う受け身の形に直しましょう。"
+  },
+  {
+    "part_id": 3051,
+    "grade_id": 3,
+    "part_no": 5,
+    "subpart_no": 1,
+    "requirement": "「受け身」例にならい、　肯定文を\nbyを使う受け身の形に直しましょう。"
+  },
+  {
+    "part_id": 3061,
+    "grade_id": 3,
+    "part_no": 6,
+    "subpart_no": 1,
+    "requirement": "【受け身】例にならい、\n　受け身の文を否定文に直しましょう。"
+  },
+  {
+    "part_id": 3062,
+    "grade_id": 3,
+    "part_no": 6,
+    "subpart_no": 2,
+    "requirement": "【受け身】例にならい、\n　受け身の文を疑問文に直しましょう。"
+  },
+  {
+    "part_id": 3071,
+    "grade_id": 3,
+    "part_no": 7,
+    "subpart_no": 1,
+    "requirement": "【現在完了形】過去形の文を　\n現在完了形の文に直しましょう。"
+  },
+  {
+    "part_id": 3072,
+    "grade_id": 3,
+    "part_no": 7,
+    "subpart_no": 2,
+    "requirement": "「１０年間～した。」の文章を　　\n現在完了を使い、　「１０年間今も続けています。」の文に直しましょう。"
+  },
+  {
+    "part_id": 3081,
+    "grade_id": 3,
+    "part_no": 8,
+    "subpart_no": 1,
+    "requirement": "過去形を現在完了（継続）\n　「昨日からずっと～だ」\n　という文章に直しましょう。"
+  },
+  {
+    "part_id": 3082,
+    "grade_id": 3,
+    "part_no": 8,
+    "subpart_no": 2,
+    "requirement": "過去形を現在完了（継続用法） \n「～の間ずっと…している」\nという文に直しましょう。"
+  },
+  {
+    "part_id": 3091,
+    "grade_id": 3,
+    "part_no": 9,
+    "subpart_no": 1,
+    "requirement": "「現在完了形」の文を否定文に直しましょう。"
+  },
+  {
+    "part_id": 3092,
+    "grade_id": 3,
+    "part_no": 9,
+    "subpart_no": 2,
+    "requirement": "「現在完了形」の文を「Have you 」を使い\n現在完了の疑問文に直しましょう。"
+  },
+  {
+    "part_id": 3093,
+    "grade_id": 3,
+    "part_no": 9,
+    "subpart_no": 3,
+    "requirement": "例にならい、　How long を使った、現在完了の疑問文に直しましょう。"
+  },
+  {
+    "part_id": 3101,
+    "grade_id": 3,
+    "part_no": 10,
+    "subpart_no": 1,
+    "requirement": "例にならい、過去形の文章を\n「～をしたことがある」という経験を\n伝える文に直しましょう。"
+  },
+  {
+    "part_id": 3102,
+    "grade_id": 3,
+    "part_no": 10,
+    "subpart_no": 2,
+    "requirement": "「現在完了形」②　\n\n例にならい、\n過去形の文章を「～行ったことがある」という\n行った経験を伝える文章に直しましょう。"
+  },
+  {
+    "part_id": 3111,
+    "grade_id": 3,
+    "part_no": 11,
+    "subpart_no": 1,
+    "requirement": "Have you ever を使い\n「これまで～した経験がある」か\nどうかを尋ねましょう。"
+  },
+  {
+    "part_id": 3112,
+    "grade_id": 3,
+    "part_no": 11,
+    "subpart_no": 2,
+    "requirement": "Have you ever \n「～今までに一度でも～したことが\n　ありますか？」\nという疑問文に対し、「Never を使い\n一度も～したことがない」と答えましょう。"
+  },
+  {
+    "part_id": 3121,
+    "grade_id": 3,
+    "part_no": 12,
+    "subpart_no": 1,
+    "requirement": "Have you ～yet?もう～しましたか？\nの問いに対して、already(すでにしたよ）\njust （ちょうど今したよ）の答えを考えましょう。"
+  },
+  {
+    "part_id": 3122,
+    "grade_id": 3,
+    "part_no": 12,
+    "subpart_no": 2,
+    "requirement": "Have you ～yet?もう～しましたか？\nの問いに対して、yet を使い「まだしてないよ」\nという文を考えましょう。"
+  },
+  {
+    "part_id": 3131,
+    "grade_id": 3,
+    "part_no": 13,
+    "subpart_no": 1,
+    "requirement": "現在完了を使って、「（今まで）ずっとしている」　\n　の文章に言いかえましょう。"
+  },
+  {
+    "part_id": 3132,
+    "grade_id": 3,
+    "part_no": 13,
+    "subpart_no": 2,
+    "requirement": "過去形の文章を　現在完了（経験）「（今までに）\n～したことがある」　\n　の文章に言いかえましょう。"
+  },
+  {
+    "part_id": 3133,
+    "grade_id": 3,
+    "part_no": 13,
+    "subpart_no": 3,
+    "requirement": "過去形の文を　現在完了「もう～してしまった」\n「ちょうど～したところだ」　\nという文に直しましょう。"
+  },
+  {
+    "part_id": 3141,
+    "grade_id": 3,
+    "part_no": 14,
+    "subpart_no": 1,
+    "requirement": "「どのくらい〜していますか？」という問いに、\n現在完了進行形（have/has been ～ing） \nを使い、for や since を正しく答えましょう。"
+  },
+  {
+    "part_id": 3142,
+    "grade_id": 3,
+    "part_no": 14,
+    "subpart_no": 2,
+    "requirement": "現在の文章を　「How long ～」を使い\n「（今まで）ずっと～し続けていますか？」\n　の文章に言いかえましょう。"
+  },
+  {
+    "part_id": 3151,
+    "grade_id": 3,
+    "part_no": 15,
+    "subpart_no": 1,
+    "requirement": "「It’s～to ～」を使い「～することは～です」　\n　の文章を考えましょう。"
+  },
+  {
+    "part_id": 3152,
+    "grade_id": 3,
+    "part_no": 15,
+    "subpart_no": 2,
+    "requirement": "「It’s ~for me【人】 to ~」を使い　\n「～することは~にとって～です」　\nの文章を考えましょう。"
+  },
+  {
+    "part_id": 3161,
+    "grade_id": 3,
+    "part_no": 16,
+    "subpart_no": 1,
+    "requirement": "例文にならい「I'd like ~]を使い\n　もっとていねいな表現に言いかえましょう。"
+  },
+  {
+    "part_id": 3162,
+    "grade_id": 3,
+    "part_no": 16,
+    "subpart_no": 2,
+    "requirement": "例文にならい「I'd like ”to” ~]を使い\n　もっとていねいな表現に言いかえましょう。"
+  },
+  {
+    "part_id": 3171,
+    "grade_id": 3,
+    "part_no": 17,
+    "subpart_no": 1,
+    "requirement": "例文にならい[Would you like ~]を使って、\nもっとていねいな表現に言いかえましょう。"
+  },
+  {
+    "part_id": 3172,
+    "grade_id": 3,
+    "part_no": 17,
+    "subpart_no": 2,
+    "requirement": "例文にならい[Would you like to ~]を使って、\nもっとていねいな表現に言いかえましょう。"
+  },
+  {
+    "part_id": 3181,
+    "grade_id": 3,
+    "part_no": 18,
+    "subpart_no": 1,
+    "requirement": "例にならい、「I want （人）to ～」を使い　\n人に～して欲しいと伝えましょう。"
+  },
+  {
+    "part_id": 3182,
+    "grade_id": 3,
+    "part_no": 18,
+    "subpart_no": 2,
+    "requirement": "肯定文を疑問文にして　「Do you want me to ～」\n　「私が~しましょうか？」\n　の文章を答えましょう。"
+  },
+  {
+    "part_id": 3191,
+    "grade_id": 3,
+    "part_no": 19,
+    "subpart_no": 1,
+    "requirement": "例にならい、tell や ask を使った文で答えましょう。"
+  },
+  {
+    "part_id": 3192,
+    "grade_id": 3,
+    "part_no": 19,
+    "subpart_no": 2,
+    "requirement": "例にならい、「Could you tell ～ to … ?」\nを使って言いかえましょう。"
+  },
+  {
+    "part_id": 3201,
+    "grade_id": 3,
+    "part_no": 20,
+    "subpart_no": 1,
+    "requirement": "例にならい、\nlet me を使って「私に～させて。」の文章を考えましょう。"
+  },
+  {
+    "part_id": 3202,
+    "grade_id": 3,
+    "part_no": 20,
+    "subpart_no": 2,
+    "requirement": "例にならい、help または make を使って\n「動詞＋人＋動詞の原形」の形で答えましょう。"
+  },
+  {
+    "part_id": 3211,
+    "grade_id": 3,
+    "part_no": 21,
+    "subpart_no": 1,
+    "requirement": "「name（～と名づける）」「call（～と呼ぶ）」を使って、　人や動物・物に名前をつける／呼ぶ英文を考えましょう。"
+  },
+  {
+    "part_id": 3212,
+    "grade_id": 3,
+    "part_no": 21,
+    "subpart_no": 2,
+    "requirement": "例にならい、It makes me ~「ＡをＢにする」\n表現を使い、気持ちを表す文を考えましょう。"
+  },
+  {
+    "part_id": 3221,
+    "grade_id": 3,
+    "part_no": 22,
+    "subpart_no": 1,
+    "requirement": "例にならい、tell + 人 + that 〜 の形を使って\n質問に答えましょう。"
+  },
+  {
+    "part_id": 3222,
+    "grade_id": 3,
+    "part_no": 22,
+    "subpart_no": 2,
+    "requirement": "「show + 人 + that 〜」の形を使って質問に答えましょう。"
+  },
+  {
+    "part_id": 3231,
+    "grade_id": 3,
+    "part_no": 23,
+    "subpart_no": 1,
+    "requirement": "例にならい、質問に対し　「I don’t know 」から\n　始まる文で答えましょう。"
+  },
+  {
+    "part_id": 3232,
+    "grade_id": 3,
+    "part_no": 23,
+    "subpart_no": 2,
+    "requirement": "疑問文を「Do you know ～？」を使った間接疑問文に言いかえましょう。"
+  },
+  {
+    "part_id": 3241,
+    "grade_id": 3,
+    "part_no": 24,
+    "subpart_no": 1,
+    "requirement": "例にならい、「名詞 + 前置詞句 」 の名詞句の形で答えましょう。"
+  },
+  {
+    "part_id": 3242,
+    "grade_id": 3,
+    "part_no": 24,
+    "subpart_no": 2,
+    "requirement": "例にならい、質問文に答えましょう。"
+  },
+  {
+    "part_id": 3251,
+    "grade_id": 3,
+    "part_no": 25,
+    "subpart_no": 1,
+    "requirement": "質問に対して「名詞＋動詞＋現在分詞」　の文で答えましょう。"
+  },
+  {
+    "part_id": 3252,
+    "grade_id": 3,
+    "part_no": 25,
+    "subpart_no": 2,
+    "requirement": "質問に対して「The ~」　から始まる文で答えましょう。"
+  },
+  {
+    "part_id": 3261,
+    "grade_id": 3,
+    "part_no": 26,
+    "subpart_no": 1,
+    "requirement": "それぞれの文を過去分詞を使って　「どんな〜か」を説明する文にしましょう。"
+  },
+  {
+    "part_id": 3262,
+    "grade_id": 3,
+    "part_no": 26,
+    "subpart_no": 2,
+    "requirement": "前文の名詞を、後文の内容を使って\n「名詞＋主語＋動詞」の形で1文にしましょう。\n※ 関係代名詞は使いません。"
+  },
+  {
+    "part_id": 3271,
+    "grade_id": 3,
+    "part_no": 27,
+    "subpart_no": 1,
+    "requirement": "それぞれの文を「どんな〜か」を説明する文にしましょう。"
+  },
+  {
+    "part_id": 3272,
+    "grade_id": 3,
+    "part_no": 27,
+    "subpart_no": 2,
+    "requirement": "前文の名詞を、後文の内容を使って\n「名詞＋主語＋動詞」の形で1文にしましょう。\n※ 関係代名詞は使いません。"
+  },
+  {
+    "part_id": 3281,
+    "grade_id": 3,
+    "part_no": 28,
+    "subpart_no": 1,
+    "requirement": "【導入問題】例にならい、2つの文を関係代名詞\n「who」 を使って、1つの文に直しましょう。"
+  },
+  {
+    "part_id": 3282,
+    "grade_id": 3,
+    "part_no": 28,
+    "subpart_no": 2,
+    "requirement": "【確認問題】例にならい、2つの文を関係代名詞\n「who」 を使って、1つの文に直しましょう。"
+  },
+  {
+    "part_id": 3291,
+    "grade_id": 3,
+    "part_no": 29,
+    "subpart_no": 1,
+    "requirement": "【導入問題】例にならい2つの文を関係代名詞 that を使って1つの文に言いかえましょう。"
+  },
+  {
+    "part_id": 3292,
+    "grade_id": 3,
+    "part_no": 29,
+    "subpart_no": 2,
+    "requirement": "【確認問題】例にならい2つの文を関係代名詞 that を使って\n1つの文に言いかえましょう。"
+  },
+  {
+    "part_id": 3301,
+    "grade_id": 3,
+    "part_no": 30,
+    "subpart_no": 1,
+    "requirement": "例にならい2つの文を関係代名詞 that を使って1つの文に言いかえましょう。"
+  },
+  {
+    "part_id": 3302,
+    "grade_id": 3,
+    "part_no": 30,
+    "subpart_no": 2,
+    "requirement": "次の2つの文を1文にしなさい。\n後ろの文で説明されている名詞を、\n関係代名詞【that】を使ってまとめましょう。"
+  },
+  {
+    "part_id": 3311,
+    "grade_id": 3,
+    "part_no": 31,
+    "subpart_no": 1,
+    "requirement": "次の2つの文を1文にしなさい。\n後ろの文で説明されている名詞を、\n関係代名詞【that / who】を使ってまとめましょう。"
+  },
+  {
+    "part_id": 3312,
+    "grade_id": 3,
+    "part_no": 31,
+    "subpart_no": 2,
+    "requirement": "次の2つの文を1文にしなさい。\n前の文に出てくる名詞を説明するために、\n関係代名詞【that / who】を使って答えましょう。"
+  },
+  {
+    "part_id": 3321,
+    "grade_id": 3,
+    "part_no": 32,
+    "subpart_no": 1,
+    "requirement": "「I can ～.」の文を「I wish I could ～.」に言いかえましょう。"
+  },
+  {
+    "part_id": 3322,
+    "grade_id": 3,
+    "part_no": 32,
+    "subpart_no": 2,
+    "requirement": "例にならい、「現実の話（will）」を\n　「空想の話（would）」に言いかえてみましょう。"
+  },
+  {
+    "part_id": 3331,
+    "grade_id": 3,
+    "part_no": 33,
+    "subpart_no": 1,
+    "requirement": "例にならい、文を「I wish ～」実際の事実とは違う\n「〜だったらいいのに」\nという気持ちを表す文に書きかえましょう。"
+  },
+  {
+    "part_id": 3332,
+    "grade_id": 3,
+    "part_no": 33,
+    "subpart_no": 2,
+    "requirement": "例にならい、文を「I wish ～」実際の事実とは違う\n「〜だったらいいのに」\nという気持ちを表す文に書きかえましょう。"
+  },
+  {
+    "part_id": 3341,
+    "grade_id": 3,
+    "part_no": 34,
+    "subpart_no": 1,
+    "requirement": "「If I were you～, I would ～.」の形に\n言いかえましょう。"
+  },
+  {
+    "part_id": 3342,
+    "grade_id": 3,
+    "part_no": 34,
+    "subpart_no": 2,
+    "requirement": "「If 主語 were ～, 主語 would ～.」の形に\n言いかえましょう。"
+  },
+  {
+    "part_id": 3351,
+    "grade_id": 3,
+    "part_no": 35,
+    "subpart_no": 1,
+    "requirement": "「If I were you～, I would ～.」の形に\n言いかえましょう。"
+  },
+  {
+    "part_id": 3352,
+    "grade_id": 3,
+    "part_no": 35,
+    "subpart_no": 2,
+    "requirement": "If I had 〜, I would 〜. の形を使い\n「もし〜だったら、〜するのに。」\nという英文を作りましょう。"
+  }
+]
