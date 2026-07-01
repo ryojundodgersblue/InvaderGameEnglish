@@ -7,12 +7,12 @@ import './PlayPage.css';
 
 import type { Q, PartInfo, IntermissionSnapshot, GamePhase } from '../types/game';
 import type { SpeechRecognition, SpeechRecognitionEvent, SpeechRecognitionErrorEvent } from '../types/speechRecognition';
-import { CORRECT_TO_CLEAR, MAX_QUESTIONS, TIME_LIMIT, DLY, TTS_VOLUME, FUZZY_MATCH_THRESHOLD } from '../constants/game';
+import { CORRECT_TO_CLEAR, MAX_QUESTIONS, TIME_LIMIT, DLY, TTS_VOLUME, FUZZY_MATCH_THRESHOLD, FREEZE_TIMEOUT_MS, FREEZE_CHECK_INTERVAL_MS } from '../constants/game';
 import { useAuth } from '../hooks/useAuth';
 import { normalize, simLevenshtein, jaccard } from '../utils/textMatch';
 import { playSound, playSoundAwait } from '../utils/sound';
 import { delay } from '../utils/delay';
-import { speakText } from '../utils/ttsAudio';
+import { speakText, prefetchSpeech } from '../utils/ttsAudio';
 import { gameStateReducer, initialGameState } from '../hooks/gameReducer';
 
 // ------------------------ Component --------------------------
@@ -158,15 +158,15 @@ const PlayPage: React.FC = () => {
     }
     freezeDetectionTimerRef.current = window.setInterval(() => {
       const timeSinceActivity = Date.now() - lastActivityRef.current;
-      if (timeSinceActivity > 30000 && statusRef.current !== 'finished' && statusRef.current !== 'idle') {
-        console.error('[Freeze] Game appears to be frozen - no activity for 30 seconds');
+      if (timeSinceActivity > FREEZE_TIMEOUT_MS && statusRef.current !== 'finished' && statusRef.current !== 'idle') {
+        console.error(`[Freeze] Game appears to be frozen - no activity for ${FREEZE_TIMEOUT_MS / 1000} seconds`);
         setFrozen(true);
         if (freezeDetectionTimerRef.current) {
           window.clearInterval(freezeDetectionTimerRef.current);
           freezeDetectionTimerRef.current = null;
         }
       }
-    }, 5000);
+    }, FREEZE_CHECK_INTERVAL_MS);
   }, []);
 
   const updateActivity = useCallback(() => {
@@ -425,6 +425,14 @@ const PlayPage: React.FC = () => {
     };
 
     dispatchAndSync({ type: 'START_INTERMISSION', snapshot }, 'intermission');
+
+    // 次の問題の音声・画像を先読みし、読み上げ欠落・表示遅延を防ぐ (No145/No146)
+    const nextQ = questionsRef.current[idxRef.current + 1];
+    if (nextQ) {
+      if (nextQ.question_text) prefetchSpeech(nextQ.question_text);
+      if (nextQ.answers?.[0]) prefetchSpeech(nextQ.answers[0]);
+      if (nextQ.image_url) { new Image().src = nextQ.image_url; }
+    }
 
     try {
       await delay(DLY.intermission, abortControllerRef.current?.signal);
