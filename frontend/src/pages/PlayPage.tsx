@@ -914,7 +914,7 @@ const PlayPage: React.FC = () => {
             <div className="banner-text">{bannerText}</div>
           )}
 
-          <div className="question-text">
+          <div className={`question-text${current?.image_url ? ' with-image' : ''}`}>
             {!bannerText && showText && current ? current.question_text : ''}
           </div>
 
