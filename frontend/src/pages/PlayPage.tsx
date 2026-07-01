@@ -9,7 +9,7 @@ import type { Q, PartInfo, IntermissionSnapshot, GamePhase } from '../types/game
 import type { SpeechRecognition, SpeechRecognitionEvent, SpeechRecognitionErrorEvent } from '../types/speechRecognition';
 import { CORRECT_TO_CLEAR, MAX_QUESTIONS, TIME_LIMIT, DLY, TTS_VOLUME, FUZZY_MATCH_THRESHOLD, FREEZE_TIMEOUT_MS, FREEZE_CHECK_INTERVAL_MS } from '../constants/game';
 import { useAuth } from '../hooks/useAuth';
-import { normalize, simLevenshtein, jaccard } from '../utils/textMatch';
+import { normalize, simLevenshtein, jaccard, containsAsToken } from '../utils/textMatch';
 import { playSound, playSoundAwait } from '../utils/sound';
 import { delay } from '../utils/delay';
 import { speakText, prefetchSpeech } from '../utils/ttsAudio';
@@ -588,6 +588,15 @@ const PlayPage: React.FC = () => {
     outer: for (const h of heard) {
       for (const a of answers) {
         if (h === a) { isCorrect = true; break outer; }
+      }
+    }
+
+    // 1語だけの正解(主語を答える問題など)は、認識文に単語として含まれていれば正解 (No149)
+    if (!isCorrect) {
+      outerToken: for (const h of heard) {
+        for (const a of answers) {
+          if (containsAsToken(h, a)) { isCorrect = true; break outerToken; }
+        }
       }
     }
 
