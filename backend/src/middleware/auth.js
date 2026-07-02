@@ -62,7 +62,9 @@ function authenticateToken(req, res, next) {
         message: 'トークンの有効期限が切れています'
       });
     }
-    return res.status(403).json({
+    // 無効トークンも「未認証」として401を返す(認証切れの再ログイン誘導のため)。
+    // 403は権限不足(管理者チェック等)にのみ使用する
+    return res.status(401).json({
       ok: false,
       message: '無効なトークンです'
     });

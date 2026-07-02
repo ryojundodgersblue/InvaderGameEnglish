@@ -53,3 +53,6 @@ Thumbs.db
 
 # Redis dump
 dump.rdb
+
+# Python
+__pycache__/

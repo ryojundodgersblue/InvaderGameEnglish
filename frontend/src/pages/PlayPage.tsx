@@ -1,18 +1,18 @@
 import React, { useEffect, useRef, useState, useCallback } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import Button from '../components/Button';
-import { API_URL } from '../config';
+import { apiFetch, formatApiError, ApiError } from '../utils/apiClient';
 import '../App.css';
 import './PlayPage.css';
 
 import type { Q, PartInfo, IntermissionSnapshot, GamePhase } from '../types/game';
 import type { SpeechRecognition, SpeechRecognitionEvent, SpeechRecognitionErrorEvent } from '../types/speechRecognition';
-import { CORRECT_TO_CLEAR, MAX_QUESTIONS, TIME_LIMIT, DLY, TTS_VOLUME, FUZZY_MATCH_THRESHOLD } from '../constants/game';
+import { CORRECT_TO_CLEAR, MAX_QUESTIONS, TIME_LIMIT, DLY, TTS_VOLUME, FUZZY_MATCH_THRESHOLD, FREEZE_TIMEOUT_MS, FREEZE_CHECK_INTERVAL_MS } from '../constants/game';
 import { useAuth } from '../hooks/useAuth';
-import { normalize, simLevenshtein, jaccard } from '../utils/textMatch';
+import { normalize, simLevenshtein, jaccard, containsAsToken } from '../utils/textMatch';
 import { playSound, playSoundAwait } from '../utils/sound';
 import { delay } from '../utils/delay';
-import { speakText } from '../utils/ttsAudio';
+import { speakText, prefetchSpeech } from '../utils/ttsAudio';
 import { gameStateReducer, initialGameState } from '../hooks/gameReducer';
 
 // ------------------------ Component --------------------------
@@ -129,6 +129,9 @@ const PlayPage: React.FC = () => {
     timerIntervalRef.current = window.setInterval(() => {
       remainingTimeRef.current -= 1;
       setRemainingTime(remainingTimeRef.current);
+      // タイマーが進んでいる間はゲームが生きているのでフリーズ扱いにしない
+      // (回答待ちの無操作30秒で回復ダイアログが誤表示されるのを防ぐ)
+      updateActivity();
 
       if (remainingTimeRef.current <= 0) {
         if (timerIntervalRef.current) {
@@ -158,15 +161,15 @@ const PlayPage: React.FC = () => {
     }
     freezeDetectionTimerRef.current = window.setInterval(() => {
       const timeSinceActivity = Date.now() - lastActivityRef.current;
-      if (timeSinceActivity > 30000 && statusRef.current !== 'finished' && statusRef.current !== 'idle') {
-        console.error('[Freeze] Game appears to be frozen - no activity for 30 seconds');
+      if (timeSinceActivity > FREEZE_TIMEOUT_MS && statusRef.current !== 'finished' && statusRef.current !== 'idle') {
+        console.error(`[Freeze] Game appears to be frozen - no activity for ${FREEZE_TIMEOUT_MS / 1000} seconds`);
         setFrozen(true);
         if (freezeDetectionTimerRef.current) {
           window.clearInterval(freezeDetectionTimerRef.current);
           freezeDetectionTimerRef.current = null;
         }
       }
-    }, 5000);
+    }, FREEZE_CHECK_INTERVAL_MS);
   }, []);
 
   const updateActivity = useCallback(() => {
@@ -229,24 +232,14 @@ const PlayPage: React.FC = () => {
         const p = part ?? session?.currentPart ?? '1';
         const s = subpart ?? session?.currentSubpart ?? '1';
 
-        const r1 = await fetch(`${API_URL}/game/part?grade=${g}&part=${p}&subpart=${s}`, {
-          credentials: 'include'
-        });
-        if (!r1.ok) {
-          const errorData = await r1.json().catch(() => ({ message: 'part 取得失敗' }));
-          throw new Error(errorData.message || 'part 取得失敗');
-        }
-        const j1 = await r1.json();
+        const j1 = await apiFetch<{ ok: boolean; part: PartInfo }>(
+          `/game/part?grade=${g}&part=${p}&subpart=${s}`
+        );
         setPartInfo(j1.part);
 
-        const r2 = await fetch(`${API_URL}/game/questions?part_id=${encodeURIComponent(j1.part.part_id)}`, {
-          credentials: 'include'
-        });
-        if (!r2.ok) {
-          const errorData = await r2.json().catch(() => ({ message: 'questions 取得失敗' }));
-          throw new Error(errorData.message || 'questions 取得失敗');
-        }
-        const j2 = await r2.json();
+        const j2 = await apiFetch<{ ok: boolean; questions: Q[] }>(
+          `/game/questions?part_id=${encodeURIComponent(j1.part.part_id)}`
+        );
         const qs: Q[] = (j2.questions || []).slice(0, MAX_QUESTIONS);
 
         setQuestions(qs);
@@ -257,8 +250,7 @@ const PlayPage: React.FC = () => {
         realCorrectRef.current = 0;
         setShowRequirement(true);
       } catch (e) {
-        const err = e as Error;
-        setError(err.message || String(e));
+        setError(formatApiError(e, '問題の取得に失敗しました'));
       } finally {
         setLoading(false);
       }
@@ -425,6 +417,14 @@ const PlayPage: React.FC = () => {
     };
 
     dispatchAndSync({ type: 'START_INTERMISSION', snapshot }, 'intermission');
+
+    // 次の問題の音声・画像を先読みし、読み上げ欠落・表示遅延を防ぐ (No145/No146)
+    const nextQ = questionsRef.current[idxRef.current + 1];
+    if (nextQ) {
+      if (nextQ.question_text) prefetchSpeech(nextQ.question_text);
+      if (nextQ.answers?.[0]) prefetchSpeech(nextQ.answers[0]);
+      if (nextQ.image_url) { new Image().src = nextQ.image_url; }
+    }
 
     try {
       await delay(DLY.intermission, abortControllerRef.current?.signal);
@@ -594,6 +594,15 @@ const PlayPage: React.FC = () => {
       }
     }
 
+    // 1語だけの正解(主語を答える問題など)は、認識文に単語として含まれていれば正解 (No149)
+    if (!isCorrect) {
+      outerToken: for (const h of heard) {
+        for (const a of answers) {
+          if (containsAsToken(h, a)) { isCorrect = true; break outerToken; }
+        }
+      }
+    }
+
     // ファジーマッチ
     if (!isCorrect) {
       outer2: for (const h of heard) {
@@ -661,18 +670,11 @@ const PlayPage: React.FC = () => {
       if (!part_id) throw new Error('パートIDが見つかりません');
 
       // スコア送信
-      const scoreResponse = await fetch(`${API_URL}/game/score`, {
+      await apiFetch(`/game/score`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
         body: JSON.stringify({ userId, part_id, scores: finalCorrect, clear }),
       });
-
-      if (!scoreResponse.ok) {
-        throw new Error(`スコア送信失敗: ${scoreResponse.status}`);
-      }
-
-      await scoreResponse.json();
 
       // クリアした場合のみ進捗を更新
       if (clear) {
@@ -680,10 +682,13 @@ const PlayPage: React.FC = () => {
         const currentPart = part ?? session?.currentPart ?? '1';
         const currentSubpart = subpart ?? session?.currentSubpart ?? '1';
 
-        const advanceResponse = await fetch(`${API_URL}/game/advance`, {
+        const advanceData = await apiFetch<{
+          ok: boolean;
+          advanced?: boolean;
+          next?: { grade_id: number; part_no: number; subpart_no: number };
+        }>(`/game/advance`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          credentials: 'include',
           body: JSON.stringify({
             userId,
             current: { grade: currentGrade, part: currentPart, subpart: currentSubpart },
@@ -692,24 +697,18 @@ const PlayPage: React.FC = () => {
           }),
         });
 
-        if (!advanceResponse.ok) {
-          throw new Error(`進捗更新失敗: ${advanceResponse.status}`);
-        }
-
-        const advanceData = await advanceResponse.json();
-
         if (advanceData.ok && advanceData.advanced && advanceData.next) {
           updateProgress(advanceData.next.grade_id, advanceData.next.part_no, advanceData.next.subpart_no);
         }
       }
     } catch (err) {
+      // 認証切れはAuthExpiryHandlerがログイン画面へ誘導する (No139/No140)
+      if (err instanceof ApiError && err.code === 'AUTH-001') return;
       let errorMessage = 'スコアの保存中にエラーが発生しました。';
-      if (err instanceof Error) {
-        if (err.message.includes('Failed to fetch')) {
-          errorMessage = 'サーバーに接続できません。バックエンドが起動しているか確認してください。';
-        } else {
-          errorMessage += `\n\nエラー: ${err.message}`;
-        }
+      if (err instanceof ApiError && err.code === 'NET-001') {
+        errorMessage = 'サーバーに接続できません。通信環境を確認してください。';
+      } else if (err instanceof Error) {
+        errorMessage += `\n\nエラー: ${formatApiError(err)}`;
       }
       alert(
         errorMessage +
@@ -906,7 +905,7 @@ const PlayPage: React.FC = () => {
             <div className="banner-text">{bannerText}</div>
           )}
 
-          <div className="question-text">
+          <div className={`question-text${current?.image_url ? ' with-image' : ''}`}>
             {!bannerText && showText && current ? current.question_text : ''}
           </div>
 

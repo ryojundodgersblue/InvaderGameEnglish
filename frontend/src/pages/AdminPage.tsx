@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react'
 import TextBox from '../components/TextBox'
 import Button from '../components/Button'
-import { API_URL } from '../config'
+import { apiFetch, formatApiError } from '../utils/apiClient'
 import '../App.css'
 import './AdminPage.css'
 
@@ -48,44 +48,26 @@ const AdminPage: React.FC = () => {
   // ユーザー一覧を取得
   const fetchUsers = async () => {
     try {
-      const res = await fetch(`${API_URL}/admin/users`, {
-        method: 'GET',
-        credentials: 'include',
-      })
-
-      if (!res.ok) {
-        throw new Error('ユーザー一覧の取得に失敗しました')
-      }
-
-      const data = await res.json()
+      const data = await apiFetch<{ ok: boolean; users?: User[] }>('/admin/users')
       if (data.ok && data.users) {
         // is_admin=trueのユーザーを除外
         const nonAdminUsers = data.users.filter((user: User) => !user.is_admin)
         setUsers(nonAdminUsers)
       }
     } catch (err) {
-      setError(err instanceof Error ? err.message : String(err))
+      setError(formatApiError(err))
     }
   }
 
   // パート別ミス数を取得
   const fetchFailureStats = async () => {
     try {
-      const res = await fetch(`${API_URL}/admin/failure-stats`, {
-        method: 'GET',
-        credentials: 'include',
-      })
-
-      if (!res.ok) {
-        throw new Error('パート別ミス数の取得に失敗しました')
-      }
-
-      const data = await res.json()
+      const data = await apiFetch<FailureStats & { ok: boolean }>('/admin/failure-stats')
       if (data.ok) {
         setFailureStats(data)
       }
     } catch (err) {
-      setError(err instanceof Error ? err.message : String(err))
+      setError(formatApiError(err))
     }
   }
 
@@ -107,18 +89,11 @@ const AdminPage: React.FC = () => {
     }
 
     try {
-      const res = await fetch(`${API_URL}/admin/users`, {
+      const data = await apiFetch<{ ok: boolean; user_id: string; password: string }>('/admin/users', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
         body: JSON.stringify({ nickname, real_name: realName }),
       })
-
-      const data = await res.json()
-
-      if (!res.ok || !data.ok) {
-        throw new Error(data.message || '登録に失敗しました')
-      }
 
       // 登録成功
       setRegisterResult({
@@ -132,7 +107,7 @@ const AdminPage: React.FC = () => {
       // ユーザー一覧を再取得
       fetchUsers()
     } catch (err) {
-      setError(err instanceof Error ? err.message : String(err))
+      setError(formatApiError(err))
     }
   }
 
@@ -142,23 +117,16 @@ const AdminPage: React.FC = () => {
     setSuccess(null)
 
     try {
-      const res = await fetch(`${API_URL}/admin/users/${userId}`, {
+      await apiFetch(`/admin/users/${userId}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
         body: JSON.stringify({ current_grade: currentGrade, current_part: currentPart, current_subpart: currentSubpart}),
       })
-
-      const data = await res.json()
-
-      if (!res.ok || !data.ok) {
-        throw new Error(data.message || '更新に失敗しました')
-      }
 
       setSuccess('ユーザー情報を更新しました')
       fetchUsers()
     } catch (err) {
-      setError(err instanceof Error ? err.message : String(err))
+      setError(formatApiError(err))
     }
   }
 
@@ -174,18 +142,11 @@ const AdminPage: React.FC = () => {
     }
 
     try {
-      const res = await fetch(`${API_URL}/admin/reset-password`, {
+      const data = await apiFetch<{ ok: boolean; user_id: string; password: string }>('/admin/reset-password', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
         body: JSON.stringify({ user_id: resetUserId }),
       })
-
-      const data = await res.json()
-
-      if (!res.ok || !data.ok) {
-        throw new Error(data.message || 'パスワードリセットに失敗しました')
-      }
 
       // リセット成功
       setResetResult({
@@ -195,7 +156,7 @@ const AdminPage: React.FC = () => {
       setSuccess('パスワードをリセットしました')
       setResetUserId('')
     } catch (err) {
-      setError(err instanceof Error ? err.message : String(err))
+      setError(formatApiError(err))
     }
   }
 
