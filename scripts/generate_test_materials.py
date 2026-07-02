@@ -184,7 +184,7 @@ POOL = [
     ('管理画面', '生徒の一覧と進捗が表示・変更できること（先生用機能）',
      '管理者ユーザーでログインした状態（自動で管理者画面が開く）',
      '① 「ユーザー情報」の表に生徒の一覧が表示されているか確認する。\n'
-     '② どれか1人の「編集」を押す。\n'
+     '② 「テスターB」の行の「編集」を押す（他のユーザーには触れないこと）。\n'
      '③ 「解いている最新のパート」の数字を1つ変えて「保存」を押す。\n'
      '④ 表の表示が変わったか確認する。\n'
      '⑤ 同じ手順で元の数字に戻しておく。',
@@ -471,13 +471,17 @@ def build_procedure():
         ('plain', '・スマホやタブレットは不要です（このテストはパソコンのChromeだけで行います）'),
         ('plain', ''),
         ('sec', '3-2. テスト用URLとアカウント（藤岡から別途お渡しします）'),
-        ('plain', 'テスト用URL: ＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿'),
-        ('plain', 'ユーザーA（全ステージ選択可能な生徒）: ID ＿＿＿＿＿ ／ パスワード ＿＿＿＿＿'),
-        ('plain', 'ユーザーB（進捗が途中の生徒。ステージ制限などの確認用）: ID ＿＿＿＿＿ ／ パスワード ＿＿＿＿＿'),
-        ('plain', '　→ ユーザーBの現在の進捗: 学年＿＿・パート＿＿・サブパート＿＿'),
-        ('plain', '管理者（先生役）: ID ＿＿＿＿＿ ／ パスワード ＿＿＿＿＿'),
+        ('plain', f"テスト用URL: {os.environ.get('TEST_URL', '＿' * 20)}"),
+        ('plain', f"ユーザーA（全ステージ選択可能な生徒）: ID {os.environ.get('TESTER_A_ID', '＿' * 5)} ／ "
+                  f"パスワード {os.environ.get('TESTER_A_PW', '＿' * 5)}"),
+        ('plain', f"ユーザーB（進捗が途中の生徒。ステージ制限などの確認用）: ID {os.environ.get('TESTER_B_ID', '＿' * 5)} ／ "
+                  f"パスワード {os.environ.get('TESTER_B_PW', '＿' * 5)}"),
+        ('plain', f"　→ ユーザーBの現在の進捗: {os.environ.get('TESTER_B_PROGRESS', '学年＿＿・パート＿＿・サブパート＿＿')}"),
+        ('plain', f"管理者（先生役）: ID {os.environ.get('ADMIN_ID', '＿' * 5)} ／ パスワード {os.environ.get('ADMIN_PW', '＿' * 5)}"),
         ('note', '※テスト項目書に「ユーザーA」「ユーザーB」「管理者」と書かれていたら、'
                  '上の対応するアカウントを使ってください。'),
+        ('note', '※管理画面のテストでは、テスターA・テスターB以外のユーザー'
+                 '（実際の生徒・先生のアカウント）には絶対に触れないでください。'),
         ('plain', ''),
         ('sec', '3-3. はじめる前の設定（1回だけ）'),
         ('plain', '① ChromeでテストURLを開く。'),
@@ -527,7 +531,8 @@ def build_procedure():
                   '迷ったら「気になった」と備考に書いてください。'),
     ])
 
-    out = os.path.join(ROOT, 'outputs', f'外注テスト手順書_{TODAY}.xlsx')
+    out = os.path.join(os.environ.get('OUT_DIR') or os.path.join(ROOT, 'outputs'),
+                       f'外注テスト手順書_{TODAY}.xlsx')
     wb.save(out)
     return out
 
@@ -604,7 +609,8 @@ def build_items():
     write_rows(ws2, rows, wrap_from=3)
     ws2.auto_filter.ref = ws2.dimensions
 
-    out = os.path.join(ROOT, 'outputs', f'外注テスト項目書_{TODAY}.xlsx')
+    out = os.path.join(os.environ.get('OUT_DIR') or os.path.join(ROOT, 'outputs'),
+                       f'外注テスト項目書_{TODAY}.xlsx')
     wb.save(out)
     return out
 
