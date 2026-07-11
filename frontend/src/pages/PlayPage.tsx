@@ -30,6 +30,8 @@ const PlayPage: React.FC = () => {
   const [idx, setIdx] = useState(0);
   const [showRequirement, setShowRequirement] = useState(true);
   const [showText, setShowText] = useState(false);
+  // 画像の読み込みに失敗した問題は、2カラムをやめて問題文を全幅表示に戻す (No141/B-10)
+  const [imageBroken, setImageBroken] = useState(false);
   const [realCorrect, setRealCorrect] = useState(0);
   const [error, setError] = useState<string | null>(null);
   const [remainingTime, setRemainingTime] = useState(TIME_LIMIT);
@@ -56,6 +58,9 @@ const PlayPage: React.FC = () => {
 
   const freezeDetectionTimerRef = useRef<number | null>(null);
   const lastActivityRef = useRef<number>(Date.now());
+  // フリーズ回復ダイアログ表示中フラグ(非同期処理からの参照用)。
+  // 表示中はゲーム進行を再開させず、ユーザーの明示操作まで閉じない (No137/B-06)
+  const frozenRef = useRef(false);
 
   const isProcessingRef = useRef(false);
   const questionsRef = useRef<Q[]>([]);
@@ -66,7 +71,7 @@ const PlayPage: React.FC = () => {
   const timerIntervalRef = useRef<number | null>(null);
 
   useEffect(() => { questionsRef.current = questions; }, [questions]);
-  useEffect(() => { idxRef.current = idx; }, [idx]);
+  useEffect(() => { idxRef.current = idx; setImageBroken(false); }, [idx]);
   useEffect(() => { statusRef.current = status; }, [status]);
   useEffect(() => { realCorrectRef.current = realCorrect; }, [realCorrect]);
   useEffect(() => { remainingTimeRef.current = remainingTime; }, [remainingTime]);
@@ -84,6 +89,7 @@ const PlayPage: React.FC = () => {
 
   // ---------------------- Countdown Timer ----------------------
   const handleTimeUp = useCallback(async () => {
+    if (frozenRef.current) return;
     if (isProcessingRef.current) return;
     isProcessingRef.current = true;
 
@@ -153,24 +159,7 @@ const PlayPage: React.FC = () => {
   const [frozen, setFrozen] = useState(false);
 
   // ---------------------- Freeze Detection ----------------------
-  const startFreezeDetection = useCallback(() => {
-    lastActivityRef.current = Date.now();
-    setFrozen(false);
-    if (freezeDetectionTimerRef.current) {
-      window.clearInterval(freezeDetectionTimerRef.current);
-    }
-    freezeDetectionTimerRef.current = window.setInterval(() => {
-      const timeSinceActivity = Date.now() - lastActivityRef.current;
-      if (timeSinceActivity > FREEZE_TIMEOUT_MS && statusRef.current !== 'finished' && statusRef.current !== 'idle') {
-        console.error(`[Freeze] Game appears to be frozen - no activity for ${FREEZE_TIMEOUT_MS / 1000} seconds`);
-        setFrozen(true);
-        if (freezeDetectionTimerRef.current) {
-          window.clearInterval(freezeDetectionTimerRef.current);
-          freezeDetectionTimerRef.current = null;
-        }
-      }
-    }, FREEZE_CHECK_INTERVAL_MS);
-  }, []);
+  // startFreezeDetection は停止系ヘルパー(stopCurrentAudio等)に依存するため後方で定義する
 
   const updateActivity = useCallback(() => {
     lastActivityRef.current = Date.now();
@@ -294,6 +283,37 @@ const PlayPage: React.FC = () => {
     isSpeakingRef.current = false;
   }, []);
 
+  // フリーズ検知: 一定時間アクティビティが無ければ回復ダイアログを表示する。
+  // 検知時は裏で走っている進行処理をすべて止め、ダイアログはユーザーが
+  // リトライ/次の問題へ/やめる を選ぶまで閉じない (No137/B-06)
+  const startFreezeDetection = useCallback(() => {
+    lastActivityRef.current = Date.now();
+    frozenRef.current = false;
+    setFrozen(false);
+    if (freezeDetectionTimerRef.current) {
+      window.clearInterval(freezeDetectionTimerRef.current);
+    }
+    freezeDetectionTimerRef.current = window.setInterval(() => {
+      const timeSinceActivity = Date.now() - lastActivityRef.current;
+      if (timeSinceActivity > FREEZE_TIMEOUT_MS && statusRef.current !== 'finished' && statusRef.current !== 'idle') {
+        console.error(`[Freeze] Game appears to be frozen - no activity for ${FREEZE_TIMEOUT_MS / 1000} seconds`);
+        frozenRef.current = true;
+        setFrozen(true);
+        // 詰まっていた処理が後から解けてダイアログ裏でゲームが進行
+        // (=ダイアログが勝手に閉じる)しないよう、進行中の処理を停止する
+        if (abortControllerRef.current) abortControllerRef.current.abort();
+        stopCurrentAudio();
+        forceStopRecognition();
+        stopTimer();
+        isProcessingRef.current = false;
+        if (freezeDetectionTimerRef.current) {
+          window.clearInterval(freezeDetectionTimerRef.current);
+          freezeDetectionTimerRef.current = null;
+        }
+      }
+    }, FREEZE_CHECK_INTERVAL_MS);
+  }, [stopCurrentAudio, forceStopRecognition, stopTimer]);
+
   useEffect(() => {
     if (micActive) muteCurrentAudio();
     else unmuteCurrentAudio();
@@ -348,6 +368,8 @@ const PlayPage: React.FC = () => {
   const startQuestionForIndex = useCallback(async (questionIndex: number) => {
     const q = questionsRef.current[questionIndex];
     if (!q || statusRef.current === 'finished') return;
+    // フリーズダイアログ表示中は進行しない(ユーザー操作で明示的に再開する)
+    if (frozenRef.current) return;
 
     startFreezeDetection();
     updateActivity();
@@ -407,6 +429,7 @@ const PlayPage: React.FC = () => {
 
   // ---------------------- Intermission => Next ----------------------
   const startIntermissionThenNext = useCallback(async () => {
+    if (frozenRef.current) return;
     const q = questionsRef.current[idxRef.current];
     const ans = q?.answers?.[0] ?? '';
 
@@ -436,6 +459,7 @@ const PlayPage: React.FC = () => {
   }, [enemyVariant, dispatchAndSync]);
 
   const moveToNextQuestion = useCallback(async () => {
+    if (frozenRef.current) return;
     updateActivity();
     isProcessingRef.current = false;
     setMicActive(false);
@@ -658,12 +682,14 @@ const PlayPage: React.FC = () => {
 
   // ---------------------- Finish Game ----------------------
   const finishGame = useCallback(async () => {
+    if (frozenRef.current) return;
     const nonDemoCount = questionsRef.current.filter(q => !q.is_demo).length;
     const finalCorrect = realCorrectRef.current;
     const clear = finalCorrect >= CORRECT_TO_CLEAR;
 
     const userId = session?.userId || '';
     const part_id = questionsRef.current[0]?.part_id || partInfo?.part_id || '';
+    let advanced = false;
 
     try {
       if (!userId) throw new Error('ユーザーIDが見つかりません');
@@ -676,30 +702,30 @@ const PlayPage: React.FC = () => {
         body: JSON.stringify({ userId, part_id, scores: finalCorrect, clear }),
       });
 
-      // クリアした場合のみ進捗を更新
-      if (clear) {
-        const currentGrade = grade ?? session?.currentGrade ?? '1';
-        const currentPart = part ?? session?.currentPart ?? '1';
-        const currentSubpart = subpart ?? session?.currentSubpart ?? '1';
+      // 進捗更新: クリア時に加え、未クリアでも規定回数(10回)挑戦していれば
+      // バックエンドが解放判定するため、結果確定のたびに必ず問い合わせる
+      const currentGrade = grade ?? session?.currentGrade ?? '1';
+      const currentPart = part ?? session?.currentPart ?? '1';
+      const currentSubpart = subpart ?? session?.currentSubpart ?? '1';
 
-        const advanceData = await apiFetch<{
-          ok: boolean;
-          advanced?: boolean;
-          next?: { grade_id: number; part_no: number; subpart_no: number };
-        }>(`/game/advance`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            userId,
-            current: { grade: currentGrade, part: currentPart, subpart: currentSubpart },
-            part_id,
-            clear: true
-          }),
-        });
+      const advanceData = await apiFetch<{
+        ok: boolean;
+        advanced?: boolean;
+        next?: { grade_id: number; part_no: number; subpart_no: number };
+      }>(`/game/advance`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          userId,
+          current: { grade: currentGrade, part: currentPart, subpart: currentSubpart },
+          part_id,
+          clear
+        }),
+      });
 
-        if (advanceData.ok && advanceData.advanced && advanceData.next) {
-          updateProgress(advanceData.next.grade_id, advanceData.next.part_no, advanceData.next.subpart_no);
-        }
+      if (advanceData.ok && advanceData.advanced && advanceData.next) {
+        advanced = true;
+        updateProgress(advanceData.next.grade_id, advanceData.next.part_no, advanceData.next.subpart_no);
       }
     } catch (err) {
       // 認証切れはAuthExpiryHandlerがログイン画面へ誘導する (No139/No140)
@@ -717,11 +743,12 @@ const PlayPage: React.FC = () => {
       );
     }
 
-    nav('/result', { state: { clear, correct: finalCorrect, total: nonDemoCount } });
+    nav('/result', { state: { clear, correct: finalCorrect, total: nonDemoCount, advanced } });
   }, [partInfo, grade, part, subpart, nav, session, updateProgress]);
 
   // ---------------------- Freeze Recovery ----------------------
   const handleFreezeRecovery = useCallback(() => {
+    frozenRef.current = false;
     setFrozen(false);
     stopCurrentAudio();
     forceStopRecognition();
@@ -905,17 +932,17 @@ const PlayPage: React.FC = () => {
             <div className="banner-text">{bannerText}</div>
           )}
 
-          <div className={`question-text${current?.image_url ? ' with-image' : ''}`}>
+          <div className={`question-text${current?.image_url && !imageBroken ? ' with-image' : ''}`}>
             {!bannerText && showText && current ? current.question_text : ''}
           </div>
 
-          {current?.image_url && (
+          {current?.image_url && !imageBroken && (
             <div className="question-image-container">
               <img
                 src={current.image_url}
                 alt=""
                 className="question-image"
-                onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
+                onError={() => setImageBroken(true)}
               />
             </div>
           )}
@@ -955,6 +982,7 @@ const PlayPage: React.FC = () => {
             <p>問題の読み込み中にエラーが発生した可能性があります。</p>
             <div style={{ display: 'flex', gap: 12, justifyContent: 'center' }}>
               <Button onClick={() => {
+                frozenRef.current = false;
                 setFrozen(false);
                 // 現在の問題をリトライ
                 if (abortControllerRef.current) abortControllerRef.current.abort();

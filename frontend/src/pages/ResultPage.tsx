@@ -10,11 +10,12 @@ const ResultPage: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { logout } = useAuth();
-  const state = location.state as { clear?: boolean; correct?: number; total?: number } | null;
+  const state = location.state as { clear?: boolean; correct?: number; total?: number; advanced?: boolean } | null;
 
   const clear = state?.clear ?? false;
   const correct = state?.correct ?? 0;
   const total = state?.total ?? 0;
+  const advanced = state?.advanced ?? false;
 
   const percentage = total > 0 ? Math.round((correct / total) * 100) : 0;
 
@@ -62,6 +63,10 @@ const ResultPage: React.FC = () => {
 
         {clear ? (
           <div style={{ fontSize: 18, color: '#94a3b8', marginBottom: 30 }}>次のステージが解放されました！</div>
+        ) : advanced ? (
+          <div style={{ fontSize: 18, color: '#94a3b8', marginBottom: 30 }}>
+            10回挑戦したため、次のステージが解放されました！
+          </div>
         ) : (
           <div style={{ fontSize: 18, color: '#94a3b8', marginBottom: 30 }}>
             {total > 0 && Math.max(0, CORRECT_TO_CLEAR - correct) > 0 && <>あと {Math.max(0, CORRECT_TO_CLEAR - correct)} 問正解でクリア！</>}
