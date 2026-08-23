@@ -271,7 +271,10 @@
   100% { opacity: 0; transform: translate(-50%, -50%) scale(1.2); }
 }
 
-/* 問題文 */
+/* 問題文
+   フォントは画面の幅(vw)に加えて高さ(vh)にも追従させる。
+   高さの低い画面で行数が増えたとき、下端(ガンボタン領域)に食い込んで
+   4行目が見切れるのを防ぐため (2026-08 Mukaさん報告) */
 .question-text {
   position: absolute;
   top: 250px;
@@ -279,13 +282,19 @@
   transform: translateX(-50%);
   width: 80%;
   max-width: 800px;
-  font-size: clamp(40px, 6vw, 75px);
+  font-size: clamp(40px, min(6vw, 8.5vh), 75px);
+  line-height: 1.2;
   font-weight: 600;
   color: #fff;
   text-align: center;
   text-shadow: 2px 2px 6px rgba(0, 0, 0, 0.7);
   z-index: 100;
   min-height: 50px;
+}
+
+/* 46文字以上の長文(最長66〜70文字)は縮小し、3行以内に収める */
+.question-text.long-text {
+  font-size: clamp(26px, min(4.2vw, 6vh), 52px);
 }
 
 /* イラストあり問題: 問題文は中央カラム・画像は右カラムに分離して重なりを防ぐ
@@ -295,7 +304,12 @@
   transform: none;
   width: calc(100% - 300px - 80px - 216px); /* 100% - 画像幅 - 画像右余白 - バッジ列+余白 */
   max-width: none;
-  font-size: clamp(32px, 5vw, 68px);
+  font-size: clamp(32px, min(5vw, 7.5vh), 68px);
+}
+
+/* イラストありの長文: カラム幅が狭いぶんさらに縮小する */
+.question-text.with-image.long-text {
+  font-size: clamp(22px, min(3.4vw, 5vh), 44px);
 }
 
 /* 問題画像 */
@@ -494,10 +508,18 @@
     width: 90%;
   }
 
+  .question-text.long-text {
+    font-size: 22px;
+  }
+
   .question-text.with-image {
     left: 76px; /* 問題番号バッジ列(left:20px+48px)を避ける */
     width: calc(100% - 150px - 20px - 84px);
     font-size: 22px;
+  }
+
+  .question-text.with-image.long-text {
+    font-size: 18px;
   }
 
   .enemy-img {
@@ -639,10 +661,18 @@
     min-height: 0;
   }
 
+  .question-text.long-text {
+    font-size: 24px;
+  }
+
   .question-text.with-image {
     left: 64px;
     width: calc(100% - 120px - 12px - 76px);
     font-size: 24px;
+  }
+
+  .question-text.with-image.long-text {
+    font-size: 20px;
   }
 
   .question-image-container {

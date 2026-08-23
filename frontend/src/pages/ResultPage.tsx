@@ -10,12 +10,14 @@ const ResultPage: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { logout } = useAuth();
-  const state = location.state as { clear?: boolean; correct?: number; total?: number; advanced?: boolean } | null;
+  const state = location.state as { clear?: boolean; correct?: number; total?: number; advanced?: boolean; requiredAttempts?: number } | null;
 
   const clear = state?.clear ?? false;
   const correct = state?.correct ?? 0;
   const total = state?.total ?? 0;
   const advanced = state?.advanced ?? false;
+  // 解放に必要な挑戦回数(バックエンド応答値)。取得できない場合は現仕様の3回
+  const requiredAttempts = state?.requiredAttempts ?? 3;
 
   const percentage = total > 0 ? Math.round((correct / total) * 100) : 0;
 
@@ -65,7 +67,7 @@ const ResultPage: React.FC = () => {
           <div style={{ fontSize: 18, color: '#94a3b8', marginBottom: 30 }}>次のステージが解放されました！</div>
         ) : advanced ? (
           <div style={{ fontSize: 18, color: '#94a3b8', marginBottom: 30 }}>
-            10回挑戦したため、次のステージが解放されました！
+            {requiredAttempts}回挑戦したため、次のステージが解放されました！
           </div>
         ) : (
           <div style={{ fontSize: 18, color: '#94a3b8', marginBottom: 30 }}>

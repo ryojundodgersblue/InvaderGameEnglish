@@ -9,7 +9,7 @@ import type { Q, PartInfo, IntermissionSnapshot, GamePhase } from '../types/game
 import type { SpeechRecognition, SpeechRecognitionEvent, SpeechRecognitionErrorEvent } from '../types/speechRecognition';
 import { CORRECT_TO_CLEAR, MAX_QUESTIONS, TIME_LIMIT, DLY, TTS_VOLUME, FUZZY_MATCH_THRESHOLD, FREEZE_TIMEOUT_MS, FREEZE_CHECK_INTERVAL_MS } from '../constants/game';
 import { useAuth } from '../hooks/useAuth';
-import { normalize, simLevenshtein, jaccard, containsAsToken } from '../utils/textMatch';
+import { normalize, simLevenshtein, jaccard, containsAsToken, expandWontToWant } from '../utils/textMatch';
 import { playSound, playSoundAwait } from '../utils/sound';
 import { delay } from '../utils/delay';
 import { speakText, prefetchSpeech } from '../utils/ttsAudio';
@@ -605,7 +605,9 @@ const PlayPage: React.FC = () => {
       return;
     }
 
-    const heardRaw = [...capturedRef.current];
+    // won't 誤認識の補正: want が正解の問題に限り、won't→want 候補を追加する
+    // (won't が正解の 2-14-1 では expandWontToWant 内の判定により適用されない)
+    const heardRaw = expandWontToWant([...capturedRef.current], q.answers || []);
     const heard = heardRaw.map(normalize).filter(Boolean);
     const answers = (q.answers || []).map(normalize).filter(Boolean);
 
@@ -690,6 +692,8 @@ const PlayPage: React.FC = () => {
     const userId = session?.userId || '';
     const part_id = questionsRef.current[0]?.part_id || partInfo?.part_id || '';
     let advanced = false;
+    // 解放に必要な挑戦回数はバックエンドの応答値を表示に使う(定数の二重管理を避ける)
+    let requiredAttempts: number | undefined;
 
     try {
       if (!userId) throw new Error('ユーザーIDが見つかりません');
@@ -702,8 +706,8 @@ const PlayPage: React.FC = () => {
         body: JSON.stringify({ userId, part_id, scores: finalCorrect, clear }),
       });
 
-      // 進捗更新: クリア時に加え、未クリアでも規定回数(10回)挑戦していれば
-      // バックエンドが解放判定するため、結果確定のたびに必ず問い合わせる
+      // 進捗更新: クリア時に加え、未クリアでも規定回数(バックエンドのREQUIRED_ATTEMPTS)
+      // 挑戦していれば解放判定されるため、結果確定のたびに必ず問い合わせる
       const currentGrade = grade ?? session?.currentGrade ?? '1';
       const currentPart = part ?? session?.currentPart ?? '1';
       const currentSubpart = subpart ?? session?.currentSubpart ?? '1';
@@ -711,6 +715,7 @@ const PlayPage: React.FC = () => {
       const advanceData = await apiFetch<{
         ok: boolean;
         advanced?: boolean;
+        required?: number;
         next?: { grade_id: number; part_no: number; subpart_no: number };
       }>(`/game/advance`, {
         method: 'POST',
@@ -722,6 +727,8 @@ const PlayPage: React.FC = () => {
           clear
         }),
       });
+
+      requiredAttempts = advanceData.required;
 
       if (advanceData.ok && advanceData.advanced && advanceData.next) {
         advanced = true;
@@ -743,7 +750,7 @@ const PlayPage: React.FC = () => {
       );
     }
 
-    nav('/result', { state: { clear, correct: finalCorrect, total: nonDemoCount, advanced } });
+    nav('/result', { state: { clear, correct: finalCorrect, total: nonDemoCount, advanced, requiredAttempts } });
   }, [partInfo, grade, part, subpart, nav, session, updateProgress]);
 
   // ---------------------- Freeze Recovery ----------------------
@@ -826,6 +833,9 @@ const PlayPage: React.FC = () => {
   }
 
   const showIntermission = status === 'intermission' && intermissionSnap;
+
+  // 46文字以上の長文はフォントを縮小して4行見切れを防ぐ (最長66〜70文字を想定)
+  const longTextClass = (text?: string) => ((text?.length ?? 0) >= 46 ? ' long-text' : '');
 
   const enemyContainerClass = `enemy-container ${enemyVariant === 'normal' ? 'enemy-normal' : 'enemy-front'}`;
   const enemyImgClass = `enemy-img ${
@@ -915,7 +925,7 @@ const PlayPage: React.FC = () => {
         </div>
       ) : showIntermission ? (
         <>
-          <div className="question-text">
+          <div className={`question-text${longTextClass(intermissionSnap?.text)}`}>
             {intermissionSnap?.text}
           </div>
           <div className="answer-display correct-answer">
@@ -932,7 +942,7 @@ const PlayPage: React.FC = () => {
             <div className="banner-text">{bannerText}</div>
           )}
 
-          <div className={`question-text${current?.image_url && !imageBroken ? ' with-image' : ''}`}>
+          <div className={`question-text${current?.image_url && !imageBroken ? ' with-image' : ''}${longTextClass(current?.question_text)}`}>
             {!bannerText && showText && current ? current.question_text : ''}
           </div>
 

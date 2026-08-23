@@ -68,6 +68,27 @@ const CONTRACTIONS_NO_APOSTROPHE: Array<[RegExp, string]> = [
   [/\btheyve\b/g, 'they have'],
 ];
 
+// want→won't 誤認識の補正 (2026-08-11 Mukaさん承認)。
+// 児童が「want」と言っても音声認識が「won't」と返すことがあるため、
+// won't を want と読み替えた候補を判定に追加する。
+// ただし won't が正解の問題 (2-14-1 の8問) で適用すると
+// 「want」と発話しても正解になってしまうため、
+// 「正解に want を含み、won't / will not を含まない問題」に限定する。
+const WONT_REGEX = /\bwon'?t\b/i;
+const WONT_REPLACE_REGEX = /\bwon'?t\b/gi;
+
+export const wantCorrectionApplies = (rawAnswers: string[]): boolean =>
+  rawAnswers.some(a => /\bwant\b/i.test(a)) &&
+  !rawAnswers.some(a => WONT_REGEX.test(a) || /\bwill not\b/i.test(a));
+
+/** 補正対象の問題なら、won't→want に置換した聞き取り候補を元の候補に追加して返す */
+export const expandWontToWant = (heardList: string[], rawAnswers: string[]): string[] => {
+  if (!wantCorrectionApplies(rawAnswers)) return heardList;
+  return heardList.flatMap(t =>
+    WONT_REGEX.test(t) ? [t, t.replace(WONT_REPLACE_REGEX, 'want')] : [t]
+  );
+};
+
 export const normalize = (s: string) => {
   let t = s.toLowerCase().replace(/[’‘]/g, "'");
   for (const [re, rep] of CONTRACTIONS) t = t.replace(re, rep);

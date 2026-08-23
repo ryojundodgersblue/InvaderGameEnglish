@@ -9,7 +9,7 @@ const {
   SHEET_NAMES, HEADERS, USER_COL,
   MAX_QUESTIONS, REQUIRED_ATTEMPTS,
   ensureSheetId, validateHeader, fetchSheet, fetchSheetWithValidation,
-  findUserRow, toBool, nowTimestamp,
+  findUserRow, canonUserId, toBool, nowTimestamp,
   getSheetsClient, SPREADSHEET_ID,
 } = require('../utils/sheets');
 
@@ -161,13 +161,18 @@ router.post('/score',
       if (ids.length) nextId = Math.max(...ids) + 1;
     }
 
-    const row = [String(nextId), String(userId), String(part_id), scoreValue, clearValue, nowTimestamp()];
+    // valueInputOption は RAW を使う。USER_ENTERED だと "00007" のような
+    // ゼロ埋め user_id が数値7に変換され、usersシートと突合できなくなる
+    // (ランキングの表示名が番号になる不具合の原因)。
+    // score_id / part_id は従来どおり数値セルになるよう数値型で渡す
+    const partIdCell = /^\d+$/.test(String(part_id)) ? Number(part_id) : String(part_id);
+    const row = [nextId, String(userId), partIdCell, scoreValue, clearValue, nowTimestamp()];
 
     const sheets = await getSheetsClient(false);
     await sheets.spreadsheets.values.append({
       spreadsheetId: SPREADSHEET_ID,
       range: `${SHEET_NAMES.SCORES}!A:F`,
-      valueInputOption: 'USER_ENTERED',
+      valueInputOption: 'RAW',
       requestBody: { values: [row] },
     });
 
@@ -215,8 +220,10 @@ router.post('/advance',
     if (idxUser < 0 || idxPart < 0) {
       return res.status(500).json({ ok: false, message: 'scores ヘッダ不一致' });
     }
+    // user_id はゼロ埋めの有無が混在するため正規化して突合する
+    // ("00007"のユーザーの挑戦回数が0のままになる不具合の対策)
     const attempts = sRows.slice(1).filter(r =>
-      String(r[idxUser] || '') === String(userId) &&
+      canonUserId(r[idxUser]) === canonUserId(userId) &&
       String(r[idxPart] || '') === String(part_id)
     ).length;
 

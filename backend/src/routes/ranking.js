@@ -5,7 +5,7 @@ const { optionalAuth } = require('../middleware/auth');
 const { getCache, setCache, getRankingKey, getSheetsKey, DEFAULT_TTL } = require('../services/redis');
 const {
   SHEET_NAMES, RANKING_TOP_N,
-  ensureSheetId, fetchSheet,
+  ensureSheetId, fetchSheet, canonUserId,
 } = require('../utils/sheets');
 
 const nowMonthKey = () => {
@@ -39,7 +39,9 @@ router.get('/', optionalAuth, async (_req, res) => {
     if (cachedRanking) return res.json(cachedRanking);
 
     // ===== users =====
-    const usersCacheKey = getSheetsKey(SHEET_NAMES.USERS, 'all');
+    // キーは canonUserId で正規化して保持する。scoresシートには
+    // ゼロ埋めが落ちた user_id (例: "00007"→7) が混在するため (キー名はv2で更新)
+    const usersCacheKey = getSheetsKey(SHEET_NAMES.USERS, 'all_v2');
     let usersMap = await getCache(usersCacheKey);
 
     if (!usersMap) {
@@ -60,7 +62,7 @@ router.get('/', optionalAuth, async (_req, res) => {
       for (const r of uRows.slice(1)) {
         const userId = String(r[idxUserId] ?? '').trim();
         const nick = String(r[idxNick] ?? '').trim();
-        if (userId) usersMap.set(userId, nick || userId);
+        if (userId) usersMap.set(canonUserId(userId), nick || userId);
       }
 
       await setCache(usersCacheKey, Object.fromEntries(usersMap), DEFAULT_TTL.SHEETS_DATA);
@@ -87,9 +89,11 @@ router.get('/', optionalAuth, async (_req, res) => {
     const monthRows = sRows.slice(1).filter(r => toMonthKey(r[idxDate]) === mk);
 
     // ① 挑戦回数
+    // 集計キーも正規化する: 同一ユーザーの記録が "00007" と 7 の両形式で
+    // 混在していても1人分として合算されるようにする
     const countByUser = new Map();
     for (const r of monthRows) {
-      const uid = String(r[idxUser] ?? '').trim();
+      const uid = canonUserId(r[idxUser]);
       if (!uid) continue;
       countByUser.set(uid, (countByUser.get(uid) || 0) + 1);
     }
@@ -103,7 +107,7 @@ router.get('/', optionalAuth, async (_req, res) => {
     const sum = new Map();
     const cnt = new Map();
     for (const r of monthRows) {
-      const uid = String(r[idxUser] ?? '').trim();
+      const uid = canonUserId(r[idxUser]);
       if (!uid) continue;
       const val = Number(r[idxScore] ?? 0);
       sum.set(uid, (sum.get(uid) || 0) + (Number.isFinite(val) ? val : 0));

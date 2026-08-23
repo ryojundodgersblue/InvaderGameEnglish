@@ -36,7 +36,8 @@ const USER_COL = {
 
 // ===== ゲーム定数 =====
 const MAX_QUESTIONS = 8;
-const REQUIRED_ATTEMPTS = 10;
+// 未クリアでも次ステージを解放する挑戦回数 (2026-08-11 Mukaさん依頼で10回→3回)
+const REQUIRED_ATTEMPTS = 3;
 const RANKING_TOP_N = 3;
 const PASSWORD_LENGTH = 8;
 const USER_ID_PAD_LENGTH = 5;
@@ -125,6 +126,17 @@ function findUserRow(dataRows, userId) {
 }
 
 /**
+ * user_id を突合用に正規化する（数字のみの場合は先頭ゼロを除去）。
+ * usersシートは "00007" のようなゼロ埋め文字列だが、scoresシートには
+ * USER_ENTERED書き込みで数値化された 7 が混在しているため、
+ * 両者を同じ表現に揃えてから比較する。
+ */
+function canonUserId(value) {
+  const s = String(value ?? '').trim();
+  return /^\d+$/.test(s) ? String(Number(s)) : s;
+}
+
+/**
  * 値をbooleanに変換する（Sheetsのデータはstring/number/booleanが混在するため）
  */
 function toBool(value) {
@@ -155,6 +167,7 @@ module.exports = {
   fetchSheet,
   fetchSheetWithValidation,
   findUserRow,
+  canonUserId,
   toBool,
   nowTimestamp,
   getSheetsClient,
