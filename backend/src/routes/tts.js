@@ -24,16 +24,13 @@ const PRONUNCIATION_OVERRIDES = {
 // read を過去形/過去分詞 /red/ で読む文(完全一致・要望No.155/182)。
 // デフォルトは No.152 どおり現在形 /riːd/。
 // ※問題カタログの文言修正(482問)で本文が変わった場合はここも追随させること
+// 2026-08-31: 発注者による問題文修正(コンテンツ修正一括反映)後の本番文面と同期済み。
+// 旧文面(2-38-2-2/2-41-2-8/2-42-1-7の各read文・"about the history")は本番から消えたため削除
 const PAST_READ_TEXTS = new Set([
   'They read a book yesterday.',                                // 1-46-2-2 解答 (No.182)
-  'She read the book last night.',                              // 2-38-2-2 問題文
-  'The book was read by her last night.',                       // 2-38-2-2 解答(受け身)
-  'What is read by many students?',                             // 2-41-2-8 問題文(受け身)
-  'This book is read by many students.',                        // 2-41-2-8 解答(受け身)
-  'Have you ever read "Harry Potter"?',                         // 2-42-1-7 問題文(現在完了)
   'Has he read this book yet?',                                 // 2-47-1-7 問題文(現在完了)
   'He has already read this book.',                             // 2-47-1-7 解答(現在完了)
-  'I read a book about the history.',                           // 3-24-2-4 解答 (No.155)
+  'I read a book about history.',                               // 3-24-2-4 解答 (No.155・2026-08修正後の文面)
   'It is a book read by many students.',                        // 3-26-1-6 解答 (No.155)
   'She read a letter. The letter was written in English.',      // 3-26-2-3 問題文 (No.155)
   'She read a letter written in English.',                      // 3-26-2-3 解答 (No.155)

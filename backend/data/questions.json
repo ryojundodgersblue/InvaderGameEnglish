@@ -2949,7 +2949,7 @@
     "display_order": 1,
     "is_demo": true,
     "question_text": "You like soccer.",
-    "image_url": "/questions/1_24_1_01.png"
+    "image_url": ""
   },
   {
     "question_id": 12412,
@@ -2957,7 +2957,7 @@
     "display_order": 2,
     "is_demo": false,
     "question_text": "They speak English.",
-    "image_url": "/questions/1_24_1_02.png"
+    "image_url": ""
   },
   {
     "question_id": 12413,
@@ -2965,7 +2965,7 @@
     "display_order": 3,
     "is_demo": false,
     "question_text": "We play the piano.",
-    "image_url": "/questions/1_24_1_03.png"
+    "image_url": ""
   },
   {
     "question_id": 12414,
@@ -2973,7 +2973,7 @@
     "display_order": 4,
     "is_demo": false,
     "question_text": "They read books.",
-    "image_url": "/questions/1_24_1_04.png"
+    "image_url": ""
   },
   {
     "question_id": 12415,
@@ -2981,7 +2981,7 @@
     "display_order": 5,
     "is_demo": false,
     "question_text": "We have a brother.",
-    "image_url": "/questions/1_24_1_05.png"
+    "image_url": ""
   },
   {
     "question_id": 12416,
@@ -2989,7 +2989,7 @@
     "display_order": 6,
     "is_demo": false,
     "question_text": "You study English.",
-    "image_url": "/questions/1_24_1_06.png"
+    "image_url": ""
   },
   {
     "question_id": 12417,
@@ -2997,7 +2997,7 @@
     "display_order": 7,
     "is_demo": false,
     "question_text": "We swim in the river.",
-    "image_url": "/questions/1_24_1_07.png"
+    "image_url": ""
   },
   {
     "question_id": 12418,
@@ -3005,7 +3005,7 @@
     "display_order": 8,
     "is_demo": false,
     "question_text": "You walk to school.",
-    "image_url": "/questions/1_24_1_08.png"
+    "image_url": ""
   },
   {
     "question_id": 12421,
@@ -3077,7 +3077,7 @@
     "display_order": 1,
     "is_demo": true,
     "question_text": "She likes cats.",
-    "image_url": "/questions/1_25_1_01.png"
+    "image_url": ""
   },
   {
     "question_id": 12512,
@@ -3085,7 +3085,7 @@
     "display_order": 2,
     "is_demo": false,
     "question_text": "My sister reads books.",
-    "image_url": "/questions/1_25_1_02.png"
+    "image_url": ""
   },
   {
     "question_id": 12513,
@@ -3093,7 +3093,7 @@
     "display_order": 3,
     "is_demo": false,
     "question_text": "He plays the guitar.",
-    "image_url": "/questions/1_25_1_03.png"
+    "image_url": ""
   },
   {
     "question_id": 12514,
@@ -3101,7 +3101,7 @@
     "display_order": 4,
     "is_demo": false,
     "question_text": "Mary speaks Japanese.",
-    "image_url": "/questions/1_25_1_04.png"
+    "image_url": ""
   },
   {
     "question_id": 12515,
@@ -3109,7 +3109,7 @@
     "display_order": 5,
     "is_demo": false,
     "question_text": "He studies math.",
-    "image_url": "/questions/1_25_1_05.png"
+    "image_url": ""
   },
   {
     "question_id": 12516,
@@ -3117,7 +3117,7 @@
     "display_order": 6,
     "is_demo": false,
     "question_text": "She has a bag.",
-    "image_url": "/questions/1_25_1_06.png"
+    "image_url": ""
   },
   {
     "question_id": 12517,
@@ -3125,7 +3125,7 @@
     "display_order": 7,
     "is_demo": false,
     "question_text": "My friend likes dogs.",
-    "image_url": "/questions/1_25_1_07.png"
+    "image_url": ""
   },
   {
     "question_id": 12518,
@@ -3133,7 +3133,7 @@
     "display_order": 8,
     "is_demo": false,
     "question_text": "She reads a newspaper.",
-    "image_url": "/questions/1_25_1_08.png"
+    "image_url": ""
   },
   {
     "question_id": 12521,

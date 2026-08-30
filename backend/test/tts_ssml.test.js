@@ -11,7 +11,7 @@ test('キャッシュ版数が上がっている(旧音声を引き当てない)
 
 test('過去形の read は /red/ で読む (No.155対象文)', () => {
   const pastSentences = [
-    'I read a book about the history.',                          // 3-24-2-4 解答
+    'I read a book about history.',                              // 3-24-2-4 解答(2026-08修正後の文面)
     'It is a book read by many students.',                       // 3-26-1-6 解答(過去分詞)
     'She read a letter. The letter was written in English.',     // 3-26-2-3
     'He read a book written by a famous writer.',                // 3-26-2-6 解答
@@ -42,9 +42,9 @@ test('現在形・原形の read は /riːd/ のまま (No.152の維持=デグ�
 });
 
 test('現在完了・受け身のreadも /red/ (文法上の正しさ)', () => {
-  assert.match(buildSsml('Have you ever read "Harry Potter"?'), /ph="red"/);
-  assert.match(buildSsml('This book is read by many students.'), /ph="red"/);
+  assert.match(buildSsml('Has he read this book yet?'), /ph="red"/);
   assert.match(buildSsml('He has already read this book.'), /ph="red"/);
+  assert.match(buildSsml('It is a book read by many students.'), /ph="red"/);
 });
 
 test('Botchan は発音指定される (No.156・カタログ反映後に効く)', () => {
