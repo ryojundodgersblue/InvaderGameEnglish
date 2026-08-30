@@ -1,0 +1,304 @@
+<title>えいごゲーム あそびかたガイド</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Zen+Maru+Gothic:wght@500;700;900&family=Noto+Sans+JP:wght@400;500;700&display=swap">
+<style>
+  :root {
+    --ink: #253048;
+    --muted: #6b7280;
+    --accent: #4740b3;
+    --accent-soft: #eeedfb;
+    --amber: #b45309;
+    --amber-soft: #fdf3df;
+    --green: #1f7a45;
+    --green-soft: #e5f4ea;
+    --red: #c2413b;
+    --red-soft: #fbe9e7;
+    --line: #dfe3ee;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  body {
+    background: #ffffff;
+    color: var(--ink);
+    font-family: 'Noto Sans JP', 'Hiragino Sans', sans-serif;
+    font-size: 10.5pt;
+    line-height: 1.75;
+  }
+  @page { size: A4; margin: 0; }
+  .page {
+    width: 210mm;
+    min-height: 296mm;
+    margin: 0 auto;
+    padding: 13mm 14mm 11mm;
+    background: #ffffff;
+    position: relative;
+    page-break-after: always;
+  }
+  .page:last-child { page-break-after: auto; }
+
+  h1, h2, h3 { font-family: 'Zen Maru Gothic', 'Noto Sans JP', sans-serif; margin: 0; line-height: 1.4; }
+
+  /* ヘッダー */
+  .head {
+    display: flex; align-items: center; gap: 12px;
+    border-bottom: 3px solid var(--accent);
+    padding-bottom: 10px; margin-bottom: 12px;
+  }
+  .head .invader { font-size: 34px; }
+  .head h1 { font-size: 21pt; font-weight: 900; letter-spacing: .02em; }
+  .head .sub { font-size: 9pt; color: var(--muted); margin-top: 2px; }
+  .head .who {
+    margin-left: auto; text-align: center;
+    background: var(--accent-soft); color: var(--accent);
+    border-radius: 12px; padding: 6px 14px;
+    font-family: 'Zen Maru Gothic', sans-serif; font-weight: 700; font-size: 10pt;
+    white-space: nowrap;
+  }
+
+  /* 用意するもの */
+  .ready {
+    display: flex; gap: 8px; margin-bottom: 12px;
+  }
+  .ready .item {
+    flex: 1; background: #f7f8fc; border: 1.5px solid var(--line); border-radius: 12px;
+    padding: 8px 10px; text-align: center; font-size: 9.5pt; line-height: 1.5;
+  }
+  .ready .item .em { font-size: 20px; display: block; margin-bottom: 2px; }
+  .ready .item b { font-family: 'Zen Maru Gothic', sans-serif; }
+
+  /* ステップカード */
+  .step {
+    display: flex; gap: 12px; align-items: flex-start;
+    border: 2px solid var(--line); border-radius: 14px;
+    padding: 10px 14px 11px; margin-bottom: 10px;
+  }
+  .step .no {
+    flex: 0 0 auto;
+    width: 40px; height: 40px; border-radius: 50%;
+    background: var(--accent); color: #fff;
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'Zen Maru Gothic', sans-serif; font-weight: 900; font-size: 15pt;
+    margin-top: 2px;
+  }
+  .step h2 { font-size: 13pt; font-weight: 900; margin-bottom: 3px; }
+  .step h2 .em { margin-right: 4px; }
+  .step p { margin: 3px 0; }
+  .step .body { min-width: 0; flex: 1; }
+
+  /* だいじ！コールアウト */
+  .important {
+    background: var(--amber-soft);
+    border: 2.5px solid var(--amber);
+    border-radius: 12px;
+    padding: 9px 13px;
+    margin: 8px 0 2px;
+    display: flex; gap: 10px; align-items: flex-start;
+  }
+  .important .tag {
+    flex: 0 0 auto;
+    background: var(--amber); color: #fff;
+    font-family: 'Zen Maru Gothic', sans-serif; font-weight: 900; font-size: 10.5pt;
+    border-radius: 8px; padding: 3px 10px; margin-top: 2px;
+    white-space: nowrap;
+  }
+  .important p { margin: 0; }
+  .important b { color: var(--amber); }
+
+  .hint {
+    background: var(--accent-soft); border-radius: 10px;
+    padding: 6px 12px; margin-top: 6px; font-size: 9.5pt;
+  }
+
+  /* 答え方の流れ */
+  .flow { display: flex; gap: 7px; margin: 8px 0 4px; }
+  .flow .f {
+    flex: 1; background: #f7f8fc; border: 1.5px solid var(--line); border-radius: 12px;
+    padding: 8px 9px; text-align: center; font-size: 9pt; line-height: 1.55; position: relative;
+  }
+  .flow .f .em { font-size: 22px; display: block; margin-bottom: 3px; }
+  .flow .f b { font-family: 'Zen Maru Gothic', sans-serif; font-size: 9.5pt; display: block; margin-bottom: 1px; }
+  .flow .arrow { align-self: center; color: var(--accent); font-weight: 900; font-size: 13pt; }
+
+  .okng { display: flex; gap: 8px; margin-top: 8px; }
+  .okng .box { flex: 1; border-radius: 12px; padding: 7px 12px; font-size: 9.5pt; }
+  .okng .ok { background: var(--green-soft); border: 1.5px solid var(--green); }
+  .okng .ok b { color: var(--green); font-family: 'Zen Maru Gothic', sans-serif; }
+  .okng .ng { background: var(--red-soft); border: 1.5px solid var(--red); }
+  .okng .ng b { color: var(--red); font-family: 'Zen Maru Gothic', sans-serif; }
+
+  /* クリアルール */
+  .rule {
+    display: flex; gap: 8px; margin-top: 4px;
+  }
+  .rule .r {
+    flex: 1; border: 2px dashed var(--accent); border-radius: 12px;
+    padding: 8px 12px; background: #fff; font-size: 9.5pt; text-align: center;
+  }
+  .rule .r b { font-family: 'Zen Maru Gothic', sans-serif; font-size: 12pt; color: var(--accent); display: block; }
+
+  /* コツ */
+  .tips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 5px; }
+  .tips .t {
+    background: var(--green-soft); border-radius: 999px; padding: 3px 12px;
+    font-size: 9.5pt; border: 1px solid #b7dfc6;
+  }
+
+  /* こまったとき */
+  table { border-collapse: collapse; width: 100%; margin-top: 6px; font-size: 9.5pt; }
+  th {
+    background: var(--accent); color: #fff; text-align: left;
+    font-family: 'Zen Maru Gothic', sans-serif; font-weight: 700;
+    padding: 5px 12px; font-size: 9.5pt;
+  }
+  th:first-child { border-radius: 8px 0 0 0; width: 42%; }
+  th:last-child { border-radius: 0 8px 0 0; }
+  td { border-bottom: 1.5px solid var(--line); padding: 6px 12px; vertical-align: top; }
+  td:first-child { font-weight: 700; }
+
+  .foot {
+    position: absolute; left: 14mm; right: 14mm; bottom: 8mm;
+    display: flex; justify-content: space-between;
+    color: var(--muted); font-size: 8pt;
+    border-top: 1px solid var(--line); padding-top: 4px;
+  }
+  .url-box {
+    background: #f7f8fc; border: 1.5px solid var(--line); border-radius: 10px;
+    padding: 5px 12px; margin-top: 4px; font-size: 10pt;
+  }
+  .url-box code { font-family: 'Noto Sans JP', monospace; font-weight: 700; color: var(--accent); }
+</style>
+
+<!-- ============ 1ページ目 ============ -->
+<div class="page">
+  <div class="head">
+    <span class="invader">👾</span>
+    <div>
+      <h1>えいごゲーム あそびかたガイド</h1>
+      <div class="sub">English Speaking Drill — 声でこたえて、エイリアンをたおそう！</div>
+    </div>
+    <div class="who">生徒用<br>ガイド</div>
+  </div>
+
+  <div class="ready">
+    <div class="item"><span class="em">💻</span><b>パソコン</b><br>Google Chrome で開く</div>
+    <div class="item"><span class="em">🎤</span><b>マイク</b><br>パソコン内蔵でOK</div>
+    <div class="item"><span class="em">🎧</span><b>イヤホン</b><br>あると聞きやすい</div>
+    <div class="item"><span class="em">🤫</span><b>しずかな場所</b><br>声を聞き取りやすく</div>
+  </div>
+
+  <div class="step">
+    <div class="no">1</div>
+    <div class="body">
+      <h2><span class="em">🔑</span>ログインする</h2>
+      <p>Google Chrome でゲームのページを開いて、先生からもらった <b>User ID</b> と <b>Password</b> を入力し、<b>LOGIN</b> ボタンを押します。</p>
+      <div class="url-box">アクセスするところ → <code>https://invader-game-english.vercel.app/</code></div>
+      <div class="important">
+        <span class="tag">⏰ だいじ！</span>
+        <p>ログインボタンを押したあと、<b>1分くらい待つことがあります</b>。<br>
+        「サーバーを起動しています…」と出ても、こわれていません。<b>そのまま待ってね</b>。ボタンを何度も押さなくてだいじょうぶ！</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="step">
+    <div class="no">2</div>
+    <div class="body">
+      <h2><span class="em">🗺️</span>ステージをえらぶ</h2>
+      <p><b>Grade</b>（学年）→ <b>Part</b> → <b>Subpart</b> のじゅんにえらんで、<b>Game Start</b> を押します。今までに進んだところまでえらべます。まよったら、最初から出ているステージ（いちばん新しいところ）でOK！</p>
+      <div class="hint">💡 ここでも画面が変わるまで<b>すこし時間がかかる</b>ことがあります。あわてず待ちましょう。</div>
+    </div>
+  </div>
+
+  <div class="step">
+    <div class="no">3</div>
+    <div class="body">
+      <h2><span class="em">🚀</span>ゲームをはじめる</h2>
+      <p>ステージのせつめい（Requirement）を読んで、<b>Start</b> を押します。</p>
+      <p>さいしょの1問は<b>デモ（見本）</b>です。左に「デモ」と出ている間は、<b>見ているだけでOK</b>。答え方のお手本が自動で流れます。そのあと、本番の問題が <b>1〜7</b> のばんごうで出てきます。</p>
+    </div>
+  </div>
+
+  <div class="foot">
+    <span>ポップ英語教室 — English Speaking Drill</span>
+    <span>1 / 2</span>
+  </div>
+</div>
+
+<!-- ============ 2ページ目 ============ -->
+<div class="page">
+  <div class="step">
+    <div class="no">4</div>
+    <div class="body">
+      <h2><span class="em">🎤</span>こたえかた</h2>
+      <div class="flow">
+        <div class="f"><span class="em">🔊</span><b>① 問題を聞く</b>問題文が<br>2回読まれるよ</div>
+        <div class="arrow">→</div>
+        <div class="f"><span class="em">🔫</span><b>② ガンボタンを押す</b>マイクON！<br>MIC:ON が赤くなる</div>
+        <div class="arrow">→</div>
+        <div class="f"><span class="em">🗣️</span><b>③ 英語で答える</b>マイクに向かって<br>はっきり話す</div>
+        <div class="arrow">→</div>
+        <div class="f"><span class="em">🔫</span><b>④ もう一度押す</b>はんてい！<br>ドキドキ…</div>
+      </div>
+      <div class="okng">
+        <div class="box ok"><b>⭕ 正解！</b> ビームでエイリアンにこうげき！そのあと正解の音声が流れます。</div>
+        <div class="box ng"><b>❌ ざんねん…</b> 時間内なら<b>何度でも</b>チャレンジできる！もう一度ガンボタンを押そう。</div>
+      </div>
+      <p style="margin-top:7px">⏱️ 答える時間は <b>30秒</b>（のこり10秒で赤くなります）。時間切れになったら正解が流れて、つぎの問題へ進みます。</p>
+    </div>
+  </div>
+
+  <div class="step">
+    <div class="no">5</div>
+    <div class="body">
+      <h2><span class="em">🏆</span>クリアとつぎのステージ</h2>
+      <div class="rule">
+        <div class="r"><b>5問 正解</b>7問中5問あてたら<br>ステージクリア！</div>
+        <div class="r"><b>3回 ちょうせん</b>クリアできなくても、同じステージを3回やれば<br>つぎのステージが開くよ</div>
+        <div class="r"><b>Ranking 🏆</b>ステージ選択画面から見られる。<br>Tries＝挑戦の回数 ／ Best Scores＝正解率。毎月リセット！</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="step">
+    <div class="no">6</div>
+    <div class="body">
+      <h2><span class="em">✨</span>うまく聞き取ってもらうコツ</h2>
+      <div class="tips">
+        <span class="t">✅ はっきり、ふつうの速さで</span>
+        <span class="t">✅ 文のさいしょからさいごまで言い切る</span>
+        <span class="t">✅ しずかな場所でやる</span>
+        <span class="t">✅ 「🎤ガンボタンをおして こたえてね」が出たら押すあいず</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="step">
+    <div class="no">7</div>
+    <div class="body">
+      <h2><span class="em">🆘</span>こまったときは</h2>
+      <table>
+        <tr><th>こんなとき</th><th>こうしよう</th></tr>
+        <tr>
+          <td>🔇 問題の音が聞こえない</td>
+          <td>「<b>もういちど聞く</b>」ボタンを押す。パソコンの音量もかくにん。</td>
+        </tr>
+        <tr>
+          <td>🧊 「画面が停止しました」と出た</td>
+          <td>「<b>リトライ</b>」を押せば、同じ問題からやり直せます。</td>
+        </tr>
+        <tr>
+          <td>😵 画面がおかしい・とちゅうで止まった</td>
+          <td>ページを<b>再読み込み</b>（Ctrl＋R または F5）して、もう一度ログイン。とちゅうまでの記録はのこっています。</td>
+        </tr>
+        <tr>
+          <td>🙋 それでもなおらない</td>
+          <td><b>先生に伝えよう</b>。「どのステージの、何番の問題か」をメモしておくと、すぐなおせます。</td>
+        </tr>
+      </table>
+    </div>
+  </div>
+
+  <div class="foot">
+    <span>ポップ英語教室 — English Speaking Drill（2026-08-31版）</span>
+    <span>2 / 2</span>
+  </div>
+</div>
