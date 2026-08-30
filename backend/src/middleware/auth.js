@@ -17,7 +17,8 @@ if (!JWT_SECRET) {
   }
 }
 
-const JWT_EXPIRES_IN = '24h';
+// ログイン有効期限 (2026-08-30 要望No.169で24時間→7日に延長。Cookie側のmaxAgeと揃えること)
+const JWT_EXPIRES_IN = '7d';
 
 /**
  * JWTトークンを生成する

@@ -3,6 +3,10 @@
     {
       "source": "/api/:path*",
       "destination": "https://invader-game-api.onrender.com/:path*"
+    },
+    {
+      "source": "/(.*)",
+      "destination": "/index.html"
     }
   ]
 }

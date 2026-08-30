@@ -104,7 +104,7 @@ router.post('/login',
         httpOnly: true,
         secure: isProduction,
         sameSite: isProduction ? 'none' : 'lax',
-        maxAge: 24 * 60 * 60 * 1000,
+        maxAge: 7 * 24 * 60 * 60 * 1000, // JWT_EXPIRES_IN(7日)と同期 (要望No.169)
       });
 
       return res.json({

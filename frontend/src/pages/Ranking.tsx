@@ -3,6 +3,7 @@ import React, { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import Button from '../components/Button'
 import { apiFetch } from '../utils/apiClient'
+import { COLD_START_API_TIMEOUT_MS } from '../constants/game'
 import './Ranking.css'
 
 type RankItem = { userId: string; name: string; }
@@ -24,7 +25,7 @@ const Ranking: React.FC = () => {
         const json = await apiFetch<{
           month?: string
           items?: { challenge?: RankItem[]; accuracy?: RankItem[] }
-        }>('/ranking')
+        }>('/ranking', {}, { timeoutMs: COLD_START_API_TIMEOUT_MS })
 
         if (cancelled) return
         setMonth(json.month ?? '')
@@ -68,7 +69,7 @@ const Ranking: React.FC = () => {
 
       <div className="rank-grid">
         <section className="panel">
-          <h2 className="rank-heading">Number of try</h2>
+          <h2 className="rank-heading">Tries</h2>
           <ol className="rank-list">
             {(challenge ?? []).slice(0, 3).map((it, i) => (
               <li key={`${it.userId || 'u'}-${i}`} className="rank-row">

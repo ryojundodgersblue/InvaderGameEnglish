@@ -9,12 +9,47 @@ const router = express.Router();
 
 // 合成ロジックの版数。発音補正・SSML構造を変更したら上げる
 // (キャッシュキーに混入し、旧ロジックで合成済みの音声を確実に無効化する)
-const TTS_CACHE_VERSION = '2';
+// v3: readの文単位発音(No.155/182) + Botchan/drank/does not補正(No.156/181/183)
+const TTS_CACHE_VERSION = '3';
 
-// 同音異義語の発音マッピング（現在形で読ませたい単語）
+// 全文一律で適用する単語の発音マッピング
+// ※readは文脈で発音が変わるため、ここではなく下のPAST_READ_TEXTSで文単位に扱う
 const PRONUNCIATION_OVERRIDES = {
-  'read': { phoneme: 'riːd', comment: '現在形: /riːd/ (過去形 /red/ を避ける)' },
+  // No.183: drank が drink に聞こえる → 過去形の母音を明示
+  'drank': { phoneme: 'dræŋk', comment: '過去形: /dræŋk/' },
+  // No.156: 固有名詞 Botchan(坊っちゃん)。カタログ反映で登場した時点で効く。※要試聴
+  'Botchan': { phoneme: 'ˈbɑːttʃɑːn', comment: '坊っちゃん(近似発音・要試聴)' },
 };
+
+// read を過去形/過去分詞 /red/ で読む文(完全一致・要望No.155/182)。
+// デフォルトは No.152 どおり現在形 /riːd/。
+// ※問題カタログの文言修正(482問)で本文が変わった場合はここも追随させること
+const PAST_READ_TEXTS = new Set([
+  'They read a book yesterday.',                                // 1-46-2-2 解答 (No.182)
+  'She read the book last night.',                              // 2-38-2-2 問題文
+  'The book was read by her last night.',                       // 2-38-2-2 解答(受け身)
+  'What is read by many students?',                             // 2-41-2-8 問題文(受け身)
+  'This book is read by many students.',                        // 2-41-2-8 解答(受け身)
+  'Have you ever read "Harry Potter"?',                         // 2-42-1-7 問題文(現在完了)
+  'Has he read this book yet?',                                 // 2-47-1-7 問題文(現在完了)
+  'He has already read this book.',                             // 2-47-1-7 解答(現在完了)
+  'I read a book about the history.',                           // 3-24-2-4 解答 (No.155)
+  'It is a book read by many students.',                        // 3-26-1-6 解答 (No.155)
+  'She read a letter. The letter was written in English.',      // 3-26-2-3 問題文 (No.155)
+  'She read a letter written in English.',                      // 3-26-2-3 解答 (No.155)
+  'He read a book. The book was written by a famous writer.',   // 3-26-2-6 問題文 (No.155)
+  'He read a book written by a famous writer.',                 // 3-26-2-6 解答 (No.155)
+  'I read a book. The book was interesting.',                   // 3-27-2-1 問題文 (No.155)
+  'The book I read was interesting.',                           // 3-27-2-1 解答 (No.155)
+  'This is a book. I read it yesterday.',                       // 3-30-1-1 問題文 (No.155)
+  'This is a book that I read yesterday.',                      // 3-30-1-1 解答 (No.155)
+]);
+
+// 文単位のSSML微調整(No.181: does not が連結して聞こえる)。
+// キー=完全一致の原文、値=エスケープ後テキストへの置換関数。※要試聴
+const SENTENCE_TWEAKS = new Map([
+  ['He does not play golf.', (escaped) => escaped.replace('does not', 'does <break time="120ms"/>not')],
+]);
 
 // SSML用のXMLエスケープ
 function escapeSsml(text) {
@@ -29,20 +64,33 @@ function escapeSsml(text) {
 /**
  * テキストをSSMLに変換する。
  * - 先頭に200msの無音を入れる(再生開始時に冒頭の音が欠ける問題への対策)
- * - 同音異義語をSSML <phoneme> タグで発音補正する
+ * - read: 文単位マップ(PAST_READ_TEXTS)にあれば /red/、なければ /riːd/ (No.152/155/182)
+ * - その他の同音異義語・固有名詞を <phoneme> で補正
+ * - 表示テキストは変えない(Data Specs E24: 読み上げ・表示は同一テキストが仕様)
  * @param {string} text - 元のテキスト
  * @returns {string} SSML
  */
 function buildSsml(text) {
+  const raw = String(text).trim();
   let result = escapeSsml(text);
 
+  // read の文単位発音
+  const readPhoneme = PAST_READ_TEXTS.has(raw) ? 'red' : 'riːd';
+  result = result.replace(/\bread\b/gi, (match) =>
+    `<phoneme alphabet="ipa" ph="${readPhoneme}">${match}</phoneme>`
+  );
+
+  // 全文一律の単語補正
   for (const [word, { phoneme }] of Object.entries(PRONUNCIATION_OVERRIDES)) {
-    // 単語境界でマッチ（大文字小文字を区別しない）
     const regex = new RegExp(`\\b${word}\\b`, 'gi');
     result = result.replace(regex, (match) =>
       `<phoneme alphabet="ipa" ph="${phoneme}">${match}</phoneme>`
     );
   }
+
+  // 文単位の微調整
+  const tweak = SENTENCE_TWEAKS.get(raw);
+  if (tweak) result = tweak(result);
 
   return `<speak><break time="200ms"/>${result}</speak>`;
 }
@@ -114,3 +162,7 @@ router.get('/voices', authenticateToken, async (req, res) => {
 });
 
 module.exports = router;
+// テスト用エクスポート(ルーター関数のプロパティとして付与)
+module.exports.buildSsml = buildSsml;
+module.exports.TTS_CACHE_VERSION = TTS_CACHE_VERSION;
+module.exports.PAST_READ_TEXTS = PAST_READ_TEXTS;

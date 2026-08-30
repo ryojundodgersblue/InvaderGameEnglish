@@ -10,12 +10,14 @@ const ResultPage: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { logout } = useAuth();
-  const state = location.state as { clear?: boolean; correct?: number; total?: number; advanced?: boolean; requiredAttempts?: number } | null;
+  const state = location.state as { clear?: boolean; correct?: number; total?: number; advanced?: boolean; requiredAttempts?: number; finalStage?: boolean } | null;
 
   const clear = state?.clear ?? false;
   const correct = state?.correct ?? 0;
   const total = state?.total ?? 0;
   const advanced = state?.advanced ?? false;
+  // 最終ステージ到達(advance応答 reason='last part reached')
+  const finalStage = state?.finalStage ?? false;
   // 解放に必要な挑戦回数(バックエンド応答値)。取得できない場合は現仕様の3回
   const requiredAttempts = state?.requiredAttempts ?? 3;
 
@@ -63,12 +65,18 @@ const ResultPage: React.FC = () => {
           <div style={{ fontSize: 36, color: getScoreColor() }}>{percentage}%</div>
         </div>
 
-        {clear ? (
+        {/* 「解放されました」は実際に解放が起きたとき(advanced)だけ表示する (要望No.162)。
+            過去ステージの再クリアでは出さず、最終ステージは全クリアの文言にする */}
+        {clear && finalStage ? (
+          <div style={{ fontSize: 18, color: '#facc15', marginBottom: 30 }}>全ステージクリア！おめでとう！🎊</div>
+        ) : advanced && clear ? (
           <div style={{ fontSize: 18, color: '#94a3b8', marginBottom: 30 }}>次のステージが解放されました！</div>
         ) : advanced ? (
           <div style={{ fontSize: 18, color: '#94a3b8', marginBottom: 30 }}>
             {requiredAttempts}回挑戦したため、次のステージが解放されました！
           </div>
+        ) : clear ? (
+          <div style={{ fontSize: 18, color: '#94a3b8', marginBottom: 30 }}>よくがんばりました！</div>
         ) : (
           <div style={{ fontSize: 18, color: '#94a3b8', marginBottom: 30 }}>
             {total > 0 && Math.max(0, CORRECT_TO_CLEAR - correct) > 0 && <>あと {Math.max(0, CORRECT_TO_CLEAR - correct)} 問正解でクリア！</>}

@@ -5,6 +5,8 @@ import Button from '../components/Button'
 import Dropdown from '../components/Dropdown'
 import { useAuth } from '../hooks/useAuth'
 import { apiFetch, formatApiError, ApiError } from '../utils/apiClient'
+import { unlockAudio } from '../utils/ttsAudio'
+import { COLD_START_API_TIMEOUT_MS } from '../constants/game'
 import '../App.css'
 
 // partsテーブルから取得したオプションの型
@@ -53,7 +55,7 @@ const SelectPage: React.FC = () => {
           ok: boolean
           options: PartOptions
           currentProgress?: { grade: number; part: number; subpart: number }
-        }>(`/select/options?user_id=${session.userId}`)
+        }>(`/select/options?user_id=${session.userId}`, {}, { timeoutMs: COLD_START_API_TIMEOUT_MS })
 
 
         setAllOptions(data.options)
@@ -181,20 +183,15 @@ const SelectPage: React.FC = () => {
   }
 
   const onGameStart = async () => {
-    // ブラウザの音声自動再生ブロックを解除するため、ユーザーアクション時に無音を再生
-    try {
-      // 超短い無音のWAVデータ
-      const silentAudio = new Audio('data:audio/wav;base64,UklGRigAAABXQVZFZm10IBIAAAABAAEARKwAAIhYAQACABAAAABkYXRhAgAAAAEA')
-      silentAudio.volume = 0
-      silentAudio.play().catch(() => {})
-    } catch (e) {
-      console.warn('Audio unlock failed:', e)
-    }
+    // ブラウザの音声自動再生ブロックを解除する。
+    // 使い捨てのAudioではなく共有Audio要素をアンロックする(iOSは解除が要素単位のため: No.177)
+    unlockAudio()
 
     // 組み合わせの検証（オプション）
     try {
       const validateData = await apiFetch<{ ok: boolean; valid: boolean; message?: string }>(
-        `/select/validate?grade=${grade}&part=${part}&subpart=${subpart}`
+        `/select/validate?grade=${grade}&part=${part}&subpart=${subpart}`,
+        {}, { timeoutMs: COLD_START_API_TIMEOUT_MS }
       )
       if (!validateData.valid) {
         setError('選択された組み合わせは無効です')

@@ -2,6 +2,7 @@
 // すべてのAPIエラーを「エラーコード付き」で扱えるようにし、
 // 認証切れ(401)を検知したら登録済みハンドラでログイン画面へ誘導する。
 import { API_URL } from '../config';
+import { API_TIMEOUT_MS, LOGIN_API_TIMEOUT_MS } from '../constants/game';
 
 export class ApiError extends Error {
   /** エラーコード(例: AUTH-001, NET-001)。保守時の特定用 */
@@ -47,16 +48,34 @@ export function notifyUnauthorized() {
  * - 401: セッション破棄+ログイン画面誘導を発火し、AUTH-001 を投げる (No139/No140)
  * - {ok:false, code, message} 形式のエラーを ApiError として投げる
  * - ネットワーク断: NET-001 / タイムアウト・中断: NET-002
+ * - 無応答は15秒でタイムアウト(最終問題の完全ハング対策)。
+ *   ログインAPIのみコールドスタート吸収のため60秒(「サーバー起動中…」表示と整合)。
+ *   ※AbortSignal.timeoutは旧Safari非対応のため使わない
  */
-export async function apiFetch<T = unknown>(path: string, init: RequestInit = {}): Promise<T> {
+export async function apiFetch<T = unknown>(
+  path: string,
+  init: RequestInit = {},
+  opts: { timeoutMs?: number } = {}
+): Promise<T> {
+  const timeoutMs = opts.timeoutMs ?? (path.startsWith('/auth/') ? LOGIN_API_TIMEOUT_MS : API_TIMEOUT_MS);
+  const controller = new AbortController();
+  const timer = window.setTimeout(() => controller.abort(), timeoutMs);
+  // 呼び出し元のsignalも尊重する(現状の呼び出しでは未使用だが将来の中断用)
+  const externalSignal = init.signal;
+  const onExternalAbort = () => controller.abort();
+  externalSignal?.addEventListener('abort', onExternalAbort);
+
   let res: Response;
   try {
-    res = await fetch(`${API_URL}${path}`, { credentials: 'include', ...init });
+    res = await fetch(`${API_URL}${path}`, { credentials: 'include', ...init, signal: controller.signal });
   } catch (err) {
     if (err instanceof DOMException && (err.name === 'AbortError' || err.name === 'TimeoutError')) {
       throw new ApiError('NET-002', 0, 'サーバーの応答がありません（タイムアウト）');
     }
     throw new ApiError('NET-001', 0, 'サーバーに接続できません');
+  } finally {
+    window.clearTimeout(timer);
+    externalSignal?.removeEventListener('abort', onExternalAbort);
   }
 
   // 認証切れ: ログイン画面へ誘導(ログインAPI自体の401は「認証失敗」なので対象外)
